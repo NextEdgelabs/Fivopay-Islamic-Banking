@@ -1,0 +1,185 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --color-accent-blue: #375dfb;
+  --color-accent-purple: #9c27b0;
+  --color-accent-yellow: #f9a826;
+  --color-accent-green: #00b894;
+  --color-accent-red: #e53935;
+  --color-card-bg: #fff;
+  --color-border: #e0e6f1;
+  --color-scrollbar-bg: #d6e0ef;
+  --color-primary-text: #0a0f2c;
+  --color-secondary-text: #4b5563;
+  --color-disabled-text: #a0aec0;
+  --radius-card: 16px;
+  --radius-btn: 8px;
+  --sidebar-width: 260px;
+  --font-admin: 'Poppins', var(--font-geist-sans), Arial, sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --color-accent-blue: #5d6dff;
+    --color-accent-purple: #e14eff;
+    --color-accent-yellow: #f2c94c;
+    --color-accent-green: #00d09c;
+    --color-accent-red: #ff3b3b;
+    --color-card-bg: #141d46;
+    --color-border: #2f3c7e;
+    --color-scrollbar-bg: #1f2756;
+    --color-primary-text: #fff;
+    --color-secondary-text: #a1b3d1;
+    --color-disabled-text: #6b7b99;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Admin theme utility classes */
+.admin-card {
+  background: var(--color-card-bg);
+  border-radius: var(--radius-card);
+  box-shadow: 0 2px 16px 0 rgba(60, 60, 120, 0.08);
+  padding: 20px;
+  border: 1px solid var(--color-border);
+}
+
+.admin-btn {
+  border-radius: var(--radius-btn);
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-family: var(--font-admin);
+  background: var(--color-accent-blue);
+  color: #fff;
+  border: none;
+  transition: box-shadow 0.2s, background 0.2s;
+  box-shadow: 0 0 0 0 transparent;
+  cursor: pointer;
+}
+.admin-btn:hover {
+  background: #4c6fff;
+  box-shadow: 0 0 8px 2px var(--color-accent-blue, #375dfb);
+}
+
+.admin-link {
+  color: var(--color-accent-blue);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.admin-sidebar {
+  width: var(--sidebar-width);
+  background: var(--color-card-bg);
+  border-right: 1px solid var(--color-border);
+  min-height: 100vh;
+  padding: 32px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 32px;
+  color: var(--color-secondary-text);
+  font-weight: 500;
+  border-left: 4px solid transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  border-radius: 0 8px 8px 0;
+  font-family: var(--font-admin);
+}
+.admin-sidebar-link.active,
+.admin-sidebar-link:hover {
+  background: rgba(93, 109, 255, 0.08);
+  color: var(--color-accent-blue);
+  border-left: 4px solid var(--color-accent-blue);
+}
+
+.admin-content {
+  flex: 1;
+  padding: 32px;
+  background: var(--background);
+  min-height: 100vh;
+  font-family: var(--font-admin);
+}
+
+.admin-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary-text);
+  margin-bottom: 24px;
+  font-family: var(--font-admin);
+}
+
+.admin-form-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-primary-text);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.admin-form-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  color: var(--color-primary-text);
+  font-size: 1rem;
+  margin-bottom: 16px;
+  font-family: var(--font-admin);
+}
+
+.admin-form-input:focus {
+  outline: none;
+  border-color: var(--color-accent-blue);
+  box-shadow: 0 0 0 2px var(--color-accent-blue, #375dfb, 0.15);
+}
+
+.admin-form-error {
+  color: var(--color-accent-red);
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 900px) {
+  .admin-sidebar {
+    width: 100%;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+    min-height: unset;
+    padding: 0;
+    gap: 0;
+  }
+  .admin-sidebar-link {
+    border-radius: 0;
+    padding: 16px 20px;
+    border-left: none;
+    border-bottom: 4px solid transparent;
+  }
+  .admin-sidebar-link.active,
+  .admin-sidebar-link:hover {
+    border-left: none;
+    border-bottom: 4px solid var(--color-accent-blue);
+  }
+}
