@@ -68,6 +68,23 @@ const navigation = [
     ],
   },
   {
+    name: "Deposit Management",
+    href: "/dashboard/deposit-management",
+    icon: BanknotesIcon,
+    subItems: [
+      {
+        name: "FD Product Management",
+        href: "/dashboard/deposit-management/fd-product-management",
+        icon: BanknotesIcon,
+      },
+      {
+        name: "RD Product Management",
+        href: "/dashboard/deposit-management/rd-product-management",
+        icon: BanknotesIcon,
+      },
+    ],
+  },
+  {
     name: "Reports",
     href: "/dashboard/reports",
     icon: ClipboardDocumentListIcon,
