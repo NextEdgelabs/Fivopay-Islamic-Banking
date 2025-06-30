@@ -36,7 +36,7 @@ export default function CustomerListPage() {
 
   // Sort customers
   const sortedCustomers = [...filteredCustomers].sort((a, b) => {
-    let valueA: any, valueB: any;
+    let valueA: string | number | Date, valueB: string | number | Date;
     
     // Determine which property to sort by
     switch (sortBy) {

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { 
   ArrowLeftIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon,
   InformationCircleIcon,
   BanknotesIcon,
   DocumentTextIcon,
@@ -66,7 +65,7 @@ export default function CreateProductPage() {
     status: 'Draft'
   });
 
-  const [errors, setErrors] = useState<Partial<ProductFormData>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const productTypes = [
@@ -111,7 +110,11 @@ export default function CreateProductPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 
@@ -125,7 +128,7 @@ export default function CreateProductPage() {
   };
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<ProductFormData> = {};
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) newErrors.name = 'Product name is required';
     if (!formData.type) newErrors.type = 'Product type is required';
