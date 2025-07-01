@@ -10,7 +10,10 @@ import {
   CreditCardIcon,
   XCircleIcon,
   EyeIcon,
-  ArrowDownTrayIcon
+  ArrowDownTrayIcon,
+  CalendarDaysIcon,
+  PlusIcon,
+  XMarkIcon
 } from "@heroicons/react/24/outline";
 
 interface DisbursementStage {
@@ -36,12 +39,27 @@ interface Disbursement {
   completedDate?: string;
   stages: DisbursementStage[];
   riskFlags: string[];
+  branch?: string;
+  contactNumber?: string;
+  hasRepaymentSchedule?: boolean;
+}
+
+interface RepaymentSchedule {
+  disbursementId: string;
+  customerName: string;
+  loanAccount: string;
+  dueDate: string;
+  amount: number;
+  branch: string;
+  contactNumber: string;
 }
 
 export default function DisbursementJourneyPage() {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedDisbursement, setSelectedDisbursement] = useState<Disbursement | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showRepaymentModal, setShowRepaymentModal] = useState(false);
+  const [repaymentDate, setRepaymentDate] = useState('');
 
   const disbursementStagesTemplate: DisbursementStage[] = [
     { id: '1', name: 'Final Verification', status: 'pending', estimatedTime: '2 hours' },
@@ -65,6 +83,8 @@ export default function DisbursementJourneyPage() {
       priority: 'High',
       status: 'In Progress',
       scheduledDate: '2024-01-22',
+      branch: 'Main Branch',
+      contactNumber: '+91 9876543210',
       stages: [
         { ...disbursementStagesTemplate[0], status: 'completed', completedDate: '2024-01-22 09:00' },
         { ...disbursementStagesTemplate[1], status: 'completed', completedDate: '2024-01-22 10:30' },
@@ -73,7 +93,8 @@ export default function DisbursementJourneyPage() {
         { ...disbursementStagesTemplate[4], status: 'pending' },
         { ...disbursementStagesTemplate[5], status: 'pending' }
       ],
-      riskFlags: []
+      riskFlags: [],
+      hasRepaymentSchedule: false
     },
     {
       id: 'DB002',
@@ -88,6 +109,8 @@ export default function DisbursementJourneyPage() {
       status: 'Completed',
       scheduledDate: '2024-01-20',
       completedDate: '2024-01-20 15:45',
+      branch: 'Downtown Branch',
+      contactNumber: '+91 9876543211',
       stages: [
         { ...disbursementStagesTemplate[0], status: 'completed', completedDate: '2024-01-20 09:00' },
         { ...disbursementStagesTemplate[1], status: 'completed', completedDate: '2024-01-20 11:00' },
@@ -96,7 +119,8 @@ export default function DisbursementJourneyPage() {
         { ...disbursementStagesTemplate[4], status: 'completed', completedDate: '2024-01-20 15:30' },
         { ...disbursementStagesTemplate[5], status: 'completed', completedDate: '2024-01-20 15:45' }
       ],
-      riskFlags: []
+      riskFlags: [],
+      hasRepaymentSchedule: true
     },
     {
       id: 'DB003',
@@ -110,6 +134,8 @@ export default function DisbursementJourneyPage() {
       priority: 'Low',
       status: 'On Hold',
       scheduledDate: '2024-01-21',
+      branch: 'Main Branch',
+      contactNumber: '+91 9876543212',
       stages: [
         { ...disbursementStagesTemplate[0], status: 'completed', completedDate: '2024-01-21 09:00' },
         { ...disbursementStagesTemplate[1], status: 'failed' },
@@ -118,7 +144,8 @@ export default function DisbursementJourneyPage() {
         { ...disbursementStagesTemplate[4], status: 'pending' },
         { ...disbursementStagesTemplate[5], status: 'pending' }
       ],
-      riskFlags: ['Insufficient Funds', 'Bank Holiday']
+      riskFlags: ['Insufficient Funds', 'Bank Holiday'],
+      hasRepaymentSchedule: false
     }
   ];
 
@@ -178,6 +205,38 @@ export default function DisbursementJourneyPage() {
   const handleViewDisbursement = (disbursement: Disbursement) => {
     setSelectedDisbursement(disbursement);
     setShowModal(true);
+  };
+
+  const handleCreateRepayment = (disbursement: Disbursement) => {
+    setSelectedDisbursement(disbursement);
+    setShowRepaymentModal(true);
+    setRepaymentDate('');
+  };
+
+  const handleCreateRepaymentSchedule = () => {
+    if (!selectedDisbursement || !repaymentDate) {
+      alert('Please select a repayment date');
+      return;
+    }
+
+    const repaymentSchedule: RepaymentSchedule = {
+      disbursementId: selectedDisbursement.id,
+      customerName: selectedDisbursement.applicantName,
+      loanAccount: selectedDisbursement.loanId,
+      dueDate: repaymentDate,
+      amount: selectedDisbursement.disbursementAmount,
+      branch: selectedDisbursement.branch || 'Main Branch',
+      contactNumber: selectedDisbursement.contactNumber || '+91 9876543210'
+    };
+
+    // Here you would typically send this data to your backend API
+    console.log('Creating repayment schedule:', repaymentSchedule);
+    
+    alert(`Repayment schedule created successfully for ${selectedDisbursement.applicantName}!\nDue Date: ${repaymentDate}\nAmount: ₹${selectedDisbursement.disbursementAmount.toLocaleString()}`);
+    
+    setShowRepaymentModal(false);
+    setSelectedDisbursement(null);
+    setRepaymentDate('');
   };
 
   return (
@@ -314,6 +373,11 @@ export default function DisbursementJourneyPage() {
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityBadge(disbursement.priority)}`}>
                   {disbursement.priority}
                 </span>
+                {disbursement.hasRepaymentSchedule && (
+                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                    Repayment Created
+                  </span>
+                )}
               </div>
             </div>
 
@@ -398,6 +462,17 @@ export default function DisbursementJourneyPage() {
                 <EyeIcon className="h-4 w-4" />
                 <span>View Details</span>
               </button>
+              
+              {disbursement.status === 'Completed' && !disbursement.hasRepaymentSchedule && (
+                <button 
+                  onClick={() => handleCreateRepayment(disbursement)}
+                  className="bg-purple-50 text-purple-600 px-4 py-2 rounded-lg hover:bg-purple-100 transition-colors text-sm flex items-center space-x-1"
+                >
+                  <CalendarDaysIcon className="h-4 w-4" />
+                  <span>Create Repayment</span>
+                </button>
+              )}
+              
               {disbursement.status === 'On Hold' && (
                 <button className="bg-green-50 text-green-600 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors text-sm">
                   Resume
@@ -480,6 +555,90 @@ export default function DisbursementJourneyPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Repayment Modal */}
+      {showRepaymentModal && selectedDisbursement && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Create Repayment Schedule</h3>
+                <button 
+                  onClick={() => setShowRepaymentModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Disbursement Details</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-gray-500">Customer:</span>
+                      <span className="ml-2 font-medium">{selectedDisbursement.applicantName}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Loan Account:</span>
+                      <span className="ml-2 font-medium">{selectedDisbursement.loanId}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Principal Amount:</span>
+                      <span className="ml-2 font-medium">₹{selectedDisbursement.disbursementAmount.toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Branch:</span>
+                      <span className="ml-2 font-medium">{selectedDisbursement.branch}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Repayment Due Date
+                  </label>
+                  <input
+                    type="date"
+                    value={repaymentDate}
+                    onChange={(e) => setRepaymentDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                
+                {repaymentDate && (
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-900 mb-2">Repayment Preview</h4>
+                    <div className="text-sm text-blue-800">
+                      <p>Customer: {selectedDisbursement.applicantName}</p>
+                      <p>Due Date: {new Date(repaymentDate).toLocaleDateString()}</p>
+                      <p>Amount: ₹{selectedDisbursement.disbursementAmount.toLocaleString()}</p>
+                      <p>Days from now: {Math.ceil((new Date(repaymentDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days</p>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    onClick={handleCreateRepaymentSchedule}
+                    disabled={!repaymentDate}
+                    className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    Create Repayment
+                  </button>
+                  <button
+                    onClick={() => setShowRepaymentModal(false)}
+                    className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
             </div>

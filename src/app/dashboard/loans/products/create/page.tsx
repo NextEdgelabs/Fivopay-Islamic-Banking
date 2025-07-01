@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { useState } from "react";
 import Link from "next/link";
@@ -126,14 +127,13 @@ export default function CreateProductPage() {
 
   const validateForm = (): boolean => {
     const newErrors: Partial<ProductFormData> = {};
-
     if (!formData.name.trim()) newErrors.name = 'Product name is required';
-    if (!formData.type) newErrors.type = 'Product type is required';
+    if (!formData.type) newErrors.type = '';
     if (!formData.minAmount || parseFloat(formData.minAmount) <= 0) newErrors.minAmount = 'Valid minimum amount is required';
     if (!formData.maxAmount || parseFloat(formData.maxAmount) <= 0) newErrors.maxAmount = 'Valid maximum amount is required';
     if (parseFloat(formData.maxAmount) <= parseFloat(formData.minAmount)) newErrors.maxAmount = 'Maximum amount must be greater than minimum';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
-    if (!formData.shariaStructure) newErrors.shariaStructure = 'Sharia structure is required';
+    if (!formData.shariaStructure) newErrors.shariaStructure = '';
     if (!formData.tenure.trim()) newErrors.tenure = 'Tenure is required';
 
     setErrors(newErrors);

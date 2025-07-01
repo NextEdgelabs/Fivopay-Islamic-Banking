@@ -703,7 +703,7 @@ export default function DepositManagementPage() {
                   required
                   value={newAccountForm.customerName}
                   onChange={(e) => setNewAccountForm({ ...newAccountForm, customerName: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                   placeholder="Enter customer name"
                 />
               </div>
@@ -716,7 +716,7 @@ export default function DepositManagementPage() {
                     ...newAccountForm, 
                     accountType: e.target.value as NewAccountFormData['accountType']
                   })}
-                  className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                 >
                   <option value="Mudarabah Fixed Deposit">Mudarabah Fixed Deposit</option>
                   <option value="Mudarabah Recurring Deposit">Mudarabah Recurring Deposit</option>
@@ -734,7 +734,7 @@ export default function DepositManagementPage() {
                   min="0"
                   value={newAccountForm.initialDeposit}
                   onChange={(e) => setNewAccountForm({ ...newAccountForm, initialDeposit: Number(e.target.value) })}
-                  className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
 
@@ -750,7 +750,7 @@ export default function DepositManagementPage() {
                       max="15"
                       value={newAccountForm.profitRate}
                       onChange={(e) => setNewAccountForm({ ...newAccountForm, profitRate: Number(e.target.value) })}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
 
@@ -769,7 +769,7 @@ export default function DepositManagementPage() {
                             months: newAccountForm.tenure.months
                           }
                         })}
-                        className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                        className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                       />
                     </div>
                     <div>
@@ -786,7 +786,7 @@ export default function DepositManagementPage() {
                             months: Number(e.target.value)
                           }
                         })}
-                        className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                        className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                       />
                     </div>
                   </div>
@@ -835,7 +835,7 @@ export default function DepositManagementPage() {
                   required
                   value={transactionForm.accountNumber}
                   onChange={(e) => setTransactionForm({ ...transactionForm, accountNumber: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                   placeholder="Enter account number"
                 />
               </div>
@@ -848,7 +848,7 @@ export default function DepositManagementPage() {
                     ...transactionForm, 
                     transactionType: e.target.value as TransactionFormData['transactionType']
                   })}
-                  className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                 >
                   <option value="Deposit">Deposit</option>
                   <option value="Withdrawal">Withdrawal</option>
@@ -865,7 +865,7 @@ export default function DepositManagementPage() {
                   min="0"
                   value={transactionForm.amount}
                   onChange={(e) => setTransactionForm({ ...transactionForm, amount: Number(e.target.value) })}
-                  className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
 
@@ -875,7 +875,7 @@ export default function DepositManagementPage() {
                   value={transactionForm.description}
                   onChange={(e) => setTransactionForm({ ...transactionForm, description: e.target.value })}
                   rows={3}
-                  className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                   placeholder="Enter transaction description"
                 />
               </div>

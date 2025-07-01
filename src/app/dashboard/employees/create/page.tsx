@@ -79,16 +79,14 @@ export default function CreateEmployeePage() {
       const id = addEmployee(newEmployee);
       setNewEmployeeId(id);
       
-      // Show success message
+      // Show success message briefly then redirect
+      setLoading(false);
+      setSuccess(true);
+      
+      // Redirect after success
       setTimeout(() => {
-        setLoading(false);
-        setSuccess(true);
-        
-        // Redirect after success
-        setTimeout(() => {
-          router.push("/dashboard/employees");
-        }, 2000);
-      }, 1000);
+        router.push("/dashboard/employees?created=true");
+      }, 1500);
     } catch (error) {
       console.error("Error creating employee:", error);
       setLoading(false);
@@ -149,7 +147,7 @@ export default function CreateEmployeePage() {
                 type="text"
                 value={formData.firstName}
                 onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
               />
             </div>
@@ -163,7 +161,7 @@ export default function CreateEmployeePage() {
                 type="text"
                 value={formData.lastName}
                 onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
               />
             </div>
@@ -177,7 +175,7 @@ export default function CreateEmployeePage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
               />
             </div>
@@ -191,7 +189,7 @@ export default function CreateEmployeePage() {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               />
             </div>
           </div>
@@ -211,7 +209,7 @@ export default function CreateEmployeePage() {
                 type="text"
                 value={formData.position}
                 onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="e.g., Senior Islamic Banking Specialist"
                 required
               />
@@ -225,7 +223,7 @@ export default function CreateEmployeePage() {
                 id="department"
                 value={formData.department}
                 onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
               >
                 <option value="">Select department</option>
@@ -243,7 +241,7 @@ export default function CreateEmployeePage() {
                 id="role"
                 value={formData.role}
                 onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
               >
                 <option value="">Select role</option>
@@ -266,7 +264,7 @@ export default function CreateEmployeePage() {
                 id="status"
                 value={formData.status}
                 onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as Employee["status"] }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
@@ -287,7 +285,7 @@ export default function CreateEmployeePage() {
                 type="checkbox"
                 checked={formData.shariaCompliant}
                 onChange={(e) => setFormData(prev => ({ ...prev, shariaCompliant: e.target.checked }))}
-                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-slate-300 rounded"
+                className=" h-4 w-4 text-purple-600 focus:ring-purple-500 border-slate-300 rounded"
               />
             </div>
             <div className="ml-3 text-sm">

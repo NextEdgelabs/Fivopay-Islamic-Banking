@@ -12,6 +12,12 @@ import {
   ArrowLeftOnRectangleIcon,
   BanknotesIcon,
   ChevronRightIcon,
+  BuildingOfficeIcon,
+  WalletIcon,
+  ArrowsRightLeftIcon,
+  PresentationChartLineIcon,
+  DocumentChartBarIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { CreditCardIcon } from "@heroicons/react/24/outline";
 
@@ -22,6 +28,11 @@ const navigation = [
     name: "Employee Management",
     href: "/dashboard/employees",
     icon: UserGroupIcon,
+  },
+  {
+    name: "Branch Management",
+    href: "/dashboard/branch-management",
+    icon: BuildingOfficeIcon,
   },
   {
     name: "Loan Management",
@@ -46,6 +57,11 @@ const navigation = [
       {
         name: "Disbursement Journey",
         href: "/dashboard/loans/disbursement",
+        icon: BanknotesIcon,
+      },
+      {
+        name: "Repayment Journey",
+        href: "/dashboard/loans/repayment",
         icon: BanknotesIcon,
       },
     ],
@@ -73,14 +89,46 @@ const navigation = [
     icon: BanknotesIcon,
     subItems: [
       {
-        name: "FD Product Management",
+        name: "FD Product",
         href: "/dashboard/deposit-management/fd-product-management",
         icon: BanknotesIcon,
       },
       {
-        name: "RD Product Management",
+        name: "RD Product",
         href: "/dashboard/deposit-management/rd-product-management",
         icon: BanknotesIcon,
+      },
+    ],
+  },
+  {
+    name: "Cash Management",
+    href: "/dashboard/cash-management",
+    icon: BanknotesIcon,
+    subItems: [
+      {
+        name: "Digital Wallet",
+        href: "/dashboard/cash-management/wallet",
+        icon: WalletIcon,
+      },
+      {
+        name: "Transactions",
+        href: "/dashboard/cash-management/transactions",
+        icon: ArrowsRightLeftIcon,
+      },
+      {
+        name: "Branch Dashboard",
+        href: "/dashboard/cash-management/branch-dashboard",
+        icon: PresentationChartLineIcon,
+      },
+      {
+        name: "Liquidity Report",
+        href: "/dashboard/cash-management/liquidity",
+        icon: DocumentChartBarIcon,
+      },
+      {
+        name: "Interbranch Reports",
+        href: "/dashboard/cash-management/interbranch",
+        icon: ArrowPathIcon,
       },
     ],
   },
@@ -125,9 +173,9 @@ function Sidebar() {
   };
 
   return (
-    <aside className="fixed top-0 left-0 w-64 bg-slate-900 text-white h-screen overflow-hidden">
-      {/* Header */}
-      <div className="p-6 border-b border-slate-800">
+    <aside className="fixed top-0 left-0 w-68 bg-slate-900 text-white h-screen flex flex-col">
+      {/* Header - Fixed at top */}
+      <div className="flex-shrink-0 p-6 border-b border-slate-800">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">FP</span>
@@ -139,106 +187,108 @@ function Sidebar() {
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="p-6 flex-1 overflow-y-auto">
-        <ul className="space-y-2">
-          {navigation.map((item) => {
-            // Fix highlighting logic: Dashboard should only be active when exactly on /dashboard
-            // Other items should be active when on their path or sub-paths
-            const isActive =
-              item.href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname === item.href ||
-                  pathname.startsWith(item.href + "/");
+      {/* Navigation - Scrollable with hidden scrollbar */}
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
+        <div className="p-6">
+          <ul className="space-y-2">
+            {navigation.map((item) => {
+              // Fix highlighting logic: Dashboard should only be active when exactly on /dashboard
+              // Other items should be active when on their path or sub-paths
+              const isActive =
+                item.href === "/dashboard"
+                  ? pathname === "/dashboard"
+                  : pathname === item.href ||
+                    pathname.startsWith(item.href + "/");
 
-            const isExpanded =
-              expandedItems.includes(item.name) ||
-              (item.subItems && pathname.startsWith(item.href + "/"));
+              const isExpanded =
+                expandedItems.includes(item.name) ||
+                (item.subItems && pathname.startsWith(item.href + "/"));
 
-            return (
-              <li key={item.name}>
-                <div className="flex items-center">
-                  <Link
-                    href={item.href}
-                    className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 flex-1 ${
-                      isActive
-                        ? "bg-slate-800 text-white border-r-2 border-blue-500"
-                        : "text-slate-300 hover:bg-slate-800 hover:text-white"
-                    }`}
-                  >
-                    <item.icon className="mr-3 h-5 w-5" />
-                    {item.name}
-                  </Link>
-
-                  {/* Dropdown toggle button for items with subitems */}
-                  {item.subItems && (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        toggleExpanded(item.name);
-                      }}
-                      className="p-2 text-slate-400 hover:text-white transition-colors duration-200"
+              return (
+                <li key={item.name}>
+                  <div className="flex items-center">
+                    <Link
+                      href={item.href}
+                      className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 flex-1 ${
+                        isActive
+                          ? "bg-slate-800 text-white border-r-2 border-blue-500"
+                          : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                      }`}
                     >
-                      <div
-                        className={`transform transition-transform duration-200 ${
-                          isExpanded ? "rotate-90" : "rotate-0"
-                        }`}
-                      >
-                        <ChevronRightIcon className="h-4 w-4" />
-                      </div>
-                    </button>
-                  )}
-                </div>
+                      <item.icon className="mr-3 h-5 w-5" />
+                      {item.name}
+                    </Link>
 
-                {/* Render sub-items with smooth transition */}
-                {item.subItems && (
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                      isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-                    }`}
-                  >
-                    <div className="mt-2 ml-4 space-y-1">
-                      {item.subItems.map((subItem, index) => {
-                        const isSubActive = pathname === subItem.href;
-                        return (
-                          <div
-                            key={subItem.name}
-                            className={`transform transition-all duration-200 ${
-                              isExpanded
-                                ? "translate-x-0 opacity-100"
-                                : "-translate-x-2 opacity-0"
-                            }`}
-                            style={{
-                              transitionDelay: isExpanded
-                                ? `${index * 50}ms`
-                                : "0ms",
-                            }}
-                          >
-                            <Link
-                              href={subItem.href}
-                              className={`flex items-center px-4 py-2 text-xs font-medium rounded-md transition-colors duration-200 ${
-                                isSubActive
-                                  ? "bg-slate-700 text-white border-r-2 border-blue-400"
-                                  : "text-slate-400 hover:bg-slate-700 hover:text-white"
-                              }`}
-                            >
-                              <subItem.icon className="mr-3 h-4 w-4" />
-                              {subItem.name}
-                            </Link>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    {/* Dropdown toggle button for items with subitems */}
+                    {item.subItems && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          toggleExpanded(item.name);
+                        }}
+                        className="p-2 text-slate-400 hover:text-white transition-colors duration-200"
+                      >
+                        <div
+                          className={`transform transition-transform duration-200 ${
+                            isExpanded ? "rotate-90" : "rotate-0"
+                          }`}
+                        >
+                          <ChevronRightIcon className="h-4 w-4" />
+                        </div>
+                      </button>
+                    )}
                   </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+
+                  {/* Render sub-items with smooth transition */}
+                  {item.subItems && (
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                        isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                      }`}
+                    >
+                      <div className="mt-2 ml-4 space-y-1">
+                        {item.subItems.map((subItem, index) => {
+                          const isSubActive = pathname === subItem.href;
+                          return (
+                            <div
+                              key={subItem.name}
+                              className={`transform transition-all duration-200 ${
+                                isExpanded
+                                  ? "translate-x-0 opacity-100"
+                                  : "-translate-x-2 opacity-0"
+                              }`}
+                              style={{
+                                transitionDelay: isExpanded
+                                  ? `${index * 50}ms`
+                                  : "0ms",
+                              }}
+                            >
+                              <Link
+                                href={subItem.href}
+                                className={`flex items-center px-4 py-2 text-xs font-medium rounded-md transition-colors duration-200 ${
+                                  isSubActive
+                                    ? "bg-slate-700 text-white border-r-2 border-blue-400"
+                                    : "text-slate-400 hover:bg-slate-700 hover:text-white"
+                                }`}
+                              >
+                                <subItem.icon className="mr-3 h-4 w-4" />
+                                {subItem.name}
+                              </Link>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </nav>
 
-      {/* User Menu */}
-      <div className="absolute bottom-0 w-64 p-6 border-t border-slate-800">
+      {/* User Menu - Fixed at bottom */}
+      <div className="flex-shrink-0 p-6 border-t border-slate-800">
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center">
             <span className="text-white text-sm">JD</span>
@@ -288,9 +338,9 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar />
-      <div className="flex-1 flex flex-col ml-64">
+      <div className="flex-1 flex flex-col ml-68">
         <Header />
-        <main className="flex-1 p-6 max-w-7xl mx-auto w-full">{children}</main>
+        <main className="flex-1 p-6 max-w-7xl mx-auto w-full overflow-y-auto">{children}</main>
       </div>
     </div>
   );

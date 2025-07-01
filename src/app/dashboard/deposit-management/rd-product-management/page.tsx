@@ -268,14 +268,14 @@ export default function RDProductManagementPage() {
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 w-64 pl-10"
+                className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 w-64 pl-10"
               />
               <FunnelIcon className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
             </div>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2"
+              className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
             >
               <option value="all">All Products</option>
               <option value="active">Active Only</option>
@@ -461,7 +461,7 @@ export default function RDProductManagementPage() {
                     <input
                       type="text"
                       defaultValue={selectedProduct?.productName || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
                   <div>
@@ -469,7 +469,7 @@ export default function RDProductManagementPage() {
                     <input
                       type="text"
                       defaultValue={selectedProduct?.productCode || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
                   <div>
@@ -478,7 +478,7 @@ export default function RDProductManagementPage() {
                       type="number"
                       step="0.1"
                       defaultValue={selectedProduct?.profitRate || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
                   <div>
@@ -486,7 +486,7 @@ export default function RDProductManagementPage() {
                     <input
                       type="text"
                       defaultValue={selectedProduct?.maturityBenefit || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
                   <div>
@@ -494,7 +494,7 @@ export default function RDProductManagementPage() {
                     <input
                       type="number"
                       defaultValue={selectedProduct?.minMonthlyAmount || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
                   <div>
@@ -502,7 +502,7 @@ export default function RDProductManagementPage() {
                     <input
                       type="number"
                       defaultValue={selectedProduct?.maxMonthlyAmount || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
                 </div>
@@ -512,7 +512,7 @@ export default function RDProductManagementPage() {
                   <textarea
                     rows={3}
                     defaultValue={selectedProduct?.description || ''}
-                    className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
 

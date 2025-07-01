@@ -17,6 +17,7 @@ import {
   CurrencyRupeeIcon,
   ArrowDownTrayIcon,
   PrinterIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 interface LoanStats {
@@ -83,17 +84,43 @@ interface Collection {
   days: number;
 }
 
+interface ProfitProduct {
+  type: string;
+  rate: string;
+  structure: string;
+}
+
 const tabs = [
   { id: 'applications', name: 'Loan Applications', icon: DocumentTextIcon },
   { id: 'accounts', name: 'Loan Accounts', icon: BanknotesIcon },
   { id: 'disbursements', name: 'Disbursements', icon: ArrowTrendingUpIcon },
   { id: 'collections', name: 'Collections', icon: ArrowTrendingDownIcon },
-  { id: 'interest', name: 'Interest Management', icon: CalculatorIcon },
+  { id: 'profit', name: 'Profit', icon: CalculatorIcon },
   { id: 'reports', name: 'Loan Reports', icon: ChartBarIcon },
 ];
 
 export default function LoansDashboard() {
   const [activeTab, setActiveTab] = useState('applications');
+  const [showProfitCalculator, setShowProfitCalculator] = useState(false);
+  const [showRateManager, setShowRateManager] = useState(false);
+  const [showUpdateRate, setShowUpdateRate] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<ProfitProduct | null>(null);
+
+  // Profit Calculator State
+  const [calculatorData, setCalculatorData] = useState({
+    principal: '',
+    tenure: '',
+    rate: '',
+    structure: 'Murabaha'
+  });
+
+  // Rate Manager State
+  const [rateData, setRateData] = useState({
+    productType: '',
+    newRate: '',
+    effectiveDate: '',
+    reason: ''
+  });
 
   // Mock data - replace with actual API calls
   const stats: LoanStats = {
@@ -291,6 +318,46 @@ export default function LoansDashboard() {
       status: 'error'
     }
   ];
+
+  const profitProducts: ProfitProduct[] = [
+    { type: 'Personal Financing', rate: '8.5%', structure: 'Murabaha' },
+    { type: 'Home Financing', rate: '7.2%', structure: 'Ijara' },
+    { type: 'Business Financing', rate: '60:40', structure: 'Musharakah' },
+    { type: 'Vehicle Financing', rate: '9.1%', structure: 'Murabaha' }
+  ];
+
+  const calculateProfit = () => {
+    const principal = parseFloat(calculatorData.principal);
+    const tenure = parseInt(calculatorData.tenure);
+    const rate = parseFloat(calculatorData.rate);
+    
+    if (principal && tenure && rate) {
+      const monthlyRate = rate / 12 / 100;
+      const emi = principal * monthlyRate * Math.pow(1 + monthlyRate, tenure) / (Math.pow(1 + monthlyRate, tenure) - 1);
+      const totalPayment = emi * tenure;
+      const profit = totalPayment - principal;
+      
+      alert(`Profit Calculation Results:\n\nPrincipal: ₹${principal.toLocaleString()}\nTenure: ${tenure} months\nRate: ${rate}%\nMonthly EMI: ₹${emi.toFixed(2)}\nTotal Profit: ₹${profit.toFixed(2)}`);
+    } else {
+      alert('Please fill in all fields for calculation');
+    }
+  };
+
+  const updateProductRate = (product: ProfitProduct) => {
+    setSelectedProduct(product);
+    setShowUpdateRate(true);
+  };
+
+  const handleRateUpdate = () => {
+    if (rateData.newRate && rateData.effectiveDate) {
+      alert(`Rate updated successfully!\n\nProduct: ${selectedProduct?.type}\nNew Rate: ${rateData.newRate}%\nEffective Date: ${rateData.effectiveDate}`);
+      setShowUpdateRate(false);
+      setRateData({ productType: '', newRate: '', effectiveDate: '', reason: '' });
+      setSelectedProduct(null);
+    } else {
+      alert('Please fill in all required fields');
+    }
+  };
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -635,32 +702,30 @@ export default function LoansDashboard() {
           </div>
         );
 
-      case 'interest':
+      case 'profit':
         return (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold text-slate-900">Profit Rate Management</h3>
               <div className="flex space-x-2">
-                <button className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={() => setShowProfitCalculator(true)}
+                  className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                >
                   Calculate Profit
                 </button>
-                <Link 
-                  href="/dashboard/loans/products"
+                <button 
+                  onClick={() => setShowRateManager(true)}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Manage Rates
-                </Link>
+                </button>
               </div>
             </div>
 
             {/* Profit Rate Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { type: 'Personal Financing', rate: '8.5%', structure: 'Murabaha' },
-                { type: 'Home Financing', rate: '7.2%', structure: 'Ijara' },
-                { type: 'Business Financing', rate: '60:40', structure: 'Musharakah' },
-                { type: 'Vehicle Financing', rate: '9.1%', structure: 'Murabaha' }
-              ].map((product, index) => (
+              {profitProducts.map((product, index) => (
                 <div key={index} className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
                   <h4 className="font-semibold text-gray-900 mb-2">{product.type}</h4>
                   <div className="space-y-2">
@@ -673,7 +738,10 @@ export default function LoansDashboard() {
                       <span className="text-sm font-medium text-gray-700">{product.structure}</span>
                     </div>
                   </div>
-                  <button className="w-full mt-4 bg-blue-50 text-blue-600 px-3 py-2 rounded text-sm hover:bg-blue-100 transition-colors">
+                  <button 
+                    onClick={() => updateProductRate(product)}
+                    className="w-full mt-4 bg-blue-50 text-blue-600 px-3 py-2 rounded text-sm hover:bg-blue-100 transition-colors"
+                  >
                     Update Rate
                   </button>
                 </div>
@@ -688,7 +756,10 @@ export default function LoansDashboard() {
                   <CalculatorIcon className="h-8 w-8 text-blue-600 mx-auto mb-3" />
                   <h5 className="font-medium text-gray-900 mb-2">EMI Calculator</h5>
                   <p className="text-sm text-gray-600 mb-4">Calculate monthly payments based on Islamic financing principles</p>
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                  <button 
+                    onClick={() => setShowProfitCalculator(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
                     Open Calculator
                   </button>
                 </div>
@@ -979,6 +1050,205 @@ export default function LoansDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Profit Calculator Modal */}
+      {showProfitCalculator && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Profit Calculator</h3>
+              <button 
+                onClick={() => setShowProfitCalculator(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Principal Amount (₹)</label>
+                <input
+                  type="number"
+                  value={calculatorData.principal}
+                  onChange={(e) => setCalculatorData({...calculatorData, principal: e.target.value})}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter principal amount"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tenure (months)</label>
+                <input
+                  type="number"
+                  value={calculatorData.tenure}
+                  onChange={(e) => setCalculatorData({...calculatorData, tenure: e.target.value})}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter tenure in months"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Profit Rate (%)</label>
+                <input
+                  type="number"
+                  value={calculatorData.rate}
+                  onChange={(e) => setCalculatorData({...calculatorData, rate: e.target.value})}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter profit rate"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Financing Structure</label>
+                <select
+                  value={calculatorData.structure}
+                  onChange={(e) => setCalculatorData({...calculatorData, structure: e.target.value})}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="Murabaha">Murabaha</option>
+                  <option value="Ijara">Ijara</option>
+                  <option value="Musharakah">Musharakah</option>
+                  <option value="Mudarabah">Mudarabah</option>
+                </select>
+              </div>
+              <div className="flex space-x-3 pt-4">
+                <button
+                  onClick={calculateProfit}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Calculate
+                </button>
+                <button
+                  onClick={() => setShowProfitCalculator(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rate Manager Modal */}
+      {showRateManager && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Manage Profit Rates</h3>
+              <button 
+                onClick={() => setShowRateManager(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {profitProducts.map((product, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2">{product.type}</h4>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">Current Rate: {product.rate}</span>
+                      <button
+                        onClick={() => updateProductRate(product)}
+                        className="bg-blue-50 text-blue-600 px-3 py-1 rounded text-sm hover:bg-blue-100 transition-colors"
+                      >
+                        Update
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => setShowRateManager(false)}
+                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Rate Modal */}
+      {showUpdateRate && selectedProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Update Rate</h3>
+              <button 
+                onClick={() => setShowUpdateRate(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
+                <input
+                  type="text"
+                  value={selectedProduct.type}
+                  disabled
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 "
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Current Rate</label>
+                <input
+                  type="text"
+                  value={selectedProduct.rate}
+                  disabled
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 "
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">New Rate (%)</label>
+                <input
+                  type="number"
+                  value={rateData.newRate}
+                  onChange={(e) => setRateData({...rateData, newRate: e.target.value})}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter new rate"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Effective Date</label>
+                <input
+                  type="date"
+                  value={rateData.effectiveDate}
+                  onChange={(e) => setRateData({...rateData, effectiveDate: e.target.value})}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Change</label>
+                <textarea
+                  value={rateData.reason}
+                  onChange={(e) => setRateData({...rateData, reason: e.target.value})}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={3}
+                  placeholder="Enter reason for rate change"
+                />
+              </div>
+              <div className="flex space-x-3 pt-4">
+                <button
+                  onClick={handleRateUpdate}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Update Rate
+                </button>
+                <button
+                  onClick={() => setShowUpdateRate(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

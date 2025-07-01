@@ -224,14 +224,14 @@ export default function FDProductManagementPage() {
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 w-64 pl-10"
+                className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 w-64 pl-10"
               />
               <FunnelIcon className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
             </div>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2"
+              className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
             >
               <option value="all">All Products</option>
               <option value="active">Active Only</option>
@@ -342,7 +342,7 @@ export default function FDProductManagementPage() {
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Product Name</label>
-                    <p className="mt-1 text-sm text-gray-900">{selectedProduct.productName}</p>
+                    <p className=" mt-1 text-sm text-gray-900">{selectedProduct.productName}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Product Code</label>
@@ -399,7 +399,7 @@ export default function FDProductManagementPage() {
                     <input
                       type="text"
                       defaultValue={selectedProduct?.productName || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2  "
                     />
                   </div>
                   <div>
@@ -407,7 +407,7 @@ export default function FDProductManagementPage() {
                     <input
                       type="text"
                       defaultValue={selectedProduct?.productCode || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
                   <div>
@@ -416,14 +416,14 @@ export default function FDProductManagementPage() {
                       type="number"
                       step="0.1"
                       defaultValue={selectedProduct?.profitRate || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Compounding</label>
                     <select
                       defaultValue={selectedProduct?.compounding || 'Monthly'}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-700"
                     >
                       <option value="Monthly">Monthly</option>
                       <option value="Quarterly">Quarterly</option>
@@ -436,7 +436,7 @@ export default function FDProductManagementPage() {
                     <input
                       type="number"
                       defaultValue={selectedProduct?.minAmount || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
                   <div>
@@ -444,7 +444,7 @@ export default function FDProductManagementPage() {
                     <input
                       type="number"
                       defaultValue={selectedProduct?.maxAmount || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
                 </div>
@@ -454,7 +454,7 @@ export default function FDProductManagementPage() {
                   <textarea
                     rows={3}
                     defaultValue={selectedProduct?.description || ''}
-                    className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
 

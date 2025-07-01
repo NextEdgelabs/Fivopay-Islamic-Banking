@@ -1,93 +1,34 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
-  UserGroupIcon, 
   PlusIcon,
   MagnifyingGlassIcon,
   FunnelIcon,
   EyeIcon,
   PencilIcon,
-  TrashIcon
+  TrashIcon,
+  CheckCircleIcon
 } from "@heroicons/react/24/outline";
-
-const employees = [
-  {
-    id: "EMP-001",
-    name: "Ahmed Al-Rashid",
-    email: "ahmed.rashid@fivopay.com",
-    position: "Senior Islamic Banking Specialist",
-    department: "Sharia Compliance",
-    role: "Compliance",
-    status: "Active",
-    lastLogin: "2 hours ago",
-    joinDate: "2023-03-15",
-  },
-  {
-    id: "EMP-002", 
-    name: "Fatima Hassan",
-    email: "fatima.hassan@fivopay.com",
-    position: "Customer Relations Manager",
-    department: "Customer Service",
-    role: "Manager",
-    status: "Active", 
-    lastLogin: "1 hour ago",
-    joinDate: "2023-01-20",
-  },
-  {
-    id: "EMP-003",
-    name: "Omar Ibrahim",
-    email: "omar.ibrahim@fivopay.com", 
-    position: "IT Systems Administrator",
-    department: "Information Technology",
-    role: "IT Admin",
-    status: "Active",
-    lastLogin: "30 minutes ago",
-    joinDate: "2022-11-10", 
-  },
-  {
-    id: "EMP-004",
-    name: "Aisha Mohammed",
-    email: "aisha.mohammed@fivopay.com",
-    position: "Support Specialist",
-    department: "Customer Service", 
-    role: "Support",
-    status: "Inactive",
-    lastLogin: "3 days ago",
-    joinDate: "2023-06-01",
-  },
-  {
-    id: "EMP-005",
-    name: "Yusuf Al-Mahmoud", 
-    email: "yusuf.mahmoud@fivopay.com",
-    position: "Branch Manager",
-    department: "Operations",
-    role: "Manager",
-    status: "Active",
-    lastLogin: "5 hours ago", 
-    joinDate: "2022-08-12",
-  },
-];
-
-const tabs = [
-  { id: "all", name: "All Employees", count: employees.length },
-  { id: "active", name: "Active", count: employees.filter(emp => emp.status === "Active").length },
-  { id: "inactive", name: "Inactive", count: employees.filter(emp => emp.status === "Inactive").length },
-  { id: "roles", name: "Roles & Permissions", count: null },
-];
-
-const roles = [
-  { id: "admin", name: "Admin", description: "Full system access", count: 1, color: "purple" },
-  { id: "manager", name: "Manager", description: "Customer and account management", count: 2, color: "blue" },
-  { id: "support", name: "Support", description: "Customer service tools", count: 1, color: "green" },
-  { id: "compliance", name: "Compliance", description: "Sharia compliance features", count: 1, color: "orange" },
-  { id: "itAdmin", name: "IT Admin", description: "System configuration", count: 1, color: "indigo" },
-];
+import { useAppContext } from "@/app/context/AppContext";
 
 export default function EmployeesPage() {
+  const { employees, deleteEmployee } = useAppContext();
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  // Check if we're returning from employee creation
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('created') === 'true') {
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 5000);
+      // Clean up the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const filteredEmployees = employees.filter(employee => {
     const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -106,8 +47,37 @@ export default function EmployeesPage() {
 
   const departments = ["all", ...new Set(employees.map(emp => emp.department))];
 
+  const tabs = [
+    { id: "all", name: "All Employees", count: employees.length },
+    { id: "active", name: "Active", count: employees.filter(emp => emp.status === "Active").length },
+    { id: "inactive", name: "Inactive", count: employees.filter(emp => emp.status === "Inactive").length },
+    { id: "roles", name: "Roles & Permissions", count: null },
+  ];
+
+  const roles = [
+    { id: "Admin", name: "Admin", description: "Full system access", count: employees.filter(emp => emp.role === "Admin").length, color: "purple" },
+    { id: "Manager", name: "Manager", description: "Customer and account management", count: employees.filter(emp => emp.role === "Manager").length, color: "blue" },
+    { id: "Support", name: "Support", description: "Customer service tools", count: employees.filter(emp => emp.role === "Support").length, color: "green" },
+    { id: "Compliance", name: "Compliance", description: "Sharia compliance features", count: employees.filter(emp => emp.role === "Compliance").length, color: "orange" },
+    { id: "IT Admin", name: "IT Admin", description: "System configuration", count: employees.filter(emp => emp.role === "IT Admin").length, color: "indigo" },
+  ];
+
+  const handleDeleteEmployee = (id: string) => {
+    if (confirm("Are you sure you want to delete this employee?")) {
+      deleteEmployee(id);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Success Message */}
+      {showSuccessMessage && (
+        <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 flex items-center space-x-3">
+          <CheckCircleIcon className="h-6 w-6 text-green-600" />
+          <span>Employee created successfully! The new employee has been added to the system.</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -253,7 +223,7 @@ export default function EmployeesPage() {
                   placeholder="Search employees..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="text-gray-700 w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
               
@@ -262,7 +232,7 @@ export default function EmployeesPage() {
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="pl-10 pr-8 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="text-gray-700 pl-10 pr-8 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 >
                   <option value="all">All Departments</option>
                   {departments.slice(1).map(dept => (
@@ -347,7 +317,7 @@ export default function EmployeesPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                        {employee.lastLogin}
+                        {employee.lastLogin || "Never"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
@@ -357,7 +327,10 @@ export default function EmployeesPage() {
                           <button className="text-slate-400 hover:text-slate-600">
                             <PencilIcon className="h-4 w-4" />
                           </button>
-                          <button className="text-slate-400 hover:text-red-600">
+                          <button 
+                            className="text-slate-400 hover:text-red-600"
+                            onClick={() => handleDeleteEmployee(employee.id)}
+                          >
                             <TrashIcon className="h-4 w-4" />
                           </button>
                         </div>

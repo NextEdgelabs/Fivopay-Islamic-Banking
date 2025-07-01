@@ -6,7 +6,6 @@ import {
   UserIcon,
   CheckCircleIcon,
   ClockIcon,
-  XCircleIcon,
   BanknotesIcon,
   EyeIcon,
   PencilIcon,
@@ -28,8 +27,8 @@ interface Account {
 }
 
 export default function AccountManagementPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [searchTerm] = useState('');
+  const [selectedStatus] = useState('All');
 
   const accounts: Account[] = [
     {
