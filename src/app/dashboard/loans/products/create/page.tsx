@@ -5,7 +5,6 @@ import Link from "next/link";
 import { 
   ArrowLeftIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon,
   InformationCircleIcon,
   BanknotesIcon,
   DocumentTextIcon,
@@ -67,7 +66,7 @@ export default function CreateProductPage() {
     status: 'Draft'
   });
 
-  const [errors, setErrors] = useState<Partial<ProductFormData>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const productTypes = [
@@ -112,7 +111,11 @@ export default function CreateProductPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 
@@ -136,7 +139,7 @@ export default function CreateProductPage() {
     if (!formData.shariaStructure) newErrors.shariaStructure = '';
     if (!formData.tenure.trim()) newErrors.tenure = 'Tenure is required';
 
-    setErrors(newErrors);
+    setErrors(newErrors as Record<string, string>);
     return Object.keys(newErrors).length === 0;
   };
 

@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import Link from "next/link";
 import { 
   CreditCardIcon,
@@ -27,8 +26,6 @@ interface Account {
 }
 
 export default function AccountManagementPage() {
-  const [searchTerm] = useState('');
-  const [selectedStatus] = useState('All');
 
   const accounts: Account[] = [
     {
@@ -89,11 +86,7 @@ export default function AccountManagementPage() {
     }
   };
 
-  const filteredAccounts = accounts.filter(account => {
-    const matchesSearch = account.customerName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = selectedStatus === 'All' || account.status === selectedStatus;
-    return matchesSearch && matchesStatus;
-  });
+  const displayAccounts = accounts;
 
   return (
     <div className="space-y-6">
@@ -212,7 +205,7 @@ export default function AccountManagementPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAccounts.map((account) => (
+              {displayAccounts.map((account) => (
                 <tr key={account.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">

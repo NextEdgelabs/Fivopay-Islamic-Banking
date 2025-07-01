@@ -7,7 +7,6 @@ import {
   UserPlusIcon, 
   ArrowLeftIcon,
   ShieldCheckIcon,
-  ExclamationTriangleIcon,
   DocumentTextIcon
 } from "@heroicons/react/24/outline";
 import { useAppContext, Customer } from "@/app/context/AppContext";
