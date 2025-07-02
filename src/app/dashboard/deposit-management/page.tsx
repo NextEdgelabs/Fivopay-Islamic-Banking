@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useState } from 'react';
@@ -15,54 +16,91 @@ import {
   PlusIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { useDepositContext, NewAccountFormData, TransactionFormData, DepositAccount } from './context/DepositContext';
 
-interface DepositAccount {
+// Toast notification state
+interface Toast {
   id: string;
-  accountNumber: string;
-  customerName: string;
-  depositType: string;
-  principalAmount: number;
-  currentBalance: number;
-  profitRate: number;
-  maturityDate: string;
-  status: 'Active' | 'Matured' | 'Closed' | 'Pending';
-  lastTransaction: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
 }
 
-interface DepositTransaction {
-  id: string;
-  accountNumber: string;
-  customerName: string;
-  type: 'Deposit' | 'Withdrawal' | 'Profit Credit' | 'Maturity';
-  amount: number;
-  timestamp: string;
-  status: 'Completed' | 'Pending' | 'Failed';
-}
+// Toast component
+const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) => {
+  const bgColor = toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  
+  return (
+    <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
+      <span>{toast.message}</span>
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+        <XMarkIcon className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
 
-// Add new interfaces for account creation and transaction
-interface NewAccountFormData {
-  customerName: string;
-  accountType: 'Mudarabah Fixed Deposit' | 'Mudarabah Recurring Deposit' | 'Wadiah Savings';
-  initialDeposit: number;
-  profitRate: number;
-  tenure: {
-    years: number;
-    months: number;
-  };
-  monthlyDeposit?: number;
-}
+// Confirmation dialog component
+const ConfirmDialog = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  title: string; 
+  message: string; 
+}) => {
+  if (!isOpen) return null;
 
-interface TransactionFormData {
-  accountNumber: string;
-  transactionType: 'Deposit' | 'Withdrawal' | 'Profit Credit' | 'Maturity';
-  amount: number;
-  description: string;
-}
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-600 mb-6">{message}</p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function DepositManagementPage() {
+  const {
+    depositAccounts,
+    transactions,
+    addDepositAccount,
+    addTransaction,
+    updateAccountStatus,
+    deleteAccount,
+    updateAccountBalance,
+    getAccountByNumber
+  } = useDepositContext();
+
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedAccount, setSelectedAccount] = useState<DepositAccount | null>(null);
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState({ 
+    isOpen: false, 
+    accountId: '', 
+    customerName: '',
+    action: '' as 'delete' | 'close' | 'mature'
+  });
 
   // Add new state variables
   const [showNewAccountModal, setShowNewAccountModal] = useState(false);
@@ -81,97 +119,77 @@ export default function DepositManagementPage() {
     description: '',
   });
 
-  // Mock data for deposit accounts
-  const depositAccounts: DepositAccount[] = [
-    {
-      id: '1',
-      accountNumber: 'FD001234',
-      customerName: 'Ahmed Hassan',
-      depositType: 'Mudarabah Fixed Deposit',
-      principalAmount: 500000,
-      currentBalance: 536000,
-      profitRate: 7.2,
-      maturityDate: '2024-12-15',
-      status: 'Active',
-      lastTransaction: '2024-01-15'
-    },
-    {
-      id: '2',
-      accountNumber: 'RD002345',
-      customerName: 'Fatima Al-Zahra',
-      depositType: 'Mudarabah Recurring Deposit',
-      principalAmount: 120000,
-      currentBalance: 126400,
-      profitRate: 6.8,
-      maturityDate: '2025-06-20',
-      status: 'Active',
-      lastTransaction: '2024-01-20'
-    },
-    {
-      id: '3',
-      accountNumber: 'WD003456',
-      customerName: 'Omar Abdullah',
-      depositType: 'Wadiah Savings',
-      principalAmount: 75000,
-      currentBalance: 75000,
-      profitRate: 0,
-      maturityDate: 'N/A',
-      status: 'Active',
-      lastTransaction: '2024-01-18'
-    },
-    {
-      id: '4',
-      accountNumber: 'FD004567',
-      customerName: 'Aisha Malik',
-      depositType: 'Mudarabah Fixed Deposit',
-      principalAmount: 1000000,
-      currentBalance: 1072000,
-      profitRate: 7.2,
-      maturityDate: '2024-03-10',
-      status: 'Matured',
-      lastTransaction: '2024-01-10'
-    }
-  ];
+  // Toast functions
+  const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
 
-  // Mock data for recent transactions
-  const recentTransactions: DepositTransaction[] = [
-    {
-      id: '1',
-      accountNumber: 'FD001234',
-      customerName: 'Ahmed Hassan',
-      type: 'Profit Credit',
-      amount: 3000,
-      timestamp: '2024-01-20 14:30',
-      status: 'Completed'
-    },
-    {
-      id: '2',
-      accountNumber: 'RD002345',
-      customerName: 'Fatima Al-Zahra',
-      type: 'Deposit',
-      amount: 10000,
-      timestamp: '2024-01-20 11:15',
-      status: 'Completed'
-    },
-    {
-      id: '3',
-      accountNumber: 'WD003456',
-      customerName: 'Omar Abdullah',
-      type: 'Withdrawal',
-      amount: 5000,
-      timestamp: '2024-01-19 16:45',
-      status: 'Completed'
-    },
-    {
-      id: '4',
-      accountNumber: 'FD004567',
-      customerName: 'Aisha Malik',
-      type: 'Maturity',
-      amount: 1072000,
-      timestamp: '2024-01-18 09:00',
-      status: 'Pending'
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Confirmation dialog functions
+  const openDeleteConfirm = (id: string, name: string, action: 'delete' | 'close' | 'mature') => {
+    setConfirmDialog({ isOpen: true, accountId: id, customerName: name, action });
+  };
+
+  const handleConfirmAction = () => {
+    const { action, accountId, customerName } = confirmDialog;
+    if (action === 'delete') {
+      deleteAccount(accountId);
+      addToast(`Account for ${customerName} has been deleted successfully`, 'success');
+    } else if (action === 'close') {
+      updateAccountStatus(accountId, 'Closed');
+      addToast(`Account for ${customerName} has been closed successfully`, 'success');
+    } else if (action === 'mature') {
+      updateAccountStatus(accountId, 'Matured');
+      addToast(`Account for ${customerName} has been matured successfully`, 'success');
     }
-  ];
+    setConfirmDialog({ isOpen: false, accountId: '', customerName: '', action: 'delete' });
+  };
+
+  // Add new functions for form handling
+  const handleNewAccountSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAccountForm.customerName || newAccountForm.initialDeposit <= 0) {
+      addToast('Please fill in all required fields with valid values', 'error');
+      return;
+    }
+    addDepositAccount(newAccountForm);
+    addToast(`New ${newAccountForm.accountType} account created for ${newAccountForm.customerName} successfully!`, 'success');
+    setShowNewAccountModal(false);
+    setNewAccountForm({
+      customerName: '',
+      accountType: 'Mudarabah Fixed Deposit',
+      initialDeposit: 0,
+      profitRate: 7.2,
+      tenure: { years: 0, months: 0 }
+    });
+  };
+
+  const handleTransactionSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!transactionForm.accountNumber || transactionForm.amount <= 0) {
+      addToast('Please fill in all required fields with valid values', 'error');
+      return;
+    }
+    const account = getAccountByNumber(transactionForm.accountNumber);
+    if (!account) {
+      addToast('Account not found', 'error');
+      return;
+    }
+    addTransaction(transactionForm);
+    addToast(`${transactionForm.transactionType} of ₹${transactionForm.amount.toLocaleString()} processed successfully!`, 'success');
+    setShowTransactionModal(false);
+    setTransactionForm({
+      accountNumber: '',
+      transactionType: 'Deposit',
+      amount: 0,
+      description: '',
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -214,36 +232,6 @@ export default function DepositManagementPage() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
-  };
-
-  // Add new functions for form handling
-  const handleNewAccountSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would typically make an API call to create the account
-    console.log('Creating new account:', newAccountForm);
-    setShowNewAccountModal(false);
-    // Reset form
-    setNewAccountForm({
-      customerName: '',
-      accountType: 'Mudarabah Fixed Deposit',
-      initialDeposit: 0,
-      profitRate: 7.2,
-      tenure: { years: 0, months: 0 }
-    });
-  };
-
-  const handleTransactionSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would typically make an API call to process the transaction
-    console.log('Processing transaction:', transactionForm);
-    setShowTransactionModal(false);
-    // Reset form
-    setTransactionForm({
-      accountNumber: '',
-      transactionType: 'Deposit',
-      amount: 0,
-      description: '',
-    });
   };
 
   return (
@@ -420,9 +408,9 @@ export default function DepositManagementPage() {
                   <input
                     type="text"
                     placeholder="Search accounts..."
-                    className="border border-gray-300 rounded-lg px-3 py-2 w-64"
+                    className="border border-gray-300 rounded-lg px-3 py-2 w-64 text-gray-700"
                   />
-                  <select className="border border-gray-300 rounded-lg px-3 py-2">
+                  <select className="border border-gray-300 rounded-lg px-3 py-2 text-gray-700">
                     <option>All Types</option>
                     <option>Mudarabah Fixed Deposit</option>
                     <option>Mudarabah Recurring Deposit</option>
@@ -521,9 +509,9 @@ export default function DepositManagementPage() {
                 <div className="flex space-x-3">
                   <input
                     type="date"
-                    className="border border-gray-300 rounded-lg px-3 py-2"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-gray-700"
                   />
-                  <select className="border border-gray-300 rounded-lg px-3 py-2">
+                  <select className="border border-gray-300 rounded-lg px-3 py-2 text-gray-700">
                     <option>All Types</option>
                     <option>Deposit</option>
                     <option>Withdrawal</option>
@@ -534,7 +522,7 @@ export default function DepositManagementPage() {
               </div>
 
               <div className="space-y-3">
-                {recentTransactions.map((transaction) => (
+                {transactions.map((transaction) => (
                   <div key={transaction.id} className="bg-gray-50 p-4 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -899,6 +887,22 @@ export default function DepositManagementPage() {
           </div>
         </div>
       )}
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 space-y-2 z-50">
+        {toasts.map(toast => (
+          <Toast key={toast.id} toast={toast} onRemove={removeToast} />
+        ))}
+      </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, accountId: '', customerName: '', action: 'delete' })}
+        onConfirm={handleConfirmAction}
+        title={`Confirm ${confirmDialog.action}`}
+        message={`Are you sure you want to ${confirmDialog.action} the account for ${confirmDialog.customerName}? This action cannot be undone.`}
+      />
     </div>
   );
 }

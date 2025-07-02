@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { useState } from "react";
+import { useAppContext } from "@/app/context/AppContext";
 import {
   BanknotesIcon,
   CheckCircleIcon,
@@ -18,6 +19,67 @@ import {
   ArrowDownTrayIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
+
+// Toast notification state
+interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
+}
+
+// Toast component
+const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) => {
+  const bgColor = toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  
+  return (
+    <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
+      <span>{toast.message}</span>
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+        <XMarkIcon className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
+
+// Confirmation dialog component
+const ConfirmDialog = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  title: string; 
+  message: string; 
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-600 mb-6">{message}</p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface Repayment {
   id: string;
@@ -41,64 +103,11 @@ interface NewRepayment {
   contactNumber: string;
 }
 
-const repayments: Repayment[] = [
-  {
-    id: "1",
-    customerName: "Ahmed Hassan",
-    loanAccount: "LN001001",
-    dueDate: "2024-01-05",
-    amount: 25000,
-    status: "Paid",
-    paidDate: "2024-01-05",
-    receiptUrl: "#",
-    branch: "Main Branch",
-    contactNumber: "+91 9876543210",
-  },
-  {
-    id: "2",
-    customerName: "Fatima Al-Zahra",
-    loanAccount: "LN001002",
-    dueDate: "2024-02-05",
-    amount: 35000,
-    status: "Pending",
-    branch: "Downtown Branch",
-    contactNumber: "+91 9876543211",
-  },
-  {
-    id: "3",
-    customerName: "Mohammad Ali",
-    loanAccount: "LN001003",
-    dueDate: "2024-03-05",
-    amount: 45000,
-    status: "Pending",
-    branch: "Main Branch",
-    contactNumber: "+91 9876543212",
-  },
-  {
-    id: "4",
-    customerName: "Sarah Khan",
-    loanAccount: "LN001004",
-    dueDate: "2023-12-05",
-    amount: 28000,
-    status: "Overdue",
-    branch: "Downtown Branch",
-    contactNumber: "+91 9876543213",
-  },
-  {
-    id: "5",
-    customerName: "Ibrahim Sheikh",
-    loanAccount: "LN001005",
-    dueDate: "2023-11-05",
-    amount: 32000,
-    status: "Overdue",
-    branch: "Main Branch",
-    contactNumber: "+91 9876543214",
-  },
-];
-
 const branches = ["All Branches", "Main Branch", "Downtown Branch", "North Branch", "South Branch"];
 
 export default function RepaymentJourneyPage() {
+  const { repayments, addRepayment, updateRepayment } = useAppContext();
+
   const [showReceipt, setShowReceipt] = useState<Repayment | null>(null);
   const [showPayModal, setShowPayModal] = useState<Repayment | null>(null);
   const [selectedBranch, setSelectedBranch] = useState("All Branches");
@@ -106,6 +115,13 @@ export default function RepaymentJourneyPage() {
   const [showCreateRepaymentModal, setShowCreateRepaymentModal] = useState(false);
   const [showBulkUploadModal, setShowBulkUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState({ 
+    isOpen: false, 
+    repaymentId: '', 
+    customerName: '',
+    action: '' as 'delete' | 'markPaid' | 'sendNotification'
+  });
   const [newRepayment, setNewRepayment] = useState<NewRepayment>({
     customerName: '',
     loanAccount: '',
@@ -114,6 +130,45 @@ export default function RepaymentJourneyPage() {
     branch: 'Main Branch',
     contactNumber: ''
   });
+
+  // Toast functions
+  const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Confirmation dialog functions
+  const openDeleteConfirm = (id: string, name: string) => {
+    setConfirmDialog({ isOpen: true, repaymentId: id, customerName: name, action: 'delete' });
+  };
+
+  const openMarkPaidConfirm = (id: string, name: string) => {
+    setConfirmDialog({ isOpen: true, repaymentId: id, customerName: name, action: 'markPaid' });
+  };
+
+  const openNotificationConfirm = (id: string, name: string) => {
+    setConfirmDialog({ isOpen: true, repaymentId: id, customerName: name, action: 'sendNotification' });
+  };
+
+  const handleConfirmAction = () => {
+    if (confirmDialog.action === 'delete') {
+      // In a real app, you'd call deleteRepayment here
+      addToast(`Repayment for ${confirmDialog.customerName} has been deleted successfully`, 'success');
+    } else if (confirmDialog.action === 'markPaid') {
+      handleMarkAsPaid(confirmDialog.repaymentId);
+    } else if (confirmDialog.action === 'sendNotification') {
+      const repayment = repayments.find(r => r.id === confirmDialog.repaymentId);
+      if (repayment) {
+        addToast(`Notification sent to ${repayment.customerName} (${repayment.contactNumber}) for overdue payment of ₹${repayment.amount.toLocaleString()}`, 'success');
+      }
+    }
+    setConfirmDialog({ isOpen: false, repaymentId: '', customerName: '', action: 'delete' });
+  };
 
   const filteredRepayments = selectedBranch === "All Branches" 
     ? repayments 
@@ -126,20 +181,29 @@ export default function RepaymentJourneyPage() {
   const collectedAmount = filteredRepayments.filter(r => r.status === "Paid").reduce((sum, r) => sum + r.amount, 0);
 
   const sendNotification = (repayment: Repayment) => {
-    alert(`Notification sent to ${repayment.customerName} (${repayment.contactNumber}) for overdue payment of ₹${repayment.amount.toLocaleString()}`);
+    openNotificationConfirm(repayment.id, repayment.customerName);
     setShowNotificationModal(null);
   };
 
   const handleCreateRepayment = () => {
     if (!newRepayment.customerName || !newRepayment.loanAccount || !newRepayment.dueDate || !newRepayment.amount || !newRepayment.contactNumber) {
-      alert('Please fill in all required fields');
+      addToast('Please fill in all required fields', 'error');
       return;
     }
 
-    // Here you would typically send this data to your backend API
-    console.log('Creating repayment:', newRepayment);
+    const repaymentData = {
+      customerName: newRepayment.customerName,
+      loanAccount: newRepayment.loanAccount,
+      dueDate: newRepayment.dueDate,
+      amount: newRepayment.amount,
+      status: "Pending" as const,
+      branch: newRepayment.branch,
+      contactNumber: newRepayment.contactNumber
+    };
+
+    addRepayment(repaymentData);
     
-    alert(`Repayment created successfully!\nCustomer: ${newRepayment.customerName}\nLoan Account: ${newRepayment.loanAccount}\nDue Date: ${newRepayment.dueDate}\nAmount: ₹${newRepayment.amount.toLocaleString()}`);
+    addToast(`Repayment created successfully for ${newRepayment.customerName}!`, 'success');
     
     setShowCreateRepaymentModal(false);
     setNewRepayment({
@@ -152,6 +216,15 @@ export default function RepaymentJourneyPage() {
     });
   };
 
+  const handleMarkAsPaid = (repaymentId: string) => {
+    updateRepayment(repaymentId, { 
+      status: "Paid" as const, 
+      paidDate: new Date().toISOString().split('T')[0] 
+    });
+    addToast('Repayment marked as paid successfully!', 'success');
+    setShowPayModal(null);
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -161,14 +234,14 @@ export default function RepaymentJourneyPage() {
 
   const handleBulkUpload = () => {
     if (!selectedFile) {
-      alert('Please select a file');
+      addToast('Please select a file', 'error');
       return;
     }
 
     // Here you would typically process the CSV/Excel file
     console.log('Processing bulk upload file:', selectedFile.name);
     
-    alert(`Bulk repayment upload initiated!\nFile: ${selectedFile.name}\nProcessing ${Math.floor(Math.random() * 50) + 10} repayment entries...`);
+    addToast(`Bulk repayment upload initiated! Processing ${Math.floor(Math.random() * 50) + 10} entries from ${selectedFile.name}`, 'success');
     
     setShowBulkUploadModal(false);
     setSelectedFile(null);
@@ -204,24 +277,24 @@ Mohammad Ali,LN001003,2024-02-25,45000,Main Branch,+91 9876543212`;
           <select
             value={selectedBranch}
             onChange={(e) => setSelectedBranch(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
           >
             {branches.map((branch) => (
               <option key={branch} value={branch}>{branch}</option>
             ))}
           </select>
-          <button 
+          <button
             onClick={() => setShowCreateRepaymentModal(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
           >
-            <PlusIcon className="h-4 w-4" />
+            <PlusIcon className="h-5 w-5" />
             <span>Create Repayment</span>
           </button>
-          <button 
+          <button
             onClick={() => setShowBulkUploadModal(true)}
             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
           >
-            <DocumentArrowUpIcon className="h-4 w-4" />
+            <DocumentArrowUpIcon className="h-5 w-5" />
             <span>Bulk Upload</span>
           </button>
         </div>
@@ -533,7 +606,7 @@ Mohammad Ali,LN001003,2024-02-25,45000,Main Branch,+91 9876543212`;
                       type="text"
                       value={newRepayment.customerName}
                       onChange={(e) => setNewRepayment({...newRepayment, customerName: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
                       placeholder="Enter customer name"
                     />
                   </div>
@@ -545,7 +618,7 @@ Mohammad Ali,LN001003,2024-02-25,45000,Main Branch,+91 9876543212`;
                       type="text"
                       value={newRepayment.loanAccount}
                       onChange={(e) => setNewRepayment({...newRepayment, loanAccount: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
                       placeholder="Enter loan account"
                     />
                   </div>
@@ -561,7 +634,7 @@ Mohammad Ali,LN001003,2024-02-25,45000,Main Branch,+91 9876543212`;
                       value={newRepayment.dueDate}
                       onChange={(e) => setNewRepayment({...newRepayment, dueDate: e.target.value})}
                       min={new Date().toISOString().split('T')[0]}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
                     />
                   </div>
                   <div>
@@ -572,7 +645,7 @@ Mohammad Ali,LN001003,2024-02-25,45000,Main Branch,+91 9876543212`;
                       type="number"
                       value={newRepayment.amount || ''}
                       onChange={(e) => setNewRepayment({...newRepayment, amount: parseInt(e.target.value) || 0})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
                       placeholder="Enter amount"
                       min="0"
                     />
@@ -587,7 +660,7 @@ Mohammad Ali,LN001003,2024-02-25,45000,Main Branch,+91 9876543212`;
                     <select
                       value={newRepayment.branch}
                       onChange={(e) => setNewRepayment({...newRepayment, branch: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
                     >
                       {branches.slice(1).map((branch) => (
                         <option key={branch} value={branch}>{branch}</option>
@@ -602,7 +675,7 @@ Mohammad Ali,LN001003,2024-02-25,45000,Main Branch,+91 9876543212`;
                       type="tel"
                       value={newRepayment.contactNumber}
                       onChange={(e) => setNewRepayment({...newRepayment, contactNumber: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
                       placeholder="+91 9876543210"
                     />
                   </div>
@@ -721,6 +794,34 @@ Mohammad Ali,LN001003,2024-02-25,45000,Main Branch,+91 9876543212`;
             </div>
           </div>
         </div>
+      )}
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 space-y-2 z-50">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} toast={toast} onRemove={removeToast} />
+        ))}
+      </div>
+
+      {/* Confirmation Dialog */}
+      {confirmDialog.isOpen && (
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen}
+          onClose={() => setConfirmDialog({ isOpen: false, repaymentId: '', customerName: '', action: 'delete' })}
+          onConfirm={handleConfirmAction}
+          title={
+            confirmDialog.action === 'delete' ? 'Delete Repayment' :
+            confirmDialog.action === 'markPaid' ? 'Mark as Paid' :
+            'Send Notification'
+          }
+          message={
+            confirmDialog.action === 'delete' ? 
+              `Are you sure you want to delete the repayment for ${confirmDialog.customerName}?` :
+            confirmDialog.action === 'markPaid' ? 
+              `Are you sure you want to mark the repayment for ${confirmDialog.customerName} as paid?` :
+              `Are you sure you want to send a notification to ${confirmDialog.customerName}?`
+          }
+        />
       )}
     </div>
   );

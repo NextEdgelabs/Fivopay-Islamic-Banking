@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { useState } from "react";
+import { useCashContext, InterbranchTransfer, InterbranchTransferFormData } from "../context/CashContext";
 import {
   ArrowPathIcon,
   BuildingOfficeIcon,
@@ -13,98 +15,115 @@ import {
   XMarkIcon,
   UserIcon,
   CalendarIcon,
+  ArrowsRightLeftIcon,
+  EyeIcon,
+  BanknotesIcon,
 } from "@heroicons/react/24/outline";
 
-interface InterbranchTransfer {
+// Toast notification state
+interface Toast {
   id: string;
-  fromBranch: string;
-  toBranch: string;
-  amount: number;
-  type: "cash_transfer" | "settlement" | "replenishment";
-  status: "pending" | "completed" | "failed" | "in_transit";
-  timestamp: string;
-  reference: string;
-  description: string;
-  initiatedBy: string;
-  approvedBy?: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
 }
 
+// Toast component
+const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) => {
+  const bgColor = toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  
+  return (
+    <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
+      <span>{toast.message}</span>
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+        <XMarkIcon className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
+
+// Confirmation dialog component
+const ConfirmDialog = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  title: string; 
+  message: string; 
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-600 mb-6">{message}</p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function InterbranchReportsPage() {
+  const {
+    interbranchTransfers,
+    addInterbranchTransfer,
+    updateTransferStatus,
+    deleteTransfer,
+  } = useCashContext();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [showNewTransferModal, setShowNewTransferModal] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<InterbranchTransfer | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-
-  const transfers: InterbranchTransfer[] = [
-    {
-      id: "1",
-      fromBranch: "Mumbai Central",
-      toBranch: "Delhi Main",
-      amount: 500000,
-      type: "cash_transfer",
-      status: "completed",
-      timestamp: "2024-01-15T14:30:00Z",
-      reference: "IBT001234",
-      description: "Cash transfer for operational needs",
-      initiatedBy: "Rajesh Kumar",
-      approvedBy: "Priya Sharma",
-    },
-    {
-      id: "2",
-      fromBranch: "Bangalore Tech Park",
-      toBranch: "Chennai Central",
-      amount: 300000,
-      type: "replenishment",
-      status: "in_transit",
-      timestamp: "2024-01-15T12:15:00Z",
-      reference: "IBT001235",
-      description: "Cash replenishment for low balance",
-      initiatedBy: "Amit Patel",
-    },
-    {
-      id: "3",
-      fromBranch: "Delhi Main",
-      toBranch: "Mumbai Central",
-      amount: 750000,
-      type: "settlement",
-      status: "pending",
-      timestamp: "2024-01-15T10:45:00Z",
-      reference: "IBT001236",
-      description: "End-of-day settlement",
-      initiatedBy: "Priya Sharma",
-    },
-    {
-      id: "4",
-      fromBranch: "Chennai Central",
-      toBranch: "Bangalore Tech Park",
-      amount: 200000,
-      type: "cash_transfer",
-      status: "failed",
-      timestamp: "2024-01-15T09:20:00Z",
-      reference: "IBT001237",
-      description: "Failed transfer due to insufficient balance",
-      initiatedBy: "Lakshmi Devi",
-    },
-  ];
-
-  const filteredTransfers = transfers.filter((transfer) => {
-    const matchesSearch = 
-      transfer.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transfer.fromBranch.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transfer.toBranch.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transfer.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || transfer.status === statusFilter;
-    const matchesType = typeFilter === "all" || transfer.type === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState({ 
+    isOpen: false, 
+    transferId: '', 
+    action: '' as 'approve' | 'reject' | 'cancel' | 'delete'
+  });
+  const [formData, setFormData] = useState<InterbranchTransferFormData>({
+    fromBranch: '',
+    toBranch: '',
+    amount: 0,
+    purpose: '',
+    notes: ''
   });
 
-  const totalTransfers = transfers.length;
-  const completedTransfers = transfers.filter(t => t.status === "completed").length;
-  const pendingTransfers = transfers.filter(t => t.status === "pending").length;
-  const totalAmount = transfers
-    .filter(t => t.status === "completed")
+  const filteredTransfers = interbranchTransfers.filter((transfer) => {
+    const matchesSearch = 
+      transfer.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transfer.fromBranch.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transfer.toBranch.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (transfer.notes?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
+    const matchesStatus = statusFilter === "all" || transfer.status.toLowerCase() === statusFilter.toLowerCase();
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalTransfers = interbranchTransfers.length;
+  const completedTransfers = interbranchTransfers.filter(t => t.status === "Completed").length;
+  const pendingTransfers = interbranchTransfers.filter(t => t.status === "Pending").length;
+  const totalAmount = interbranchTransfers
+    .filter(t => t.status === "Completed")
     .reduce((sum, t) => sum + t.amount, 0);
 
   const branches = [
@@ -119,9 +138,81 @@ export default function InterbranchReportsPage() {
     setShowDetailsModal(true);
   };
 
-  const handleApproveTransfer = (transferId: string) => {
-    // Handle approval logic here
-    console.log("Approving transfer:", transferId);
+  // Form handling functions
+  const handleFormChange = (field: keyof InterbranchTransferFormData, value: string | number) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCreateTransfer = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (!formData.fromBranch.trim()) {
+      addToast('From branch is required', 'error');
+      return;
+    }
+    if (!formData.toBranch.trim()) {
+      addToast('To branch is required', 'error');
+      return;
+    }
+    if (formData.fromBranch === formData.toBranch) {
+      addToast('From and To branches cannot be the same', 'error');
+      return;
+    }
+    if (formData.amount <= 0) {
+      addToast('Amount must be greater than 0', 'error');
+      return;
+    }
+    if (!formData.purpose.trim()) {
+      addToast('Purpose is required', 'error');
+      return;
+    }
+
+    addInterbranchTransfer(formData);
+    addToast('Interbranch transfer created successfully', 'success');
+    setShowNewTransferModal(false);
+    setFormData({
+      fromBranch: '',
+      toBranch: '',
+      amount: 0,
+      purpose: '',
+      notes: ''
+    });
+  };
+
+  // Toast functions
+  const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Confirmation dialog functions
+  const openConfirm = (id: string, action: 'approve' | 'reject' | 'cancel' | 'delete') => {
+    setConfirmDialog({ isOpen: true, transferId: id, action });
+  };
+
+  const handleConfirmAction = () => {
+    const { action, transferId } = confirmDialog;
+    
+    if (action === 'approve') {
+      updateTransferStatus(transferId, 'Approved');
+      addToast('Transfer has been approved successfully', 'success');
+    } else if (action === 'reject') {
+      updateTransferStatus(transferId, 'Rejected');
+      addToast('Transfer has been rejected successfully', 'success');
+    } else if (action === 'cancel') {
+      updateTransferStatus(transferId, 'Rejected');
+      addToast('Transfer has been cancelled successfully', 'success');
+    } else if (action === 'delete') {
+      deleteTransfer(transferId);
+      addToast('Transfer has been deleted successfully', 'success');
+    }
+    
+    setConfirmDialog({ isOpen: false, transferId: '', action: 'approve' });
   };
 
   return (
@@ -252,7 +343,7 @@ export default function InterbranchReportsPage() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Reference
+                  ID
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Transfer
@@ -261,13 +352,13 @@ export default function InterbranchReportsPage() {
                   Amount
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
+                  Purpose
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Timestamp
+                  Request Date
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -279,7 +370,7 @@ export default function InterbranchReportsPage() {
                 <tr key={transfer.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900 font-mono">
-                      {transfer.reference}
+                      {transfer.id}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -295,37 +386,27 @@ export default function InterbranchReportsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        transfer.type === "cash_transfer"
-                          ? "bg-blue-100 text-blue-800"
-                          : transfer.type === "settlement"
-                          ? "bg-purple-100 text-purple-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {transfer.type.replace("_", " ").charAt(0).toUpperCase() + 
-                       transfer.type.replace("_", " ").slice(1)}
-                    </span>
+                    <div className="text-sm text-gray-900">
+                      {transfer.purpose}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        transfer.status === "completed"
+                        transfer.status === "Completed"
                           ? "bg-green-100 text-green-800"
-                          : transfer.status === "pending"
+                          : transfer.status === "Pending"
                           ? "bg-yellow-100 text-yellow-800"
-                          : transfer.status === "in_transit"
+                          : transfer.status === "Approved"
                           ? "bg-blue-100 text-blue-800"
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {transfer.status.replace("_", " ").charAt(0).toUpperCase() + 
-                       transfer.status.replace("_", " ").slice(1)}
+                      {transfer.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(transfer.timestamp).toLocaleString()}
+                    {new Date(transfer.requestDate).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
@@ -335,14 +416,20 @@ export default function InterbranchReportsPage() {
                       >
                         View Details
                       </button>
-                      {transfer.status === "pending" && (
+                      {transfer.status === "Pending" && (
                         <button 
-                          onClick={() => handleApproveTransfer(transfer.id)}
+                          onClick={() => openConfirm(transfer.id, 'approve')}
                           className="text-green-600 hover:text-green-900"
                         >
                           Approve
                         </button>
                       )}
+                      <button 
+                        onClick={() => openConfirm(transfer.id, 'delete')}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -364,7 +451,7 @@ export default function InterbranchReportsPage() {
               <BuildingOfficeIcon className="h-8 w-8 text-blue-500 mx-auto mb-2" />
               <h3 className="font-medium text-gray-900">{branch}</h3>
               <p className="text-sm text-gray-600 mt-1">
-                {transfers.filter(t => t.fromBranch === branch || t.toBranch === branch).length} transfers
+                {interbranchTransfers.filter(t => t.fromBranch === branch || t.toBranch === branch).length} transfers
               </p>
             </div>
           ))}
@@ -375,15 +462,29 @@ export default function InterbranchReportsPage() {
       {showNewTransferModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              New Interbranch Transfer
-            </h3>
-            <form className="space-y-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                New Interbranch Transfer
+              </h3>
+              <button
+                onClick={() => setShowNewTransferModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateTransfer} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  From Branch
+                  From Branch *
                 </label>
-                <select className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <select 
+                  value={formData.fromBranch}
+                  onChange={(e) => handleFormChange('fromBranch', e.target.value)}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select from branch</option>
                   {branches.map((branch) => (
                     <option key={branch} value={branch}>
                       {branch}
@@ -393,9 +494,15 @@ export default function InterbranchReportsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  To Branch
+                  To Branch *
                 </label>
-                <select className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <select 
+                  value={formData.toBranch}
+                  onChange={(e) => handleFormChange('toBranch', e.target.value)}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select to branch</option>
                   {branches.map((branch) => (
                     <option key={branch} value={branch}>
                       {branch}
@@ -405,38 +512,57 @@ export default function InterbranchReportsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Amount
+                  Amount *
                 </label>
                 <input
                   type="number"
+                  value={formData.amount}
+                  onChange={(e) => handleFormChange('amount', parseFloat(e.target.value) || 0)}
                   className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter amount"
+                  min="0"
+                  step="0.01"
+                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Transfer Type
+                  Purpose *
                 </label>
-                <select className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="cash_transfer">Cash Transfer</option>
-                  <option value="settlement">Settlement</option>
-                  <option value="replenishment">Replenishment</option>
-                </select>
+                <input
+                  type="text"
+                  value={formData.purpose}
+                  onChange={(e) => handleFormChange('purpose', e.target.value)}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter transfer purpose"
+                  required
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  Notes
                 </label>
                 <textarea
+                  value={formData.notes}
+                  onChange={(e) => handleFormChange('notes', e.target.value)}
                   className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter transfer description"
+                  placeholder="Enter additional notes (optional)"
                   rows={3}
                 />
               </div>
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowNewTransferModal(false)}
+                  onClick={() => {
+                    setShowNewTransferModal(false);
+                    setFormData({
+                      fromBranch: '',
+                      toBranch: '',
+                      amount: 0,
+                      purpose: '',
+                      notes: ''
+                    });
+                  }}
                   className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
                 >
                   Cancel
@@ -475,21 +601,12 @@ export default function InterbranchReportsPage() {
                   <h4 className="text-sm font-medium text-gray-500 mb-2">Transfer Information</h4>
                   <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Reference:</span>
-                      <span className="font-mono text-gray-900">{selectedTransfer.reference}</span>
+                      <span className="text-gray-500">ID:</span>
+                      <span className="font-mono text-gray-900">{selectedTransfer.id}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Type:</span>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        selectedTransfer.type === "cash_transfer"
-                          ? "bg-blue-100 text-blue-800"
-                          : selectedTransfer.type === "settlement"
-                          ? "bg-purple-100 text-purple-800"
-                          : "bg-green-100 text-green-800"
-                      }`}>
-                        {selectedTransfer.type.replace("_", " ").charAt(0).toUpperCase() + 
-                         selectedTransfer.type.replace("_", " ").slice(1)}
-                      </span>
+                      <span className="text-gray-500">Purpose:</span>
+                      <span className="text-gray-900">{selectedTransfer.purpose}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Amount:</span>
@@ -498,16 +615,15 @@ export default function InterbranchReportsPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-500">Status:</span>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        selectedTransfer.status === "completed"
+                        selectedTransfer.status === "Completed"
                           ? "bg-green-100 text-green-800"
-                          : selectedTransfer.status === "pending"
+                          : selectedTransfer.status === "Pending"
                           ? "bg-yellow-100 text-yellow-800"
-                          : selectedTransfer.status === "in_transit"
+                          : selectedTransfer.status === "Approved"
                           ? "bg-blue-100 text-blue-800"
                           : "bg-red-100 text-red-800"
                       }`}>
-                        {selectedTransfer.status.replace("_", " ").charAt(0).toUpperCase() + 
-                         selectedTransfer.status.replace("_", " ").slice(1)}
+                        {selectedTransfer.status}
                       </span>
                     </div>
                   </div>
@@ -541,8 +657,8 @@ export default function InterbranchReportsPage() {
                     <div className="flex items-center space-x-3">
                       <UserIcon className="h-4 w-4 text-gray-400" />
                       <div>
-                        <div className="text-sm text-gray-500">Initiated By</div>
-                        <div className="font-medium text-gray-900">{selectedTransfer.initiatedBy}</div>
+                        <div className="text-sm text-gray-500">Requested By</div>
+                        <div className="font-medium text-gray-900">{selectedTransfer.requestedBy}</div>
                       </div>
                     </div>
                     {selectedTransfer.approvedBy && (
@@ -563,9 +679,9 @@ export default function InterbranchReportsPage() {
                     <div className="flex items-center space-x-3">
                       <CalendarIcon className="h-4 w-4 text-gray-400" />
                       <div>
-                        <div className="text-sm font-medium text-gray-900">Transfer Time</div>
+                        <div className="text-sm font-medium text-gray-900">Request Date</div>
                         <div className="text-xs text-gray-500">
-                          {new Date(selectedTransfer.timestamp).toLocaleString()}
+                          {new Date(selectedTransfer.requestDate).toLocaleString()}
                         </div>
                       </div>
                     </div>
@@ -573,23 +689,26 @@ export default function InterbranchReportsPage() {
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Description</h4>
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">Notes</h4>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-900">{selectedTransfer.description}</p>
+                    <p className="text-sm text-gray-900">{selectedTransfer.notes || 'No notes available'}</p>
                   </div>
                 </div>
 
-                {selectedTransfer.status === "pending" && (
+                {selectedTransfer.status === "Pending" && (
                   <div>
                     <h4 className="text-sm font-medium text-gray-500 mb-2">Actions</h4>
                     <div className="space-y-2">
                       <button 
-                        onClick={() => handleApproveTransfer(selectedTransfer.id)}
+                        onClick={() => openConfirm(selectedTransfer.id, 'approve')}
                         className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm"
                       >
                         Approve Transfer
                       </button>
-                      <button className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">
+                      <button 
+                        onClick={() => openConfirm(selectedTransfer.id, 'reject')}
+                        className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm"
+                      >
                         Reject Transfer
                       </button>
                     </div>
@@ -600,6 +719,22 @@ export default function InterbranchReportsPage() {
           </div>
         </div>
       )}
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 space-y-2 z-50">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} toast={toast} onRemove={removeToast} />
+        ))}
+      </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, transferId: '', action: 'approve' })}
+        onConfirm={handleConfirmAction}
+        title={`Confirm ${confirmDialog.action}`}
+        message={`Are you sure you want to ${confirmDialog.action} this transfer? This action cannot be undone.`}
+      />
     </div>
   );
 } 

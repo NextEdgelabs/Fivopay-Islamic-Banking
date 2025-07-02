@@ -32,13 +32,19 @@ interface BranchTableProps {
   onViewBranch: (branch: Branch) => void;
   onEditBranch?: (branch: Branch) => void;
   onGenerateReport?: (branch: Branch) => void;
+  onDeleteBranch?: (branch: Branch) => void;
+  onSuspendBranch?: (branch: Branch) => void;
+  onActivateBranch?: (branch: Branch) => void;
 }
 
 export default function BranchTable({ 
   branches, 
   onViewBranch, 
   onEditBranch, 
-  onGenerateReport 
+  onGenerateReport,
+  onDeleteBranch,
+  onSuspendBranch,
+  onActivateBranch
 }: BranchTableProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -124,29 +130,55 @@ export default function BranchTable({
                   <span className="ml-1">{branch.status}</span>
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                <button 
-                  onClick={() => onViewBranch(branch)}
-                  className="text-blue-600 hover:text-blue-900"
-                >
-                  View
-                </button>
-                {onEditBranch && (
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div className="flex flex-wrap gap-2">
                   <button 
-                    onClick={() => onEditBranch(branch)}
-                    className="text-green-600 hover:text-green-900"
+                    onClick={() => onViewBranch(branch)}
+                    className="text-blue-600 hover:text-blue-900"
                   >
-                    Edit
+                    View
                   </button>
-                )}
-                {onGenerateReport && (
-                  <button 
-                    onClick={() => onGenerateReport(branch)}
-                    className="text-yellow-600 hover:text-yellow-900"
-                  >
-                    Report
-                  </button>
-                )}
+                  {onEditBranch && (
+                    <button 
+                      onClick={() => onEditBranch(branch)}
+                      className="text-green-600 hover:text-green-900"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {onGenerateReport && (
+                    <button 
+                      onClick={() => onGenerateReport(branch)}
+                      className="text-yellow-600 hover:text-yellow-900"
+                    >
+                      Report
+                    </button>
+                  )}
+                  {onDeleteBranch && (
+                    <button 
+                      onClick={() => onDeleteBranch(branch)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Delete
+                    </button>
+                  )}
+                  {onSuspendBranch && branch.status === 'Active' && (
+                    <button 
+                      onClick={() => onSuspendBranch(branch)}
+                      className="text-yellow-600 hover:text-yellow-900"
+                    >
+                      Suspend
+                    </button>
+                  )}
+                  {onActivateBranch && branch.status === 'Inactive' && (
+                    <button 
+                      onClick={() => onActivateBranch(branch)}
+                      className="text-green-600 hover:text-green-900"
+                    >
+                      Activate
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}

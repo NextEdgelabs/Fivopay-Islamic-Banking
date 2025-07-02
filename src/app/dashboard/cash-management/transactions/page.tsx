@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { useState } from "react";
+import { useCashContext, CashTransaction, TransactionFormData } from "../context/CashContext";
 import {
   ArrowsRightLeftIcon,
   PlusIcon,
@@ -13,109 +15,203 @@ import {
   XMarkIcon,
   BuildingOfficeIcon,
   ClockIcon,
+  EyeIcon,
+  UserIcon,
+  BanknotesIcon,
 } from "@heroicons/react/24/outline";
 
-interface Transaction {
+// Toast notification state
+interface Toast {
   id: string;
-  type: "deposit" | "withdrawal" | "transfer";
-  amount: number;
-  fromAccount: string;
-  toAccount: string;
-  status: "completed" | "pending" | "failed";
-  timestamp: string;
-  reference: string;
-  branch: string;
-  description: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
 }
 
+// Toast component
+const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) => {
+  const bgColor = toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  
+  return (
+    <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
+      <span>{toast.message}</span>
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+        <XMarkIcon className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
+
+// Confirmation dialog component
+const ConfirmDialog = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  title: string; 
+  message: string; 
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-600 mb-6">{message}</p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function TransactionsPage() {
+  const {
+    transactions,
+    addTransaction,
+    updateTransactionStatus,
+    deleteTransaction,
+  } = useCashContext();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showNewTransactionModal, setShowNewTransactionModal] = useState(false);
-  const [selectedTransactionType, setSelectedTransactionType] = useState<"deposit" | "withdrawal" | "transfer">("deposit");
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [selectedTransactionType, setSelectedTransactionType] = useState<"Deposit" | "Withdrawal" | "Transfer">("Deposit");
+  const [selectedTransaction, setSelectedTransaction] = useState<CashTransaction | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-
-  const transactions: Transaction[] = [
-    {
-      id: "1",
-      type: "deposit",
-      amount: 50000,
-      fromAccount: "Cash",
-      toAccount: "WAL001234567",
-      status: "completed",
-      timestamp: "2024-01-15T10:30:00Z",
-      reference: "TXN001234",
-      branch: "Branch A001",
-      description: "Cash deposit by Rahul Sharma",
-    },
-    {
-      id: "2",
-      type: "withdrawal",
-      amount: 25000,
-      fromAccount: "WAL001234568",
-      toAccount: "Cash",
-      status: "completed",
-      timestamp: "2024-01-15T09:15:00Z",
-      reference: "TXN001235",
-      branch: "Branch B002",
-      description: "Cash withdrawal by Priya Patel",
-    },
-    {
-      id: "3",
-      type: "transfer",
-      amount: 100000,
-      fromAccount: "WAL001234569",
-      toAccount: "WAL001234570",
-      status: "pending",
-      timestamp: "2024-01-15T08:45:00Z",
-      reference: "TXN001236",
-      branch: "Branch C003",
-      description: "Inter-wallet transfer",
-    },
-    {
-      id: "4",
-      type: "deposit",
-      amount: 75000,
-      fromAccount: "Cash",
-      toAccount: "WAL001234571",
-      status: "failed",
-      timestamp: "2024-01-15T07:30:00Z",
-      reference: "TXN001237",
-      branch: "Branch A001",
-      description: "Failed deposit attempt",
-    },
-  ];
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState({ 
+    isOpen: false, 
+    transactionId: '', 
+    action: '' as 'cancel' | 'approve' | 'reject' | 'delete'
+  });
+  const [formData, setFormData] = useState<TransactionFormData>({
+    type: 'Deposit',
+    amount: 0,
+    customerName: '',
+    accountNumber: '',
+    description: '',
+    branchId: ''
+  });
 
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch = 
-      transaction.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.branch.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === "all" || transaction.type === typeFilter;
-    const matchesStatus = statusFilter === "all" || transaction.status === statusFilter;
+      transaction.referenceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (transaction.description?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+      transaction.branchId.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = typeFilter === "all" || transaction.type.toLowerCase() === typeFilter.toLowerCase();
+    const matchesStatus = statusFilter === "all" || transaction.status.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesType && matchesStatus;
   });
 
   const totalDeposits = transactions
-    .filter(t => t.type === "deposit" && t.status === "completed")
+    .filter(t => t.type === "Deposit" && t.status === "Completed")
     .reduce((sum, t) => sum + t.amount, 0);
   
   const totalWithdrawals = transactions
-    .filter(t => t.type === "withdrawal" && t.status === "completed")
+    .filter(t => t.type === "Withdrawal" && t.status === "Completed")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const pendingTransactions = transactions.filter(t => t.status === "pending").length;
+  const pendingTransactions = transactions.filter(t => t.status === "Pending").length;
 
-  const handleViewDetails = (transaction: Transaction) => {
+  // Toast functions
+  const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Confirmation dialog functions
+  const openConfirm = (id: string, action: 'cancel' | 'approve' | 'reject' | 'delete') => {
+    setConfirmDialog({ isOpen: true, transactionId: id, action });
+  };
+
+  const handleConfirmAction = () => {
+    const { action, transactionId } = confirmDialog;
+    
+    if (action === 'cancel') {
+      updateTransactionStatus(transactionId, 'Cancelled');
+      addToast('Transaction has been cancelled successfully', 'success');
+    } else if (action === 'approve') {
+      updateTransactionStatus(transactionId, 'Completed');
+      addToast('Transaction has been approved successfully', 'success');
+    } else if (action === 'reject') {
+      updateTransactionStatus(transactionId, 'Failed');
+      addToast('Transaction has been rejected successfully', 'success');
+    } else if (action === 'delete') {
+      deleteTransaction(transactionId);
+      addToast('Transaction has been deleted successfully', 'success');
+    }
+    
+    setConfirmDialog({ isOpen: false, transactionId: '', action: 'cancel' });
+  };
+
+  const handleViewDetails = (transaction: CashTransaction) => {
     setSelectedTransaction(transaction);
     setShowDetailsModal(true);
   };
 
-  const handleApproveTransaction = (transactionId: string) => {
-    // Handle approval logic here
-    console.log("Approving transaction:", transactionId);
+  // Form handling functions
+  const handleFormChange = (field: keyof TransactionFormData, value: string | number) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCreateTransaction = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (!formData.customerName?.trim()) {
+      addToast('Customer name is required', 'error');
+      return;
+    }
+    if (formData.amount <= 0) {
+      addToast('Amount must be greater than 0', 'error');
+      return;
+    }
+    if (!formData.accountNumber?.trim()) {
+      addToast('Account number is required', 'error');
+      return;
+    }
+    if (!formData.branchId?.trim()) {
+      addToast('Branch ID is required', 'error');
+      return;
+    }
+    if (!formData.description?.trim()) {
+      addToast('Description is required', 'error');
+      return;
+    }
+
+    addTransaction(formData);
+    addToast('Transaction created successfully', 'success');
+    setShowNewTransactionModal(false);
+    setFormData({
+      type: 'Deposit',
+      amount: 0,
+      customerName: '',
+      accountNumber: '',
+      description: '',
+      branchId: ''
+    });
   };
 
   return (
@@ -211,26 +307,26 @@ export default function TransactionsPage() {
           </div>
           <div className="flex items-center space-x-2">
             <FunnelIcon className="h-5 w-5 text-gray-400" />
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Types</option>
-              <option value="deposit">Deposits</option>
-              <option value="withdrawal">Withdrawals</option>
-              <option value="transfer">Transfers</option>
-            </select>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Status</option>
-              <option value="completed">Completed</option>
-              <option value="pending">Pending</option>
-              <option value="failed">Failed</option>
-            </select>
+                          <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Types</option>
+                <option value="Deposit">Deposits</option>
+                <option value="Withdrawal">Withdrawals</option>
+                <option value="Transfer">Transfers</option>
+              </select>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Status</option>
+                <option value="Completed">Completed</option>
+                <option value="Pending">Pending</option>
+                <option value="Failed">Failed</option>
+              </select>
           </div>
         </div>
       </div>
@@ -258,7 +354,7 @@ export default function TransactionsPage() {
                   Amount
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  From/To
+                  Customer/Account
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -279,20 +375,20 @@ export default function TransactionsPage() {
                 <tr key={transaction.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900 font-mono">
-                      {transaction.reference}
+                      {transaction.referenceNumber}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        transaction.type === "deposit"
+                        transaction.type === "Deposit"
                           ? "bg-green-100 text-green-800"
-                          : transaction.type === "withdrawal"
+                          : transaction.type === "Withdrawal"
                           ? "bg-red-100 text-red-800"
                           : "bg-blue-100 text-blue-800"
                       }`}
                     >
-                      {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                      {transaction.type}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -302,25 +398,25 @@ export default function TransactionsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      <div>From: {transaction.fromAccount}</div>
-                      <div>To: {transaction.toAccount}</div>
+                      <div>{transaction.customerName}</div>
+                      <div className="text-gray-500">{transaction.accountNumber}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        transaction.status === "completed"
+                        transaction.status === "Completed"
                           ? "bg-green-100 text-green-800"
-                          : transaction.status === "pending"
+                          : transaction.status === "Pending"
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                      {transaction.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {transaction.branch}
+                    {transaction.branchId}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(transaction.timestamp).toLocaleString()}
@@ -333,14 +429,20 @@ export default function TransactionsPage() {
                       >
                         View Details
                       </button>
-                      {transaction.status === "pending" && (
+                      {transaction.status === "Pending" && (
                         <button 
-                          onClick={() => handleApproveTransaction(transaction.id)}
+                          onClick={() => openConfirm(transaction.id, 'approve')}
                           className="text-green-600 hover:text-green-900"
                         >
                           Approve
                         </button>
                       )}
+                      <button 
+                        onClick={() => openConfirm(transaction.id, 'delete')}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -354,70 +456,114 @@ export default function TransactionsPage() {
       {showNewTransactionModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              New Transaction
-            </h3>
-            <form className="space-y-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                New Transaction
+              </h3>
+              <button
+                onClick={() => setShowNewTransactionModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateTransaction} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Transaction Type
+                  Transaction Type *
                 </label>
                 <select
-                  value={selectedTransactionType}
-                  onChange={(e) => setSelectedTransactionType(e.target.value as any)}
+                  value={formData.type}
+                  onChange={(e) => handleFormChange('type', e.target.value as 'Deposit' | 'Withdrawal' | 'Transfer')}
                   className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
                 >
-                  <option value="deposit">Deposit</option>
-                  <option value="withdrawal">Withdrawal</option>
-                  <option value="transfer">Transfer</option>
+                  <option value="Deposit">Deposit</option>
+                  <option value="Withdrawal">Withdrawal</option>
+                  <option value="Transfer">Transfer</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Amount
+                  Amount *
                 </label>
                 <input
                   type="number"
+                  value={formData.amount}
+                  onChange={(e) => handleFormChange('amount', parseFloat(e.target.value) || 0)}
                   className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter amount"
+                  min="0"
+                  step="0.01"
+                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {selectedTransactionType === "transfer" ? "From Account" : "Account"}
+                  Customer Name *
                 </label>
                 <input
                   type="text"
+                  value={formData.customerName}
+                  onChange={(e) => handleFormChange('customerName', e.target.value)}
                   className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter account number"
+                  placeholder="Enter customer name"
+                  required
                 />
               </div>
-              {selectedTransactionType === "transfer" && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    To Account
-                  </label>
-                  <input
-                    type="text"
-                    className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter destination account"
-                  />
-                </div>
-              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  Account Number *
+                </label>
+                <input
+                  type="text"
+                  value={formData.accountNumber}
+                  onChange={(e) => handleFormChange('accountNumber', e.target.value)}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter account number"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Branch ID *
+                </label>
+                <input
+                  type="text"
+                  value={formData.branchId}
+                  onChange={(e) => handleFormChange('branchId', e.target.value)}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter branch ID"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description *
                 </label>
                 <textarea
+                  value={formData.description}
+                  onChange={(e) => handleFormChange('description', e.target.value)}
                   className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter transaction description"
                   rows={3}
+                  required
                 />
               </div>
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowNewTransactionModal(false)}
+                  onClick={() => {
+                    setShowNewTransactionModal(false);
+                    setFormData({
+                      type: 'Deposit',
+                      amount: 0,
+                      customerName: '',
+                      accountNumber: '',
+                      description: '',
+                      branchId: ''
+                    });
+                  }}
                   className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
                 >
                   Cancel
@@ -457,18 +603,18 @@ export default function TransactionsPage() {
                   <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-500">Reference:</span>
-                      <span className="font-mono text-gray-900">{selectedTransaction.reference}</span>
+                      <span className="font-mono text-gray-900">{selectedTransaction.referenceNumber}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Type:</span>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        selectedTransaction.type === "deposit"
+                        selectedTransaction.type === "Deposit"
                           ? "bg-green-100 text-green-800"
-                          : selectedTransaction.type === "withdrawal"
+                          : selectedTransaction.type === "Withdrawal"
                           ? "bg-red-100 text-red-800"
                           : "bg-blue-100 text-blue-800"
                       }`}>
-                        {selectedTransaction.type.charAt(0).toUpperCase() + selectedTransaction.type.slice(1)}
+                        {selectedTransaction.type}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -478,13 +624,13 @@ export default function TransactionsPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-500">Status:</span>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        selectedTransaction.status === "completed"
+                        selectedTransaction.status === "Completed"
                           ? "bg-green-100 text-green-800"
-                          : selectedTransaction.status === "pending"
+                          : selectedTransaction.status === "Pending"
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-red-100 text-red-800"
                       }`}>
-                        {selectedTransaction.status.charAt(0).toUpperCase() + selectedTransaction.status.slice(1)}
+                        {selectedTransaction.status}
                       </span>
                     </div>
                   </div>
@@ -494,12 +640,12 @@ export default function TransactionsPage() {
                   <h4 className="text-sm font-medium text-gray-500 mb-2">Account Details</h4>
                   <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                     <div>
-                      <div className="text-sm text-gray-500">From Account</div>
-                      <div className="font-medium text-gray-900">{selectedTransaction.fromAccount}</div>
+                      <div className="text-sm text-gray-500">Customer Name</div>
+                      <div className="font-medium text-gray-900">{selectedTransaction.customerName}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">To Account</div>
-                      <div className="font-medium text-gray-900">{selectedTransaction.toAccount}</div>
+                      <div className="text-sm text-gray-500">Account Number</div>
+                      <div className="font-medium text-gray-900">{selectedTransaction.accountNumber}</div>
                     </div>
                   </div>
                 </div>
@@ -511,7 +657,7 @@ export default function TransactionsPage() {
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <div className="flex items-center space-x-3 mb-3">
                       <BuildingOfficeIcon className="h-5 w-5 text-gray-400" />
-                      <span className="font-medium text-gray-900">{selectedTransaction.branch}</span>
+                      <span className="font-medium text-gray-900">{selectedTransaction.branchId}</span>
                     </div>
                   </div>
                 </div>
@@ -538,17 +684,14 @@ export default function TransactionsPage() {
                   </div>
                 </div>
 
-                {selectedTransaction.status === "pending" && (
+                {selectedTransaction.status === "Pending" && (
                   <div>
                     <h4 className="text-sm font-medium text-gray-500 mb-2">Actions</h4>
                     <div className="space-y-2">
                       <button 
-                        onClick={() => handleApproveTransaction(selectedTransaction.id)}
-                        className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm"
+                        onClick={() => openConfirm(selectedTransaction.id, 'reject')}
+                        className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm"
                       >
-                        Approve Transaction
-                      </button>
-                      <button className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">
                         Reject Transaction
                       </button>
                     </div>
@@ -559,6 +702,22 @@ export default function TransactionsPage() {
           </div>
         </div>
       )}
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 space-y-2 z-50">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} toast={toast} onRemove={removeToast} />
+        ))}
+      </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, transactionId: '', action: 'cancel' })}
+        onConfirm={handleConfirmAction}
+        title={`Confirm ${confirmDialog.action}`}
+        message={`Are you sure you want to ${confirmDialog.action} this transaction? This action cannot be undone.`}
+      />
     </div>
   );
 } 

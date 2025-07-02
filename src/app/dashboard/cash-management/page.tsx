@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { useState } from "react";
 import Link from "next/link";
@@ -11,10 +12,78 @@ import {
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
   ExclamationTriangleIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
+
+// Toast notification state
+interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
+}
+
+// Toast component
+const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) => {
+  const bgColor = toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  
+  return (
+    <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
+      <span>{toast.message}</span>
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+        <XMarkIcon className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
+
+// Confirmation dialog component
+const ConfirmDialog = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  title: string; 
+  message: string; 
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-600 mb-6">{message}</p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function CashManagementPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("7d");
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState({ 
+    isOpen: false, 
+    action: '', 
+    message: ''
+  });
 
   const overviewCards = [
     {
@@ -107,6 +176,27 @@ export default function CashManagementPage() {
     },
   ];
 
+  // Toast functions
+  const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Confirmation dialog functions
+  const openConfirm = (action: string, message: string) => {
+    setConfirmDialog({ isOpen: true, action, message });
+  };
+
+  const handleConfirmAction = () => {
+    addToast(`${confirmDialog.action} completed successfully!`, 'success');
+    setConfirmDialog({ isOpen: false, action: '', message: '' });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -121,7 +211,7 @@ export default function CashManagementPage() {
           <select
             value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
           >
             <option value="1d">Last 24 Hours</option>
             <option value="7d">Last 7 Days</option>

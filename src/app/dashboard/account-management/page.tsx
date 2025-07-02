@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { 
   CreditCardIcon,
@@ -9,62 +10,115 @@ import {
   EyeIcon,
   PencilIcon,
   ShieldCheckIcon,
-  PlusIcon
+  PlusIcon,
+  XMarkIcon,
+  TrashIcon
 } from "@heroicons/react/24/outline";
+import { useAccountContext } from './context/AccountContext';
 
-interface Account {
+// Toast notification state
+interface Toast {
   id: string;
-  accountNumber: string;
-  customerName: string;
-  accountType: 'Savings' | 'Current' | 'Investment' | 'Business';
-  status: 'Active' | 'Pending' | 'Suspended' | 'Closed';
-  balance: number;
-  openingDate: string;
-  kycStatus: 'Completed' | 'Pending' | 'Under Review' | 'Rejected';
-  branch: string;
-  riskRating: 'Low' | 'Medium' | 'High';
+  message: string;
+  type: 'success' | 'error' | 'info';
 }
 
-export default function AccountManagementPage() {
+// Toast component
+const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) => {
+  const bgColor = toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  
+  return (
+    <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
+      <span>{toast.message}</span>
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+        <XMarkIcon className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
 
-  const accounts: Account[] = [
-    {
-      id: '1',
-      accountNumber: 'FP001234567890',
-      customerName: 'Ahmed Hassan',
-      accountType: 'Savings',
-      status: 'Active',
-      balance: 125000,
-      openingDate: '2024-01-15',
-      kycStatus: 'Completed',
-      branch: 'Mumbai Central',
-      riskRating: 'Low'
-    },
-    {
-      id: '2',
-      accountNumber: 'FP001234567891',
-      customerName: 'Fatima Al-Zahra',
-      accountType: 'Business',
-      status: 'Active',
-      balance: 850000,
-      openingDate: '2024-01-10',
-      kycStatus: 'Completed',
-      branch: 'Delhi Main',
-      riskRating: 'Low'
-    },
-    {
-      id: '3',
-      accountNumber: 'FP001234567892',
-      customerName: 'Mohammad Ali',
-      accountType: 'Current',
-      status: 'Pending',
-      balance: 0,
-      openingDate: '2024-01-20',
-      kycStatus: 'Under Review',
-      branch: 'Bangalore Tech',
-      riskRating: 'Medium'
+// Confirmation dialog component
+const ConfirmDialog = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  title: string; 
+  message: string; 
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-600 mb-6">{message}</p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function AccountManagementPage() {
+  const { accounts, deleteAccount, updateAccountStatus } = useAccountContext();
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState({ 
+    isOpen: false, 
+    accountId: '', 
+    accountName: '',
+    action: '' as 'delete' | 'suspend' | 'activate'
+  });
+
+  // Toast functions
+  const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Confirmation dialog functions
+  const openConfirm = (id: string, name: string, action: 'delete' | 'suspend' | 'activate') => {
+    setConfirmDialog({ isOpen: true, accountId: id, accountName: name, action });
+  };
+
+  const handleConfirmAction = () => {
+    const { action, accountName } = confirmDialog;
+    
+    if (action === 'delete') {
+      deleteAccount(confirmDialog.accountId);
+      addToast(`Account "${accountName}" has been deleted successfully`, 'success');
+    } else if (action === 'suspend') {
+      updateAccountStatus(confirmDialog.accountId, 'Suspended');
+      addToast(`Account "${accountName}" has been suspended successfully`, 'success');
+    } else if (action === 'activate') {
+      updateAccountStatus(confirmDialog.accountId, 'Active');
+      addToast(`Account "${accountName}" has been activated successfully`, 'success');
     }
-  ];
+    
+    setConfirmDialog({ isOpen: false, accountId: '', accountName: '', action: 'delete' });
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -232,13 +286,37 @@ export default function AccountManagementPage() {
                       {account.kycStatus}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button className="text-blue-600 hover:text-blue-900">
-                      <EyeIcon className="h-4 w-4" />
-                    </button>
-                    <button className="text-green-600 hover:text-green-900">
-                      <PencilIcon className="h-4 w-4" />
-                    </button>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button className="text-blue-600 hover:text-blue-900">
+                        <EyeIcon className="h-4 w-4" />
+                      </button>
+                      <button className="text-green-600 hover:text-green-900">
+                        <PencilIcon className="h-4 w-4" />
+                      </button>
+                      {account.status === 'Active' && (
+                        <button 
+                          onClick={() => openConfirm(account.id, account.customerName, 'suspend')}
+                          className="text-yellow-600 hover:text-yellow-900"
+                        >
+                          Suspend
+                        </button>
+                      )}
+                      {account.status === 'Suspended' && (
+                        <button 
+                          onClick={() => openConfirm(account.id, account.customerName, 'activate')}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          Activate
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => openConfirm(account.id, account.customerName, 'delete')}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -246,6 +324,22 @@ export default function AccountManagementPage() {
           </table>
         </div>
       </div>
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 space-y-2 z-50">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} toast={toast} onRemove={removeToast} />
+        ))}
+      </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, accountId: '', accountName: '', action: 'delete' })}
+        onConfirm={handleConfirmAction}
+        title={`Confirm ${confirmDialog.action}`}
+        message={`Are you sure you want to ${confirmDialog.action} the account "${confirmDialog.accountName}"? This action cannot be undone.`}
+      />
     </div>
   );
 }

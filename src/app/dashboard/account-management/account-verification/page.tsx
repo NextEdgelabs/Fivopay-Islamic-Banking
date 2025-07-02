@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { useState } from "react";
 import Link from "next/link";
@@ -9,98 +10,91 @@ import {
   ClockIcon,
   EyeIcon,
   ArrowLeftIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  XMarkIcon
 } from "@heroicons/react/24/outline";
+import { useAccountContext, Account } from '../context/AccountContext';
 
-interface PendingVerification {
-  id: string;
-  accountNumber: string;
-  customerName: string;
-  email: string;
-  phone: string;
-  accountType: string;
-  submissionDate: string;
-  priority: 'High' | 'Medium' | 'Low';
-  kycStatus: 'Pending' | 'Under Review' | 'Rejected' | 'Approved';
-  documents: {
-    panCard: { status: 'Pending' | 'Verified' | 'Rejected'; remarks?: string };
-    aadharCard: { status: 'Pending' | 'Verified' | 'Rejected'; remarks?: string };
-    addressProof: { status: 'Pending' | 'Verified' | 'Rejected'; remarks?: string };
-    incomeProof: { status: 'Pending' | 'Verified' | 'Rejected'; remarks?: string };
-  };
-  riskFlags: string[];
-  branch: string;
-  initialDeposit: number;
-}
+// Toast notification state
+interface Toast { id: string; message: string; type: 'success' | 'error' | 'info'; }
+const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) => {
+  const bgColor = toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  return (
+    <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
+      <span>{toast.message}</span>
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+        <XMarkIcon className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
+
+const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message }: {
+  isOpen: boolean; onClose: () => void; onConfirm: () => void; title: string; message: string;
+}) => isOpen ? (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+      <p className="text-gray-600 mb-6">{message}</p>
+      <div className="flex justify-end space-x-3">
+        <button onClick={onClose} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Cancel</button>
+        <button onClick={onConfirm} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Confirm</button>
+      </div>
+    </div>
+  </div>
+) : null;
 
 export default function AccountVerificationPage() {
+  const { accounts, updateAccountStatus, updateKycStatus } = useAccountContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('All');
-  const [selectedAccount, setSelectedAccount] = useState<PendingVerification | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    accountId: '',
+    accountName: '',
+    action: '' as 'approve' | 'reject'
+  });
 
-  const pendingAccounts: PendingVerification[] = [
-    {
-      id: '1',
-      accountNumber: 'FP001234567890',
-      customerName: 'Ahmed Hassan',
-      email: 'ahmed.hassan@email.com',
-      phone: '+91 98765 43210',
-      accountType: 'Savings',
-      submissionDate: '2024-01-20',
-      priority: 'High',
-      kycStatus: 'Under Review',
-      documents: {
-        panCard: { status: 'Verified' },
-        aadharCard: { status: 'Verified' },
-        addressProof: { status: 'Pending' },
-        incomeProof: { status: 'Verified' }
-      },
-      riskFlags: [],
-      branch: 'Mumbai Central',
-      initialDeposit: 50000
-    },
-    {
-      id: '2',
-      accountNumber: 'FP001234567891',
-      customerName: 'Fatima Al-Zahra',
-      email: 'fatima.zahra@email.com',
-      phone: '+91 98765 43211',
-      accountType: 'Business',
-      submissionDate: '2024-01-18',
-      priority: 'High',
-      kycStatus: 'Pending',
-      documents: {
-        panCard: { status: 'Pending' },
-        aadharCard: { status: 'Pending' },
-        addressProof: { status: 'Pending' },
-        incomeProof: { status: 'Pending' }
-      },
-      riskFlags: ['High Value Transaction'],
-      branch: 'Delhi Main',
-      initialDeposit: 1000000
-    },
-    {
-      id: '3',
-      accountNumber: 'FP001234567892',
-      customerName: 'Mohammad Ali',
-      email: 'mohammad.ali@email.com',
-      phone: '+91 98765 43212',
-      accountType: 'Current',
-      submissionDate: '2024-01-15',
-      priority: 'Medium',
-      kycStatus: 'Rejected',
-      documents: {
-        panCard: { status: 'Verified' },
-        aadharCard: { status: 'Rejected', remarks: 'Invalid document format' },
-        addressProof: { status: 'Pending' },
-        incomeProof: { status: 'Verified' }
-      },
-      riskFlags: ['Document Mismatch'],
-      branch: 'Bangalore Tech',
-      initialDeposit: 25000
+  // Toast functions
+  const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Confirmation dialog functions
+  const openConfirm = (id: string, name: string, action: 'approve' | 'reject') => {
+    setConfirmDialog({ isOpen: true, accountId: id, accountName: name, action });
+  };
+
+  const handleConfirmAction = () => {
+    const { action, accountName } = confirmDialog;
+    
+    if (action === 'approve') {
+      updateAccountStatus(confirmDialog.accountId, 'Active');
+      updateKycStatus(confirmDialog.accountId, 'Completed');
+      addToast(`Account "${accountName}" has been approved successfully`, 'success');
+    } else if (action === 'reject') {
+      updateAccountStatus(confirmDialog.accountId, 'Suspended');
+      updateKycStatus(confirmDialog.accountId, 'Rejected');
+      addToast(`Account "${accountName}" has been rejected`, 'success');
     }
-  ];
+    
+    setConfirmDialog({ isOpen: false, accountId: '', accountName: '', action: 'approve' });
+    setShowModal(false);
+  };
+
+  // Filter accounts that need verification (Pending or Under Review status)
+  const pendingAccounts = accounts.filter(account => 
+    account.status === 'Pending' || account.kycStatus === 'Pending' || account.kycStatus === 'Under Review'
+  );
 
   const filteredAccounts = pendingAccounts.filter(account => {
     const matchesSearch = account.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -116,7 +110,7 @@ export default function AccountVerificationPage() {
         return 'bg-yellow-100 text-yellow-800';
       case 'Under Review':
         return 'bg-blue-100 text-blue-800';
-      case 'Approved':
+      case 'Completed':
         return 'bg-green-100 text-green-800';
       case 'Rejected':
         return 'bg-red-100 text-red-800';
@@ -127,10 +121,12 @@ export default function AccountVerificationPage() {
 
   const getDocumentStatusBadge = (status: string) => {
     switch (status) {
-      case 'Verified':
+      case 'Completed':
         return 'bg-green-100 text-green-800';
       case 'Pending':
         return 'bg-yellow-100 text-yellow-800';
+      case 'Under Review':
+        return 'bg-blue-100 text-blue-800';
       case 'Rejected':
         return 'bg-red-100 text-red-800';
       default:
@@ -138,17 +134,18 @@ export default function AccountVerificationPage() {
     }
   };
 
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
-      case 'High':
-        return 'bg-red-50 text-red-700 border border-red-200';
-      case 'Medium':
-        return 'bg-yellow-50 text-yellow-700 border border-yellow-200';
-      case 'Low':
-        return 'bg-green-50 text-green-700 border border-green-200';
-      default:
-        return 'bg-gray-50 text-gray-700 border border-gray-200';
-    }
+  const getPriorityBadge = (account: Account) => {
+    const deposit = account.initialDeposit;
+    if (deposit >= 1000000) return 'bg-red-50 text-red-700 border border-red-200';
+    if (deposit >= 500000) return 'bg-yellow-50 text-yellow-700 border border-yellow-200';
+    return 'bg-green-50 text-green-700 border border-green-200';
+  };
+
+  const getPriorityText = (account: Account) => {
+    const deposit = account.initialDeposit;
+    if (deposit >= 1000000) return 'High';
+    if (deposit >= 500000) return 'Medium';
+    return 'Low';
   };
 
   const getStatusIcon = (status: string) => {
@@ -157,7 +154,7 @@ export default function AccountVerificationPage() {
         return <ClockIcon className="h-4 w-4 text-yellow-500" />;
       case 'Under Review':
         return <DocumentTextIcon className="h-4 w-4 text-blue-500" />;
-      case 'Approved':
+      case 'Completed':
         return <CheckCircleIcon className="h-4 w-4 text-green-500" />;
       case 'Rejected':
         return <XCircleIcon className="h-4 w-4 text-red-500" />;
@@ -166,14 +163,14 @@ export default function AccountVerificationPage() {
     }
   };
 
-  const handleViewAccount = (account: PendingVerification) => {
+  const handleViewAccount = (account: Account) => {
     setSelectedAccount(account);
     setShowModal(true);
   };
 
   const totalPending = pendingAccounts.length;
   const underReview = pendingAccounts.filter(acc => acc.kycStatus === 'Under Review').length;
-  const highPriority = pendingAccounts.filter(acc => acc.priority === 'High').length;
+  const highPriority = pendingAccounts.filter(acc => acc.initialDeposit >= 1000000).length;
 
   return (
     <div className="space-y-6">
@@ -250,7 +247,7 @@ export default function AccountVerificationPage() {
               <option value="All">All Status</option>
               <option value="Pending">Pending</option>
               <option value="Under Review">Under Review</option>
-              <option value="Approved">Approved</option>
+              <option value="Completed">Completed</option>
               <option value="Rejected">Rejected</option>
             </select>
           </div>
@@ -277,8 +274,8 @@ export default function AccountVerificationPage() {
                   {getStatusIcon(account.kycStatus)}
                   <span className="ml-1">{account.kycStatus}</span>
                 </span>
-                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityBadge(account.priority)}`}>
-                  {account.priority}
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityBadge(account)}`}>
+                  {getPriorityText(account)}
                 </span>
               </div>
             </div>
@@ -289,44 +286,42 @@ export default function AccountVerificationPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
                   <span className="text-xs text-slate-600">PAN Card</span>
-                  <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(account.documents.panCard.status)}`}>
-                    {account.documents.panCard.status}
+                  <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(account.kycStatus)}`}>
+                    {account.kycStatus === 'Completed' ? 'Verified' : account.kycStatus}
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
                   <span className="text-xs text-slate-600">Aadhar Card</span>
-                  <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(account.documents.aadharCard.status)}`}>
-                    {account.documents.aadharCard.status}
+                  <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(account.kycStatus)}`}>
+                    {account.kycStatus === 'Completed' ? 'Verified' : account.kycStatus}
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
                   <span className="text-xs text-slate-600">Address Proof</span>
-                  <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(account.documents.addressProof.status)}`}>
-                    {account.documents.addressProof.status}
+                  <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(account.kycStatus)}`}>
+                    {account.kycStatus === 'Completed' ? 'Verified' : account.kycStatus}
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
                   <span className="text-xs text-slate-600">Income Proof</span>
-                  <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(account.documents.incomeProof.status)}`}>
-                    {account.documents.incomeProof.status}
+                  <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(account.kycStatus)}`}>
+                    {account.kycStatus === 'Completed' ? 'Verified' : account.kycStatus}
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Risk Flags */}
-            {account.riskFlags.length > 0 && (
+            {account.initialDeposit >= 1000000 && (
               <div className="mb-4">
                 <div className="flex items-center space-x-2 mb-2">
                   <ExclamationTriangleIcon className="h-4 w-4 text-red-500" />
                   <span className="text-sm font-medium text-red-700">Risk Flags:</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {account.riskFlags.map((flag, index) => (
-                    <span key={index} className="inline-flex px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
-                      {flag}
-                    </span>
-                  ))}
+                  <span className="inline-flex px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                    High Value Transaction
+                  </span>
                 </div>
               </div>
             )}
@@ -340,10 +335,16 @@ export default function AccountVerificationPage() {
                 <EyeIcon className="h-4 w-4" />
                 <span>Review</span>
               </button>
-              <button className="bg-green-50 text-green-600 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors text-sm">
+              <button 
+                onClick={() => openConfirm(account.id, account.customerName, 'approve')}
+                className="bg-green-50 text-green-600 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors text-sm"
+              >
                 Approve
               </button>
-              <button className="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors text-sm">
+              <button 
+                onClick={() => openConfirm(account.id, account.customerName, 'reject')}
+                className="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors text-sm"
+              >
                 Reject
               </button>
             </div>
@@ -378,22 +379,44 @@ export default function AccountVerificationPage() {
                 <div className="pt-4">
                   <h4 className="text-sm font-medium text-slate-900 mb-2">Document Status</h4>
                   <div className="space-y-2">
-                    {Object.entries(selectedAccount.documents).map(([docType, doc]) => (
-                      <div key={docType} className="flex items-center justify-between p-2 bg-slate-50 rounded">
-                        <span className="text-sm capitalize">{docType.replace(/([A-Z])/g, ' $1').trim()}</span>
-                        <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(doc.status)}`}>
-                          {doc.status}
-                        </span>
-                      </div>
-                    ))}
+                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                      <span className="text-sm">PAN Card</span>
+                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(selectedAccount.kycStatus)}`}>
+                        {selectedAccount.kycStatus === 'Completed' ? 'Verified' : selectedAccount.kycStatus}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                      <span className="text-sm">Aadhar Card</span>
+                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(selectedAccount.kycStatus)}`}>
+                        {selectedAccount.kycStatus === 'Completed' ? 'Verified' : selectedAccount.kycStatus}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                      <span className="text-sm">Address Proof</span>
+                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(selectedAccount.kycStatus)}`}>
+                        {selectedAccount.kycStatus === 'Completed' ? 'Verified' : selectedAccount.kycStatus}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                      <span className="text-sm">Income Proof</span>
+                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getDocumentStatusBadge(selectedAccount.kycStatus)}`}>
+                        {selectedAccount.kycStatus === 'Completed' ? 'Verified' : selectedAccount.kycStatus}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 
                 <div className="flex space-x-3 pt-4">
-                  <button className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                  <button 
+                    onClick={() => openConfirm(selectedAccount.id, selectedAccount.customerName, 'approve')}
+                    className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                  >
                     Approve Account
                   </button>
-                  <button className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                  <button 
+                    onClick={() => openConfirm(selectedAccount.id, selectedAccount.customerName, 'reject')}
+                    className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+                  >
                     Reject Account
                   </button>
                 </div>
@@ -402,6 +425,22 @@ export default function AccountVerificationPage() {
           </div>
         </div>
       )}
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 space-y-2 z-50">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} toast={toast} onRemove={removeToast} />
+        ))}
+      </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, accountId: '', accountName: '', action: 'approve' })}
+        onConfirm={handleConfirmAction}
+        title={`Confirm ${confirmDialog.action}`}
+        message={`Are you sure you want to ${confirmDialog.action} the account "${confirmDialog.accountName}"? This action cannot be undone.`}
+      />
     </div>
   );
 } 

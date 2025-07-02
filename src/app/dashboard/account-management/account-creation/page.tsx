@@ -1,30 +1,45 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { 
   UserIcon,
   CreditCardIcon,
   DocumentTextIcon,
   CheckCircleIcon,
   ArrowLeftIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  XMarkIcon
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { useAccountContext, NewAccountFormData } from '../context/AccountContext';
 
-interface FormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  accountType: 'Savings' | 'Current' | 'Investment' | 'Business' | '';
-  initialDeposit: string;
-  branch: string;
-  panCard: string;
-  aadharCard: string;
+// Toast notification state
+interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
 }
 
+// Toast component
+const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) => {
+  const bgColor = toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  
+  return (
+    <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
+      <span>{toast.message}</span>
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+        <XMarkIcon className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
+
 export default function AccountCreationPage() {
+  const router = useRouter();
+  const { addAccount } = useAccountContext();
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<FormData>({
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [formData, setFormData] = useState<NewAccountFormData>({
     firstName: '',
     lastName: '',
     email: '',
@@ -35,6 +50,17 @@ export default function AccountCreationPage() {
     panCard: '',
     aadharCard: ''
   });
+
+  // Toast functions
+  const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
 
   const steps = [
     { id: 1, name: 'Personal Info', icon: UserIcon },
@@ -78,7 +104,7 @@ export default function AccountCreationPage() {
     'Kolkata East'
   ];
 
-  const handleInputChange = (field: keyof FormData, value: string) => {
+  const handleInputChange = (field: keyof NewAccountFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -88,6 +114,40 @@ export default function AccountCreationPage() {
 
   const prevStep = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  const handleSubmit = () => {
+    try {
+      // Validate form data
+      if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || 
+          !formData.accountType || !formData.initialDeposit || !formData.branch || 
+          !formData.panCard || !formData.aadharCard) {
+        addToast('Please fill in all required fields', 'error');
+        return;
+      }
+
+      // Validate initial deposit
+      const deposit = parseInt(formData.initialDeposit);
+      const selectedAccountType = accountTypes.find(type => type.type === formData.accountType);
+      if (deposit < (selectedAccountType?.minDeposit || 0)) {
+        addToast(`Initial deposit must be at least ₹${selectedAccountType?.minDeposit.toLocaleString()} for ${selectedAccountType?.name}`, 'error');
+        return;
+      }
+
+      // Add account to context
+      addAccount(formData);
+      
+      // Show success message
+      addToast(`Account for ${formData.firstName} ${formData.lastName} has been created successfully`, 'success');
+      
+      // Redirect to account management page after a short delay
+      setTimeout(() => {
+        router.push('/dashboard/account-management');
+      }, 2000);
+      
+    } catch {
+      addToast('Failed to create account. Please try again.', 'error');
+    }
   };
 
   const renderStepContent = () => {
@@ -315,11 +375,21 @@ export default function AccountCreationPage() {
             <ArrowRightIcon className="h-4 w-4" />
           </button>
         ) : (
-          <button className="flex items-center space-x-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+          <button
+            onClick={handleSubmit}
+            className="flex items-center space-x-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+          >
             <CheckCircleIcon className="h-4 w-4" />
             <span>Submit Application</span>
           </button>
         )}
+      </div>
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 space-y-2 z-50">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} toast={toast} onRemove={removeToast} />
+        ))}
       </div>
     </div>
   );

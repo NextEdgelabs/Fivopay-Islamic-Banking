@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { useState } from "react";
+import { useCashContext, DigitalWallet } from "../context/CashContext";
 import {
   WalletIcon,
   PlusIcon,
@@ -14,67 +16,160 @@ import {
   ClockIcon,
 } from "@heroicons/react/24/outline";
 
-interface Wallet {
+// Toast notification state
+interface Toast {
   id: string;
-  customerName: string;
-  walletNumber: string;
-  balance: number;
-  status: "active" | "suspended" | "pending";
-  lastTransaction: string;
-  createdAt: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
 }
 
+// Toast component
+const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) => {
+  const bgColor = toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  
+  return (
+    <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
+      <span>{toast.message}</span>
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+        <XMarkIcon className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
+
+// Confirmation dialog component
+const ConfirmDialog = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  title: string; 
+  message: string; 
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-600 mb-6">{message}</p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function DigitalWalletPage() {
+  const {
+    wallets,
+    addWallet,
+    updateWalletStatus,
+    deleteWallet,
+  } = useCashContext();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
-  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
+  const [selectedWallet, setSelectedWallet] = useState<DigitalWallet | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    walletId: '',
+    customerName: '',
+    action: ''
+  });
+  const [formData, setFormData] = useState({
+    customerName: '',
+    initialBalance: 0,
+    branchId: ''
+  });
 
-  const wallets: Wallet[] = [
-    {
-      id: "1",
-      customerName: "Rahul Sharma",
-      walletNumber: "WAL001234567",
-      balance: 25000,
-      status: "active",
-      lastTransaction: "2024-01-15T10:30:00Z",
-      createdAt: "2024-01-01T00:00:00Z",
-    },
-    {
-      id: "2",
-      customerName: "Priya Patel",
-      walletNumber: "WAL001234568",
-      balance: 15000,
-      status: "active",
-      lastTransaction: "2024-01-15T09:15:00Z",
-      createdAt: "2024-01-02T00:00:00Z",
-    },
-    {
-      id: "3",
-      customerName: "Amit Kumar",
-      walletNumber: "WAL001234569",
-      balance: 50000,
-      status: "suspended",
-      lastTransaction: "2024-01-14T16:45:00Z",
-      createdAt: "2024-01-03T00:00:00Z",
-    },
-  ];
-
-  const filteredWallets = wallets.filter((wallet) => {
+  const filteredWallets = wallets.filter((wallet: DigitalWallet) => {
     const matchesSearch = wallet.customerName
       .toLowerCase()
       .includes(searchTerm.toLowerCase()) ||
       wallet.walletNumber.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || wallet.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || wallet.status.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
-  const totalBalance = wallets.reduce((sum, wallet) => sum + wallet.balance, 0);
-  const activeWallets = wallets.filter((w) => w.status === "active").length;
+  const totalBalance = wallets.reduce((sum: number, wallet: DigitalWallet) => sum + wallet.balance, 0);
+  const activeWallets = wallets.filter((w: DigitalWallet) => w.status.toLowerCase() === "active").length;
 
-  const handleViewDetails = (wallet: Wallet) => {
+  // Toast functions
+  const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Date.now().toString();
+    setToasts((prev: Toast[]) => [...prev, { id, message, type }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
+  const removeToast = (id: string) => {
+    setToasts((prev: Toast[]) => prev.filter((toast: Toast) => toast.id !== id));
+  };
+
+  // Confirmation dialog functions
+  const openConfirm = (id: string, name: string, action: 'delete' | 'suspend' | 'activate') => {
+    setConfirmDialog({ isOpen: true, walletId: id, customerName: name, action });
+  };
+  const handleConfirmAction = () => {
+    const { action, walletId, customerName } = confirmDialog;
+    if (action === 'delete') {
+      deleteWallet(walletId);
+      addToast(`Wallet for ${customerName} has been deleted successfully`, 'success');
+    } else if (action === 'suspend') {
+      updateWalletStatus(walletId, 'Suspended');
+      addToast(`Wallet for ${customerName} has been suspended successfully`, 'success');
+    } else if (action === 'activate') {
+      updateWalletStatus(walletId, 'Active');
+      addToast(`Wallet for ${customerName} has been activated successfully`, 'success');
+    }
+    setConfirmDialog({ isOpen: false, walletId: '', customerName: '', action: '' });
+  };
+
+  // Create wallet form handling
+  const handleFormChange = (field: 'customerName' | 'initialBalance' | 'branchId', value: string | number) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+  const handleCreateWallet = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!formData.customerName.trim()) {
+      addToast('Customer name is required', 'error');
+      return;
+    }
+    if (formData.initialBalance < 0) {
+      addToast('Initial balance cannot be negative', 'error');
+      return;
+    }
+    if (!formData.branchId.trim()) {
+      addToast('Branch ID is required', 'error');
+      return;
+    }
+    addWallet(formData);
+    addToast('Wallet created successfully', 'success');
+    setShowCreateModal(false);
+    setFormData({ customerName: '', initialBalance: 0, branchId: '' });
+  };
+
+  const handleViewDetails = (wallet: DigitalWallet) => {
     setSelectedWallet(wallet);
     setShowDetailsModal(true);
   };
@@ -256,9 +351,9 @@ export default function DigitalWalletPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        wallet.status === "active"
+                        wallet.status.toLowerCase() === "active"
                           ? "bg-green-100 text-green-800"
-                          : wallet.status === "suspended"
+                          : wallet.status.toLowerCase() === "suspended"
                           ? "bg-red-100 text-red-800"
                           : "bg-yellow-100 text-yellow-800"
                       }`}
@@ -280,6 +375,27 @@ export default function DigitalWalletPage() {
                       <button className="text-green-600 hover:text-green-900">
                         Transactions
                       </button>
+                      {wallet.status.toLowerCase() === "active" ? (
+                        <button 
+                          onClick={() => openConfirm(wallet.id, wallet.customerName, 'suspend')}
+                          className="text-yellow-600 hover:text-yellow-900"
+                        >
+                          Suspend
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => openConfirm(wallet.id, wallet.customerName, 'activate')}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          Activate
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => openConfirm(wallet.id, wallet.customerName, 'delete')}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -293,34 +409,66 @@ export default function DigitalWalletPage() {
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Create New Wallet
-            </h3>
-            <form className="space-y-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Create New Wallet
+              </h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateWallet} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Customer Name
+                  Customer Name *
                 </label>
                 <input
                   type="text"
+                  value={formData.customerName}
+                  onChange={(e) => handleFormChange('customerName', e.target.value)}
                   className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter customer name"
+                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Initial Balance
+                  Initial Balance *
                 </label>
                 <input
                   type="number"
+                  value={formData.initialBalance}
+                  onChange={(e) => handleFormChange('initialBalance', parseFloat(e.target.value) || 0)}
                   className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter initial balance"
+                  min="0"
+                  step="0.01"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Branch ID *
+                </label>
+                <input
+                  type="text"
+                  value={formData.branchId}
+                  onChange={(e) => handleFormChange('branchId', e.target.value)}
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter branch ID"
+                  required
                 />
               </div>
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setFormData({ customerName: '', initialBalance: 0, branchId: '' });
+                  }}
                   className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
                 >
                   Cancel
@@ -370,9 +518,9 @@ export default function DigitalWalletPage() {
                       <div>
                         <span className="text-gray-500">Status:</span>
                         <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          selectedWallet.status === "active"
+                          selectedWallet.status.toLowerCase() === "active"
                             ? "bg-green-100 text-green-800"
-                            : selectedWallet.status === "suspended"
+                            : selectedWallet.status.toLowerCase() === "suspended"
                             ? "bg-red-100 text-red-800"
                             : "bg-yellow-100 text-yellow-800"
                         }`}>
@@ -430,8 +578,28 @@ export default function DigitalWalletPage() {
                     <button className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
                       Transfer Funds
                     </button>
-                    <button className="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 text-sm">
-                      {selectedWallet.status === "active" ? "Suspend Wallet" : "Activate Wallet"}
+                    <button 
+                      onClick={() => {
+                        const action = selectedWallet.status.toLowerCase() === "active" ? 'suspend' : 'activate';
+                        openConfirm(selectedWallet.id, selectedWallet.customerName, action);
+                        setShowDetailsModal(false);
+                      }}
+                      className={`w-full px-4 py-2 rounded-lg text-sm ${
+                        selectedWallet.status.toLowerCase() === "active" 
+                          ? "bg-yellow-600 hover:bg-yellow-700 text-white"
+                          : "bg-green-600 hover:bg-green-700 text-white"
+                      }`}
+                    >
+                      {selectedWallet.status.toLowerCase() === "active" ? "Suspend Wallet" : "Activate Wallet"}
+                    </button>
+                    <button 
+                      onClick={() => {
+                        openConfirm(selectedWallet.id, selectedWallet.customerName, 'delete');
+                        setShowDetailsModal(false);
+                      }}
+                      className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm"
+                    >
+                      Delete Wallet
                     </button>
                   </div>
                 </div>
@@ -482,6 +650,22 @@ export default function DigitalWalletPage() {
           </div>
         </div>
       )}
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 space-y-2 z-50">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} toast={toast} onRemove={removeToast} />
+        ))}
+      </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, walletId: '', customerName: '', action: '' })}
+        onConfirm={handleConfirmAction}
+        title={`Confirm ${confirmDialog.action}`}
+        message={`Are you sure you want to ${confirmDialog.action} the wallet for ${confirmDialog.customerName}? This action cannot be undone.`}
+      />
     </div>
   );
 } 

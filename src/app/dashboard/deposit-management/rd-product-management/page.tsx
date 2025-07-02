@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useState } from 'react';
+import { useDepositContext, RDProduct } from '../context/DepositContext';
 import {
   BanknotesIcon,
   PlusIcon,
@@ -12,144 +14,116 @@ import {
   ShieldCheckIcon,
   FunnelIcon,
   ArrowTrendingUpIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
-interface RDProduct {
+// Toast notification state
+interface Toast {
   id: string;
-  productName: string;
-  productCode: string;
-  minMonthlyAmount: number;
-  maxMonthlyAmount: number;
-  tenure: {
-    min: number;
-    max: number;
-    unit: 'months' | 'years';
-  };
+  message: string;
+  type: 'success' | 'error' | 'info';
+}
+
+// Toast component
+const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) => {
+  const bgColor = toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  
+  return (
+    <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
+      <span>{toast.message}</span>
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+        <XMarkIcon className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
+
+// Confirmation dialog component
+const ConfirmDialog = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  title: string; 
+  message: string; 
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-600 mb-6">{message}</p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Form data interface for creating/editing products
+interface ProductFormData {
+  name: string;
+  minMonthlyDeposit: number;
+  maxMonthlyDeposit: number;
   profitRate: number;
-  maturityBenefit: string;
-  isActive: boolean;
-  shariaCompliant: boolean;
+  tenure: {
+    years: number;
+    months: number;
+  };
+  status: 'Active' | 'Inactive';
   description: string;
-  eligibility: string[];
-  features: string[];
-  createdDate: string;
-  totalAccounts: number;
-  totalDeposits: number;
-  avgMonthlyDeposit: number;
 }
 
 export default function RDProductManagementPage() {
+  const { rdProducts, addRDProduct, updateRDProduct, deleteRDProduct } = useDepositContext();
+  
   const [selectedProduct, setSelectedProduct] = useState<RDProduct | null>(null);
   const [showProductModal, setShowProductModal] = useState(false);
   const [modalMode, setModalMode] = useState<'view' | 'create' | 'edit'>('view');
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState({ 
+    isOpen: false, 
+    productId: '', 
+    productName: '',
+    action: '' as 'delete' | 'activate' | 'deactivate'
+  });
 
-  // Mock data for RD products
-  const rdProducts: RDProduct[] = [
-    {
-      id: '1',
-      productName: 'Mudarabah Recurring Deposit - Growth',
-      productCode: 'MRD-GROW',
-      minMonthlyAmount: 1000,
-      maxMonthlyAmount: 50000,
-      tenure: { min: 12, max: 60, unit: 'months' },
-      profitRate: 7.2,
-      maturityBenefit: 'Profit sharing based on bank performance',
-      isActive: true,
-      shariaCompliant: true,
-      description: 'Systematic savings plan based on Mudarabah principles for wealth accumulation over time.',
-      eligibility: ['Minimum monthly deposit ₹1,000', 'Valid KYC documents', 'Regular income proof'],
-      features: ['Flexible monthly deposits', 'Profit sharing mechanism', 'Partial withdrawal after 1 year'],
-      createdDate: '2023-01-20',
-      totalAccounts: 2340,
-      totalDeposits: 234000000,
-      avgMonthlyDeposit: 3500
-    },
-    {
-      id: '2',
-      productName: 'Child Education Mudarabah RD',
-      productCode: 'CE-MRD',
-      minMonthlyAmount: 500,
-      maxMonthlyAmount: 25000,
-      tenure: { min: 60, max: 180, unit: 'months' },
-      profitRate: 7.8,
-      maturityBenefit: 'Higher profit rates for long-term savings',
-      isActive: true,
-      shariaCompliant: true,
-      description: 'Special recurring deposit scheme for children education planning with enhanced benefits.',
-      eligibility: ['Child age up to 15 years', 'Minimum monthly deposit ₹500', 'Parent/Guardian as nominee'],
-      features: ['Higher profit rates', 'Education loan against deposits', 'Tax benefits under 80C'],
-      createdDate: '2023-02-15',
-      totalAccounts: 1876,
-      totalDeposits: 187600000,
-      avgMonthlyDeposit: 2800
-    },
-    {
-      id: '3',
-      productName: 'Senior Citizen Mudarabah RD',
-      productCode: 'SC-MRD',
-      minMonthlyAmount: 500,
-      maxMonthlyAmount: 20000,
-      tenure: { min: 12, max: 36, unit: 'months' },
-      profitRate: 8.5,
-      maturityBenefit: 'Enhanced profit with health insurance coverage',
-      isActive: true,
-      shariaCompliant: true,
-      description: 'Tailored recurring deposit for senior citizens with additional health benefits.',
-      eligibility: ['Age 60 years and above', 'Minimum monthly deposit ₹500', 'Health checkup certificate'],
-      features: ['Highest profit rates', 'Free health insurance', 'Emergency withdrawal facility'],
-      createdDate: '2023-03-05',
-      totalAccounts: 1245,
-      totalDeposits: 124500000,
-      avgMonthlyDeposit: 2200
-    },
-    {
-      id: '4',
-      productName: 'Women Empowerment Mudarabah RD',
-      productCode: 'WE-MRD',
-      minMonthlyAmount: 200,
-      maxMonthlyAmount: 15000,
-      tenure: { min: 24, max: 60, unit: 'months' },
-      profitRate: 7.5,
-      maturityBenefit: 'Skill development program participation',
-      isActive: true,
-      shariaCompliant: true,
-      description: 'Special scheme for women to promote financial inclusion and empowerment.',
-      eligibility: ['Female applicants only', 'Minimum monthly deposit ₹200', 'Basic financial literacy'],
-      features: ['Lower minimum amount', 'Skill development programs', 'Micro-enterprise loan facility'],
-      createdDate: '2023-04-01',
-      totalAccounts: 3456,
-      totalDeposits: 345600000,
-      avgMonthlyDeposit: 1800
-    },
-    {
-      id: '5',
-      productName: 'Corporate Employee RD',
-      productCode: 'EMP-RD',
-      minMonthlyAmount: 2000,
-      maxMonthlyAmount: 75000,
-      tenure: { min: 12, max: 48, unit: 'months' },
-      profitRate: 6.8,
-      maturityBenefit: 'Salary deduction convenience',
-      isActive: false,
-      shariaCompliant: true,
-      description: 'Payroll-based recurring deposit for corporate employees with convenience features.',
-      eligibility: ['Corporate employee', 'Salary account required', 'Employer partnership needed'],
-      features: ['Automatic salary deduction', 'Competitive rates', 'Instant loan facility'],
-      createdDate: '2023-05-10',
-      totalAccounts: 567,
-      totalDeposits: 56700000,
-      avgMonthlyDeposit: 4500
-    }
-  ];
+  // Form state for create/edit
+  const [formData, setFormData] = useState<ProductFormData>({
+    name: '',
+    minMonthlyDeposit: 0,
+    maxMonthlyDeposit: 0,
+    profitRate: 0,
+    tenure: { years: 0, months: 0 },
+    status: 'Active',
+    description: ''
+  });
 
   const filteredProducts = rdProducts.filter(product => {
-    const matchesSearch = product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.productCode.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || 
-                         (filterStatus === 'active' && product.isActive) ||
-                         (filterStatus === 'inactive' && !product.isActive);
+                         (filterStatus === 'active' && product.status === 'Active') ||
+                         (filterStatus === 'inactive' && product.status === 'Inactive');
     return matchesSearch && matchesFilter;
   });
 
@@ -170,10 +144,103 @@ export default function RDProductManagementPage() {
 
   // Calculate statistics
   const totalProducts = rdProducts.length;
-  const activeProducts = rdProducts.filter(p => p.isActive).length;
-  const totalAccounts = rdProducts.reduce((sum, p) => sum + p.totalAccounts, 0);
-  const totalDeposits = rdProducts.reduce((sum, p) => sum + p.totalDeposits, 0);
-  const avgProfitRate = rdProducts.reduce((sum, p) => sum + p.profitRate, 0) / rdProducts.length;
+  const activeProducts = rdProducts.filter(p => p.status === 'Active').length;
+  const totalAccounts = 0; // This would come from actual account data
+  const totalDeposits = 0; // This would come from actual deposit data
+  const avgProfitRate = rdProducts.length > 0 
+    ? rdProducts.reduce((sum, p) => sum + p.profitRate, 0) / rdProducts.length 
+    : 0;
+
+  // Toast functions
+  const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Confirmation dialog functions
+  const openDeleteConfirm = (id: string, name: string, action: 'delete' | 'activate' | 'deactivate') => {
+    setConfirmDialog({ isOpen: true, productId: id, productName: name, action });
+  };
+
+  const handleConfirmAction = () => {
+    const { action, productId, productName } = confirmDialog;
+    
+    if (action === 'delete') {
+      deleteRDProduct(productId);
+      addToast(`Product "${productName}" has been deleted successfully`, 'success');
+    } else if (action === 'activate') {
+      updateRDProduct(productId, { status: 'Active' });
+      addToast(`Product "${productName}" has been activated successfully`, 'success');
+    } else if (action === 'deactivate') {
+      updateRDProduct(productId, { status: 'Inactive' });
+      addToast(`Product "${productName}" has been deactivated successfully`, 'success');
+    }
+    
+    setConfirmDialog({ isOpen: false, productId: '', productName: '', action: 'delete' });
+  };
+
+  // Form handling
+  const handleFormChange = (field: keyof ProductFormData, value: string | number | 'Active' | 'Inactive') => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleTenureChange = (field: 'years' | 'months', value: number) => {
+    setFormData(prev => ({
+      ...prev,
+      tenure: {
+        ...prev.tenure,
+        [field]: value
+      }
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!formData.name.trim()) {
+      addToast('Product name is required', 'error');
+      return;
+    }
+    if (formData.minMonthlyDeposit <= 0) {
+      addToast('Minimum monthly deposit must be greater than 0', 'error');
+      return;
+    }
+    if (formData.maxMonthlyDeposit <= formData.minMonthlyDeposit) {
+      addToast('Maximum monthly deposit must be greater than minimum deposit', 'error');
+      return;
+    }
+    if (formData.profitRate <= 0) {
+      addToast('Profit rate must be greater than 0', 'error');
+      return;
+    }
+    if (formData.tenure.years === 0 && formData.tenure.months === 0) {
+      addToast('Tenure must be at least 1 month', 'error');
+      return;
+    }
+    if (!formData.description.trim()) {
+      addToast('Description is required', 'error');
+      return;
+    }
+
+    if (modalMode === 'create') {
+      addRDProduct(formData);
+      addToast('Product created successfully', 'success');
+    } else if (modalMode === 'edit' && selectedProduct) {
+      updateRDProduct(selectedProduct.id, formData);
+      addToast('Product updated successfully', 'success');
+    }
+    
+    setShowProductModal(false);
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -295,19 +362,17 @@ export default function RDProductManagementPage() {
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{product.productName}</h3>
-                  <p className="text-sm text-gray-600">{product.productCode}</p>
+                  <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
+                  <p className="text-sm text-gray-600">ID: {product.id}</p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  {product.shariaCompliant && (
-                    <ShieldCheckIcon className="w-5 h-5 text-green-600" title="Sharia Compliant" />
-                  )}
+                  <ShieldCheckIcon className="w-5 h-5 text-green-600" title="Sharia Compliant" />
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    product.isActive 
+                    product.status === 'Active'
                       ? 'text-green-600 bg-green-100' 
                       : 'text-red-600 bg-red-100'
                   }`}>
-                    {product.isActive ? 'Active' : 'Inactive'}
+                    {product.status}
                   </span>
                 </div>
               </div>
@@ -320,31 +385,27 @@ export default function RDProductManagementPage() {
                 <div>
                   <p className="text-xs text-gray-500">Monthly Range</p>
                   <p className="text-sm font-medium text-gray-900">
-                    {formatCurrency(product.minMonthlyAmount)} - {formatCurrency(product.maxMonthlyAmount)}
+                    {formatCurrency(product.minMonthlyDeposit)} - {formatCurrency(product.maxMonthlyDeposit)}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Tenure</p>
                   <p className="text-sm font-medium text-gray-900">
-                    {product.tenure.min}-{product.tenure.max} {product.tenure.unit}
+                    {product.tenure.years > 0 && `${product.tenure.years} year${product.tenure.years > 1 ? 's' : ''} `}
+                    {product.tenure.months > 0 && `${product.tenure.months} month${product.tenure.months > 1 ? 's' : ''}`}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Accounts</p>
-                  <p className="text-sm font-medium text-gray-900">{product.totalAccounts.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">Status</p>
+                  <p className="text-sm font-medium text-gray-900">{product.status}</p>
                 </div>
-              </div>
-
-              <div className="bg-gray-50 p-3 rounded-lg mb-4">
-                <p className="text-xs text-gray-500">Maturity Benefit</p>
-                <p className="text-sm font-medium text-gray-700">{product.maturityBenefit}</p>
               </div>
 
               <p className="text-sm text-gray-600 mb-4 line-clamp-2">{product.description}</p>
 
               <div className="flex justify-between items-center">
                 <div className="text-sm text-gray-500">
-                  Avg: {formatCurrency(product.avgMonthlyDeposit)}/month
+                  Created: {new Date().toLocaleDateString()}
                 </div>
                 <div className="flex space-x-2">
                   <button
@@ -361,7 +422,11 @@ export default function RDProductManagementPage() {
                   >
                     <PencilIcon className="w-4 h-4" />
                   </button>
-                  <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Product">
+                  <button 
+                    onClick={() => openDeleteConfirm(product.id, product.name, 'delete')}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" 
+                    title="Delete Product"
+                  >
                     <TrashIcon className="w-4 h-4" />
                   </button>
                 </div>
@@ -393,27 +458,27 @@ export default function RDProductManagementPage() {
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Product Name</label>
-                    <p className="mt-1 text-sm text-gray-900">{selectedProduct.productName}</p>
+                    <p className="mt-1 text-sm text-gray-900">{selectedProduct.name}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Product Code</label>
-                    <p className="mt-1 text-sm text-gray-900">{selectedProduct.productCode}</p>
+                    <label className="block text-sm font-medium text-gray-700">Product ID</label>
+                    <p className="mt-1 text-sm text-gray-900">{selectedProduct.id}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Profit Rate</label>
                     <p className="mt-1 text-sm text-gray-900">{selectedProduct.profitRate}% per annum</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Maturity Benefit</label>
-                    <p className="mt-1 text-sm text-gray-900">{selectedProduct.maturityBenefit}</p>
+                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                    <p className="mt-1 text-sm text-gray-900">{selectedProduct.status}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Min Monthly Amount</label>
-                    <p className="mt-1 text-sm text-gray-900">{formatCurrency(selectedProduct.minMonthlyAmount)}</p>
+                    <p className="mt-1 text-sm text-gray-900">{formatCurrency(selectedProduct.minMonthlyDeposit)}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Max Monthly Amount</label>
-                    <p className="mt-1 text-sm text-gray-900">{formatCurrency(selectedProduct.maxMonthlyAmount)}</p>
+                    <p className="mt-1 text-sm text-gray-900">{formatCurrency(selectedProduct.maxMonthlyDeposit)}</p>
                   </div>
                 </div>
 
@@ -421,98 +486,91 @@ export default function RDProductManagementPage() {
                   <label className="block text-sm font-medium text-gray-700">Description</label>
                   <p className="mt-1 text-sm text-gray-900">{selectedProduct.description}</p>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Eligibility Criteria</label>
-                  <ul className="mt-1 text-sm text-gray-900 list-disc list-inside">
-                    {selectedProduct.eligibility.map((criteria, index) => (
-                      <li key={index}>{criteria}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Product Features</label>
-                  <ul className="mt-1 text-sm text-gray-900 list-disc list-inside">
-                    {selectedProduct.features.map((feature, index) => (
-                      <li key={index}>{feature}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Total Accounts</label>
-                    <p className="mt-1 text-sm text-gray-900">{selectedProduct.totalAccounts.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Average Monthly Deposit</label>
-                    <p className="mt-1 text-sm text-gray-900">{formatCurrency(selectedProduct.avgMonthlyDeposit)}</p>
-                  </div>
-                </div>
               </div>
             )}
 
             {(modalMode === 'create' || modalMode === 'edit') && (
-              <form className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Product Name</label>
+                    <label className="block text-sm font-medium text-gray-700">Product Name *</label>
                     <input
                       type="text"
-                      defaultValue={selectedProduct?.productName || ''}
-                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      value={formData.name}
+                      onChange={(e) => handleFormChange('name', e.target.value)}
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter product name"
+                      required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Product Code</label>
-                    <input
-                      type="text"
-                      defaultValue={selectedProduct?.productCode || ''}
-                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Profit Rate (%)</label>
+                    <label className="block text-sm font-medium text-gray-700">Profit Rate (%) *</label>
                     <input
                       type="number"
                       step="0.1"
-                      defaultValue={selectedProduct?.profitRate || ''}
-                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      value={formData.profitRate}
+                      onChange={(e) => handleFormChange('profitRate', parseFloat(e.target.value) || 0)}
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter profit rate"
+                      required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Maturity Benefit</label>
-                    <input
-                      type="text"
-                      defaultValue={selectedProduct?.maturityBenefit || ''}
-                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Min Monthly Amount</label>
+                    <label className="block text-sm font-medium text-gray-700">Min Monthly Amount *</label>
                     <input
                       type="number"
-                      defaultValue={selectedProduct?.minMonthlyAmount || ''}
-                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      value={formData.minMonthlyDeposit}
+                      onChange={(e) => handleFormChange('minMonthlyDeposit', parseInt(e.target.value) || 0)}
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter minimum monthly amount"
+                      required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Max Monthly Amount</label>
+                    <label className="block text-sm font-medium text-gray-700">Max Monthly Amount *</label>
                     <input
                       type="number"
-                      defaultValue={selectedProduct?.maxMonthlyAmount || ''}
-                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      value={formData.maxMonthlyDeposit}
+                      onChange={(e) => handleFormChange('maxMonthlyDeposit', parseInt(e.target.value) || 0)}
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter maximum monthly amount"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Tenure (Years)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.tenure.years}
+                      onChange={(e) => handleTenureChange('years', parseInt(e.target.value) || 0)}
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Years"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Tenure (Months)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="11"
+                      value={formData.tenure.months}
+                      onChange={(e) => handleTenureChange('months', parseInt(e.target.value) || 0)}
+                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Months"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <label className="block text-sm font-medium text-gray-700">Description *</label>
                   <textarea
                     rows={3}
-                    defaultValue={selectedProduct?.description || ''}
-                    className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                    value={formData.description}
+                    onChange={(e) => handleFormChange('description', e.target.value)}
+                    className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter product description"
+                    required
                   />
                 </div>
 
@@ -520,24 +578,33 @@ export default function RDProductManagementPage() {
                   <label className="flex items-center">
                     <input
                       type="checkbox"
-                      defaultChecked={selectedProduct?.isActive ?? true}
+                      checked={formData.status === 'Active'}
+                      onChange={(e) => handleFormChange('status', e.target.checked ? 'Active' : 'Inactive')}
                       className="mr-2"
                     />
                     <span className="text-sm text-gray-700">Active Product</span>
                   </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      defaultChecked={selectedProduct?.shariaCompliant ?? true}
-                      className="mr-2"
-                    />
-                    <span className="text-sm text-gray-700">Sharia Compliant</span>
-                  </label>
+                </div>
+                
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowProductModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    {modalMode === 'create' ? 'Create Product' : 'Save Changes'}
+                  </button>
                 </div>
               </form>
             )}
             
-            <div className="mt-6 flex justify-end space-x-3">
+            {/* <div className="mt-6 flex justify-end space-x-3">
               <button
                 onClick={() => setShowProductModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
@@ -549,10 +616,26 @@ export default function RDProductManagementPage() {
                   {modalMode === 'create' ? 'Create Product' : 'Save Changes'}
                 </button>
               )}
-            </div>
+            </div> */}
           </div>
         </div>
       )}
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 space-y-2 z-50">
+        {toasts.map(toast => (
+          <Toast key={toast.id} toast={toast} onRemove={removeToast} />
+        ))}
+      </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, productId: '', productName: '', action: 'delete' })}
+        onConfirm={handleConfirmAction}
+        title={`Confirm ${confirmDialog.action}`}
+        message={`Are you sure you want to ${confirmDialog.action} the product "${confirmDialog.productName}"? This action cannot be undone.`}
+      />
     </div>
   );
 }

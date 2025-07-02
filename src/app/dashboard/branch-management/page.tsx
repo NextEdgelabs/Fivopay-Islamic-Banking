@@ -5,6 +5,7 @@ import {
   BuildingOfficeIcon,
   ChartBarIcon,
   PlusIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { Branch, NewBranchFormData } from './types';
 import BranchStatistics from './components/BranchStatistics';
@@ -19,6 +20,67 @@ import BranchReportModal from './components/BranchReportModal';
 import FilterSummary from './components/FilterSummary';
 import QuickFilters from './components/QuickFilters';
 
+// Toast notification state
+interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
+}
+
+// Toast component
+const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) => {
+  const bgColor = toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  
+  return (
+    <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
+      <span>{toast.message}</span>
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+        <XMarkIcon className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
+
+// Confirmation dialog component
+const ConfirmDialog = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  title: string; 
+  message: string; 
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-600 mb-6">{message}</p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function BranchManagementPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
@@ -31,6 +93,13 @@ export default function BranchManagementPage() {
   const [selectedCity, setSelectedCity] = useState('All Cities');
   const [selectedState, setSelectedState] = useState('All States');
   const [searchTerm, setSearchTerm] = useState('');
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState({ 
+    isOpen: false, 
+    branchId: '', 
+    branchName: '',
+    action: '' as 'delete' | 'suspend' | 'activate'
+  });
 
   // Mock data for branches
   const [branches, setBranches] = useState<Branch[]>([
@@ -467,11 +536,104 @@ export default function BranchManagementPage() {
 
 
 
+  // Toast functions
+  const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Confirmation dialog functions
+  const openConfirm = (id: string, name: string, action: 'delete' | 'suspend' | 'activate') => {
+    setConfirmDialog({ isOpen: true, branchId: id, branchName: name, action });
+  };
+
+  const handleConfirmAction = () => {
+    const { action, branchName } = confirmDialog;
+    
+    if (action === 'delete') {
+      setBranches(prevBranches => prevBranches.filter(branch => branch.id !== confirmDialog.branchId));
+      addToast(`Branch "${branchName}" has been deleted successfully`, 'success');
+    } else if (action === 'suspend') {
+      setBranches(prevBranches => 
+        prevBranches.map(branch => 
+          branch.id === confirmDialog.branchId 
+            ? { ...branch, status: 'Inactive' as const }
+            : branch
+        )
+      );
+      addToast(`Branch "${branchName}" has been suspended successfully`, 'success');
+    } else if (action === 'activate') {
+      setBranches(prevBranches => 
+        prevBranches.map(branch => 
+          branch.id === confirmDialog.branchId 
+            ? { ...branch, status: 'Active' as const }
+            : branch
+        )
+      );
+      addToast(`Branch "${branchName}" has been activated successfully`, 'success');
+    }
+    
+    setConfirmDialog({ isOpen: false, branchId: '', branchName: '', action: 'delete' });
+  };
+
+  // Generate unique branch code
+  const generateBranchCode = () => {
+    const existingCodes = branches.map(branch => branch.branchCode);
+    let newCode = `FP${String(branches.length + 1).padStart(3, '0')}`;
+    let counter = 1;
+    
+    while (existingCodes.includes(newCode)) {
+      newCode = `FP${String(branches.length + 1 + counter).padStart(3, '0')}`;
+      counter++;
+    }
+    
+    return newCode;
+  };
+
   // Handle new branch creation
   const handleNewBranchSubmit = (data: NewBranchFormData) => {
-    console.log('Creating new branch:', data);
-    setShowNewBranchModal(false);
-    // Here you would typically make an API call to create the branch
+    try {
+      // Generate unique ID and branch code
+      const newId = String(branches.length + 1);
+      const branchCode = generateBranchCode();
+      
+      // Create new branch object
+      const newBranch: Branch = {
+        id: newId,
+        branchCode,
+        branchName: data.branchName,
+        city: data.city,
+        state: data.state,
+        address: data.address,
+        pincode: data.pincode,
+        phone: data.phone,
+        email: data.email,
+        managerName: data.managerName,
+        managerPhone: data.managerPhone,
+        employeeCount: 0,
+        customerCount: 0,
+        totalDeposits: 0,
+        totalLoans: 0,
+        status: 'Active',
+        establishedDate: new Date().toISOString().split('T')[0],
+        lastInspection: new Date().toISOString().split('T')[0]
+      };
+
+      // Add to branches state
+      setBranches(prevBranches => [...prevBranches, newBranch]);
+      
+      // Close modal and show success toast
+      setShowNewBranchModal(false);
+      addToast(`Branch "${data.branchName}" has been created successfully`, 'success');
+      
+    } catch (error) {
+      addToast('Failed to create branch. Please try again.', 'error');
+    }
   };
 
   // Handle branch actions
@@ -498,6 +660,7 @@ export default function BranchManagementPage() {
     );
     setShowEditBranchModal(false);
     setBranchToEdit(null);
+    addToast(`Branch "${updatedBranch.branchName}" has been updated successfully`, 'success');
   };
 
   const handleExportData = () => {
@@ -629,6 +792,9 @@ export default function BranchManagementPage() {
                 onViewBranch={handleViewBranch}
                 onEditBranch={handleEditBranch}
                 onGenerateReport={handleGenerateReport}
+                onDeleteBranch={(branch) => openConfirm(branch.id, branch.branchName, 'delete')}
+                onSuspendBranch={(branch) => openConfirm(branch.id, branch.branchName, 'suspend')}
+                onActivateBranch={(branch) => openConfirm(branch.id, branch.branchName, 'activate')}
               />
             </div>
           )}
@@ -675,6 +841,22 @@ export default function BranchManagementPage() {
           setShowReportModal(false);
           setBranchForReport(null);
         }}
+      />
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 space-y-2 z-50">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} toast={toast} onRemove={removeToast} />
+        ))}
+      </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, branchId: '', branchName: '', action: 'delete' })}
+        onConfirm={handleConfirmAction}
+        title={`Confirm ${confirmDialog.action}`}
+        message={`Are you sure you want to ${confirmDialog.action} the branch "${confirmDialog.branchName}"? This action cannot be undone.`}
       />
     </div>
   );
