@@ -17,6 +17,35 @@ import {
   XMarkIcon
 } from "@heroicons/react/24/outline";
 
+// Import types from AppContext
+type Disbursement = {
+  id: string;
+  loanId: string;
+  applicantName: string;
+  productType: string;
+  disbursementAmount: number;
+  beneficiaryBank: string;
+  accountNumber: string;
+  currentStage: number;
+  priority: 'High' | 'Medium' | 'Low';
+  status: 'Scheduled' | 'In Progress' | 'Completed' | 'Failed' | 'On Hold';
+  scheduledDate: string;
+  completedDate?: string;
+  stages: DisbursementStage[];
+  riskFlags: string[];
+  branch?: string;
+  contactNumber?: string;
+  hasRepaymentSchedule?: boolean;
+};
+
+type DisbursementStage = {
+  id: string;
+  name: string;
+  status: 'completed' | 'current' | 'pending' | 'failed';
+  completedDate?: string;
+  estimatedTime: string;
+};
+
 // Toast notification state
 interface Toast {
   id: string;
@@ -77,34 +106,6 @@ const ConfirmDialog = ({
     </div>
   );
 };
-
-interface DisbursementStage {
-  id: string;
-  name: string;
-  status: 'completed' | 'current' | 'pending' | 'failed';
-  completedDate?: string;
-  estimatedTime: string;
-}
-
-interface Disbursement {
-  id: string;
-  loanId: string;
-  applicantName: string;
-  productType: string;
-  disbursementAmount: number;
-  beneficiaryBank: string;
-  accountNumber: string;
-  currentStage: number;
-  priority: 'High' | 'Medium' | 'Low';
-  status: 'Scheduled' | 'In Progress' | 'Completed' | 'Failed' | 'On Hold';
-  scheduledDate: string;
-  completedDate?: string;
-  stages: DisbursementStage[];
-  riskFlags: string[];
-  branch?: string;
-  contactNumber?: string;
-  hasRepaymentSchedule?: boolean;
-}
 
 interface RepaymentSchedule {
   disbursementId: string;
@@ -238,9 +239,9 @@ export default function DisbursementJourneyPage() {
 
     const updatedStages = disbursement.stages.map((stage, index) => {
       if (index === currentStageIndex) {
-        return { ...stage, status: 'completed', completedDate: new Date().toISOString() };
+        return { ...stage, status: 'completed' as const, completedDate: new Date().toISOString() };
       } else if (index === currentStageIndex + 1) {
-        return { ...stage, status: 'current' };
+        return { ...stage, status: 'current' as const };
       }
       return stage;
     });
@@ -425,7 +426,7 @@ export default function DisbursementJourneyPage() {
 
               {/* Stages */}
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {disbursement.stages.map((stage, index) => (
+                {disbursement.stages.map((stage: any, index: number) => (
                   <div
                     key={stage.id}
                     className={`border rounded-lg p-3 text-center ${getStageStatus(stage)}`}
@@ -573,7 +574,7 @@ export default function DisbursementJourneyPage() {
             <div className="border-t pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Disbursement Stages</h3>
               <div className="space-y-4">
-                {selectedDisbursement.stages.map((stage, index) => (
+                {selectedDisbursement.stages.map((stage: any, index: number) => (
                   <div key={stage.id} className={`border rounded-lg p-4 ${getStageStatus(stage)}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
