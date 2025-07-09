@@ -67,6 +67,14 @@ const navigation = [
     ],
   },
   {
+    name:"NPA Assets",
+    href:"/dashboard/npa-assets",
+    icon:BanknotesIcon,
+    subItems:[
+      {name:"NPA Assets",href:"/dashboard/npa-assets/npa-assets",icon:BanknotesIcon},
+    ]
+  },
+  {
     name: "Account Management",
     href: "/dashboard/account-management",
     icon: CreditCardIcon,
