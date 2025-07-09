@@ -14,6 +14,13 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
+  // Demo credentials for different roles
+  const demoCredentials = {
+    admin: { email: "admin@fivopay.com", password: "admin123", role: "admin" },
+    branchManager: { email: "manager@fivopay.com", password: "manager123", role: "branch_manager" },
+    branchCashier: { email: "cashier@fivopay.com", password: "cashier123", role: "branch_cashier" }
+  };
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     
@@ -30,15 +37,33 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     
-    // Demo credentials validation
-    if (email === "user@example.com" && password === "password123") {
+    // Check credentials for all roles
+    const adminCreds = demoCredentials.admin;
+    const managerCreds = demoCredentials.branchManager;
+    const cashierCreds = demoCredentials.branchCashier;
+    
+    let userRole = null;
+    
+    if (email === adminCreds.email && password === adminCreds.password) {
+      userRole = adminCreds.role;
+    } else if (email === managerCreds.email && password === managerCreds.password) {
+      userRole = managerCreds.role;
+    } else if (email === cashierCreds.email && password === cashierCreds.password) {
+      userRole = cashierCreds.role;
+    }
+    
+    if (userRole) {
+      // Store user role and email in localStorage
+      localStorage.setItem('userRole', userRole);
+      localStorage.setItem('userEmail', email);
+      
       setTimeout(() => {
         router.push("/dashboard");
       }, 1000);
     } else {
       setTimeout(() => {
         setLoading(false);
-        setError("Invalid credentials. Use user@example.com / password123");
+        setError("Invalid credentials. Please check the demo credentials below.");
       }, 1000);
     }
   }
@@ -83,7 +108,7 @@ export default function LoginPage() {
                   autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter your email"
                 />
               </div>
@@ -99,7 +124,7 @@ export default function LoginPage() {
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2 pr-10 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter your password"
                   />
                   <button
@@ -123,7 +148,7 @@ export default function LoginPage() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
+                    className="text-gray-700 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-700">
                     Remember me
@@ -176,9 +201,27 @@ export default function LoginPage() {
 
         {/* Demo Credentials */}
         <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm font-medium text-yellow-800 mb-1">Demo Credentials:</p>
-          <p className="text-xs text-yellow-700">Email: user@example.com</p>
-          <p className="text-xs text-yellow-700">Password: password123</p>
+          <p className="text-sm font-medium text-yellow-800 mb-2">Demo Credentials:</p>
+          
+          <div className="space-y-2">
+            <div className="bg-white p-2 rounded border">
+              <p className="text-xs font-medium text-yellow-700">👑 Admin</p>
+              <p className="text-xs text-yellow-600">Email: admin@fivopay.com</p>
+              <p className="text-xs text-yellow-600">Password: admin123</p>
+            </div>
+            
+            <div className="bg-white p-2 rounded border">
+              <p className="text-xs font-medium text-yellow-700">🏢 Branch Manager</p>
+              <p className="text-xs text-yellow-600">Email: manager@fivopay.com</p>
+              <p className="text-xs text-yellow-600">Password: manager123</p>
+            </div>
+            
+            <div className="bg-white p-2 rounded border">
+              <p className="text-xs font-medium text-yellow-700">💰 Branch Cashier</p>
+              <p className="text-xs text-yellow-600">Email: cashier@fivopay.com</p>
+              <p className="text-xs text-yellow-600">Password: cashier123</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

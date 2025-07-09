@@ -122,6 +122,44 @@ interface Repayment {
   contactNumber: string;
 }
 
+// New types for Dashboard KPIs
+interface PortfolioMetrics {
+  totalPortfolioValue: number;
+  activeLoansCount: number;
+  totalDeposits: number;
+  activeCustomers: number;
+  newCustomersToday: number;
+  portfolioGrowthRate: number;
+}
+
+interface PerformanceIndicators {
+  loanApprovalRate: number;
+  collectionEfficiency: number;
+  npaPercentage: number;
+  profitMargin: number;
+  customerSatisfactionScore: number;
+}
+
+interface Branch {
+  id: string;
+  name: string;
+  location: string;
+  status: 'Active' | 'Inactive';
+  performance: number;
+  targetAchievement: number;
+  totalCustomers: number;
+  totalTransactions: number;
+}
+
+interface DashboardData {
+  portfolioMetrics: PortfolioMetrics;
+  performanceIndicators: PerformanceIndicators;
+  branches: Branch[];
+  totalBranches: number;
+  activeBranches: number;
+  branchTargetsAchieved: number;
+}
+
 // Initial sample data
 const initialEmployees: Employee[] = [
   {
@@ -289,6 +327,8 @@ type AppContextType = {
   addRepayment: (repayment: Omit<Repayment, 'id'>) => void;
   updateRepayment: (id: string, updates: Partial<Repayment>) => void;
   deleteRepayment: (id: string) => void;
+  dashboardData: DashboardData;
+  updateDashboardData: (updates: Partial<DashboardData>) => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -695,6 +735,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setRepayments(prev => prev.filter(repayment => repayment.id !== id));
   };
 
+  // Dashboard Data CRUD operations
+  const [dashboardData, setDashboardData] = useState<DashboardData>({
+    portfolioMetrics: {
+      totalPortfolioValue: 100000000, // Example value
+      activeLoansCount: 1500,
+      totalDeposits: 50000000, // Example value
+      activeCustomers: 1200,
+      newCustomersToday: 10,
+      portfolioGrowthRate: 0.15, // Example value
+    },
+    performanceIndicators: {
+      loanApprovalRate: 0.95, // Example value
+      collectionEfficiency: 0.98, // Example value
+      npaPercentage: 0.02, // Example value
+      profitMargin: 0.20, // Example value
+      customerSatisfactionScore: 4.5, // Example value
+    },
+    branches: [
+      { id: 'BR001', name: 'Main Branch', location: 'Dubai', status: 'Active', performance: 0.92, targetAchievement: 0.95, totalCustomers: 500, totalTransactions: 10000 },
+      { id: 'BR002', name: 'Downtown Branch', location: 'Abu Dhabi', status: 'Inactive', performance: 0.85, targetAchievement: 0.80, totalCustomers: 300, totalTransactions: 5000 },
+      { id: 'BR003', name: 'Sharjah Branch', location: 'Sharjah', status: 'Active', performance: 0.90, targetAchievement: 0.92, totalCustomers: 400, totalTransactions: 8000 },
+    ],
+    totalBranches: 3,
+    activeBranches: 2,
+    branchTargetsAchieved: 1,
+  });
+
+  const updateDashboardData = (updates: Partial<DashboardData>) => {
+    setDashboardData(prev => ({ ...prev, ...updates }));
+  };
+
   const value: AppContextType = {
     employees,
     customers,
@@ -724,6 +795,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addRepayment,
     updateRepayment,
     deleteRepayment,
+    dashboardData,
+    updateDashboardData,
   };
 
   return (

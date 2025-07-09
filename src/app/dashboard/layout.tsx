@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   ChartBarIcon,
@@ -133,6 +133,28 @@ const navigation = [
     ],
   },
   {
+    name: "Insurance Management",
+    href: "/dashboard/insurance-management",
+    icon: BanknotesIcon,
+    subItems: [
+      {
+        name: "Insurance Product",
+        href: "/dashboard/insurance-management/insurance-product",
+        icon: BanknotesIcon,
+      },
+      {
+        name: "Insurance Policy",
+        href: "/dashboard/insurance-management/insurance-policy",
+        icon: BanknotesIcon,
+      },
+      {
+        name: "Insurance Claim",
+        href: "/dashboard/insurance-management/insurance-claim",
+        icon: BanknotesIcon,
+      },
+    ],
+  },
+  {
     name: "Reports",
     href: "/dashboard/reports",
     icon: ClipboardDocumentListIcon,
@@ -143,7 +165,39 @@ const navigation = [
 
 function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+
+  // Get user data from localStorage
+  const userRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : null;
+  const userEmail = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : null;
+
+  // Get user display name based on role
+  const getUserDisplayName = () => {
+    switch (userRole) {
+      case 'admin':
+        return 'System Administrator';
+      case 'branch_manager':
+        return 'Branch Manager';
+      case 'branch_cashier':
+        return 'Branch Cashier';
+      default:
+        return 'User';
+    }
+  };
+
+  const getUserInitials = () => {
+    switch (userRole) {
+      case 'admin':
+        return 'SA';
+      case 'branch_manager':
+        return 'BM';
+      case 'branch_cashier':
+        return 'BC';
+      default:
+        return 'U';
+    }
+  };
 
   // Auto-expand parent items if we're on a sub-page
   const autoExpandParents = () => {
@@ -170,6 +224,15 @@ function Sidebar() {
         ? prev.filter((name) => name !== itemName)
         : [...prev, itemName]
     );
+  };
+
+  const handleSignOut = () => {
+    // Clear any stored user data/session
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userEmail');
+    
+    // Redirect to login page
+    router.push('/login');
   };
 
   return (
@@ -291,14 +354,17 @@ function Sidebar() {
       <div className="flex-shrink-0 p-6 border-t border-slate-800">
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-sm">JD</span>
+            <span className="text-white text-sm">{getUserInitials()}</span>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium">John Doe</p>
-            <p className="text-xs text-slate-400">System Admin</p>
+            <p className="text-sm font-medium">{getUserDisplayName()}</p>
+            <p className="text-xs text-slate-400">{userEmail || 'user@fivopay.com'}</p>
           </div>
         </div>
-        <button className="flex items-center text-slate-300 hover:text-white text-sm w-full">
+        <button 
+          onClick={handleSignOut}
+          className="flex items-center text-slate-300 hover:text-white text-sm w-full"
+        >
           <ArrowLeftOnRectangleIcon className="mr-2 h-4 w-4" />
           Sign Out
         </button>
