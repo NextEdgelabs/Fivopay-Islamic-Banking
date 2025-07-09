@@ -18,149 +18,186 @@ import {
   PresentationChartLineIcon,
   DocumentChartBarIcon,
   ArrowPathIcon,
+  CreditCardIcon,
+  // Additional icons for the new navigation structure
+  HomeIcon,
+  UsersIcon,
+  ChartBarSquareIcon,
+  DocumentChartBarIcon as FileBarChartIcon,
+  ClipboardDocumentCheckIcon as ListChecksIcon,
+  UserIcon as BookUserIcon,
+  ClipboardDocumentIcon as ClipboardSignatureIcon,
+  UserGroupIcon as ContactIcon,
+  DocumentTextIcon as ScrollTextIcon,
+  ClockIcon as HistoryIcon,
+  CheckIcon as FileCheckIcon,
+  CreditCardIcon as WalletCardsIcon,
+  CurrencyDollarIcon as HandCoinsIcon,
+  DocumentTextIcon as ReceiptTextIcon,
+  MagnifyingGlassIcon as FileSearch2Icon,
+  PencilSquareIcon as NotebookPenIcon,
+  UserCircleIcon,
+  CurrencyDollarIcon as BadgeIndianRupeeIcon,
+  ArrowPathIcon as RepeatIcon,
+  ArrowDownTrayIcon as ArrowDownToLineIcon,
+  ArrowUpTrayIcon as ArrowUpFromLineIcon,
+  Squares2X2Icon as SquareStackIcon,
+  BookmarkIcon as BookMarkedIcon,
 } from "@heroicons/react/24/outline";
-import { CreditCardIcon } from "@heroicons/react/24/outline";
 
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: ChartBarIcon },
-  { name: "Customer Management", href: "/dashboard/customers", icon: UserIcon },
+// Role-based navigation configuration
+const navigationConfig = [
+  // ---------------- ADMIN MODULES ----------------
   {
-    name: "Employee Management",
-    href: "/dashboard/employees",
-    icon: UserGroupIcon,
+    name: "Executive Dashboard",
+    icon: HomeIcon,
+    path: "/dashboard/executive-dashboard",
+    roles: ["admin"],
+    children: [
+      { name: "Strategic Planning", path: "/dashboard/executive-dashboard/strategic-planning", icon: ChartBarSquareIcon, roles: ["admin"] },
+      { name: "Executive Reports", path: "/dashboard/executive-dashboard/executive-reports", icon: FileBarChartIcon, roles: ["admin"] },
+    ],
   },
   {
-    name: "Branch Management",
-    href: "/dashboard/branch-management",
+    name: "Operations Management",
     icon: BuildingOfficeIcon,
+    path: "/dashboard/operations-management",
+    roles: ["admin"],
+    children: [
+      { name: "Loan Processing", path: "/dashboard/operations-management/branch", icon: BanknotesIcon, roles: ["admin"] },
+      { name: "Staff Allocation", path: "/dashboard/operations-management/staff", icon: UsersIcon, roles: ["admin"] },
+      { name: "Process Optimization", path: "/dashboard/operations-management/optimization", icon: ListChecksIcon, roles: ["admin"] },
+    ],
+  },
+  {
+    name: "Customer Management",
+    icon: UsersIcon,
+    path: "/admin/customer-management",
+    roles: ["admin"],
+    children: [
+      { name: "Customer Onboarding", path: "/admin/customer-management/onboarding", icon: BookUserIcon, roles: ["admin"] },
+      { name: "KYC Verification", path: "/admin/customer-management/kyc", icon: ClipboardSignatureIcon, roles: ["admin"] },
+      { name: "Member Directory", path: "/admin/customer-management/directory", icon: ContactIcon, roles: ["admin"] },
+    ],
+  },
+  {
+    name: "Compliance & Audit",
+    icon: ShieldCheckIcon,
+    path: "/admin/compliance-audit",
+    roles: ["admin"],
+    children: [
+      { name: "Policy Management", path: "/admin/compliance-audit/policy", icon: ScrollTextIcon, roles: ["admin"] },
+      { name: "Audit Trails", path: "/admin/compliance-audit/trails", icon: HistoryIcon, roles: ["admin"] },
+      { name: "Regulatory Reporting", path: "/admin/compliance-audit/regulatory", icon: FileCheckIcon, roles: ["admin"] },
+    ],
+  },
+  {
+    name: "Financial Management",
+    icon: WalletIcon,
+    path: "/admin/financial-management",
+    roles: ["admin"],
+    children: [
+      { name: "Budgeting", path: "/admin/financial-management/budgeting", icon: WalletCardsIcon, roles: ["admin"] },
+      { name: "Fund Allocation", path: "/admin/financial-management/allocation", icon: HandCoinsIcon, roles: ["admin"] },
+      { name: "Financial Reporting", path: "/admin/financial-management/reporting", icon: FileBarChartIcon, roles: ["admin"] },
+    ],
+  },
+
+  // ---------------- BRANCH MANAGER MODULES ----------------
+  {
+    name: "Branch Dashboard",
+    icon: HomeIcon,
+    path: "/manager/branch-dashboard",
+    roles: ["branch_manager"],
+    children: [
+      { name: "Performance Monitoring", path: "/manager/branch-dashboard/performance", icon: ChartBarSquareIcon, roles: ["branch_manager"] },
+      { name: "Staff Attendance", path: "/manager/branch-dashboard/staff", icon: UsersIcon, roles: ["branch_manager"] },
+    ],
   },
   {
     name: "Loan Management",
-    href: "/dashboard/loans",
     icon: BanknotesIcon,
-    subItems: [
-      {
-        name: "Product Management",
-        href: "/dashboard/loans/products",
-        icon: BanknotesIcon,
-      },
-      {
-        name: "Loan Application Management",
-        href: "/dashboard/loans/applications",
-        icon: BanknotesIcon,
-      },
-      {
-        name: "Approval Process Journey",
-        href: "/dashboard/loans/approval",
-        icon: BanknotesIcon,
-      },
-      {
-        name: "Disbursement Journey",
-        href: "/dashboard/loans/disbursement",
-        icon: BanknotesIcon,
-      },
-      {
-        name: "Repayment Journey",
-        href: "/dashboard/loans/repayment",
-        icon: BanknotesIcon,
-      },
+    path: "/manager/loan-management",
+    roles: ["branch_manager"],
+    children: [
+      { name: "Loan Applications", path: "/manager/loan-management/applications", icon: NotebookPenIcon, roles: ["branch_manager"] },
+      { name: "Approval Process", path: "/manager/loan-management/approval", icon: FileCheckIcon, roles: ["branch_manager"] },
+      { name: "Repayment Tracking", path: "/manager/loan-management/repayment", icon: ReceiptTextIcon, roles: ["branch_manager"] },
     ],
   },
   {
-    name: "Account Management",
-    href: "/dashboard/account-management",
-    icon: CreditCardIcon,
-    subItems: [
-      {
-        name: "Account Creation",
-        href: "/dashboard/account-management/account-creation",
-        icon: CreditCardIcon,
-      },
-      {
-        name: "Account Verification",
-        href: "/dashboard/account-management/account-verification",
-        icon: CreditCardIcon,
-      },
+    name: "Customer Relationship",
+    icon: UserCircleIcon,
+    path: "/manager/customer-relationship",
+    roles: ["branch_manager"],
+    children: [
+      { name: "Feedback Management", path: "/manager/customer-relationship/feedback", icon: ClipboardDocumentListIcon, roles: ["branch_manager"] },
+      { name: "Query Resolution", path: "/manager/customer-relationship/query", icon: FileSearch2Icon, roles: ["branch_manager"] },
     ],
   },
   {
-    name: "Deposit Management",
-    href: "/dashboard/deposit-management",
+    name: "Financial Management",
+    icon: WalletIcon,
+    path: "/manager/financial-management",
+    roles: ["branch_manager"],
+    children: [
+      { name: "Revenue Monitoring", path: "/manager/financial-management/revenue", icon: BadgeIndianRupeeIcon, roles: ["branch_manager"] },
+      { name: "Branch Expenses", path: "/manager/financial-management/expenses", icon: BanknotesIcon, roles: ["branch_manager"] },
+    ],
+  },
+
+  // ---------------- CASHIER MODULES ----------------
+  {
+    name: "Transaction Processing",
+    icon: RepeatIcon,
+    path: "/cashier/transactions",
+    roles: ["branch_cashier"],
+    children: [
+      { name: "Deposit Entry", path: "/cashier/transactions/deposit", icon: ArrowDownToLineIcon, roles: ["branch_cashier"] },
+      { name: "Withdrawal Entry", path: "/cashier/transactions/withdrawal", icon: ArrowUpFromLineIcon, roles: ["branch_cashier"] },
+      { name: "Transfer Entry", path: "/cashier/transactions/transfer", icon: RepeatIcon, roles: ["branch_cashier"] },
+    ],
+  },
+  {
+    name: "Account Services",
+    icon: SquareStackIcon,
+    path: "/cashier/account-services",
+    roles: ["branch_cashier"],
+    children: [
+      { name: "Passbook Update", path: "/cashier/account-services/passbook", icon: BookMarkedIcon, roles: ["branch_cashier"] },
+      { name: "Balance Inquiry", path: "/cashier/account-services/inquiry", icon: WalletIcon, roles: ["branch_cashier"] },
+    ],
+  },
+  {
+    name: "Deposit Services",
     icon: BanknotesIcon,
-    subItems: [
-      {
-        name: "FD Product",
-        href: "/dashboard/deposit-management/fd-product-management",
-        icon: BanknotesIcon,
-      },
-      {
-        name: "RD Product",
-        href: "/dashboard/deposit-management/rd-product-management",
-        icon: BanknotesIcon,
-      },
+    path: "/cashier/deposit-services",
+    roles: ["branch_cashier"],
+    children: [
+      { name: "Recurring Deposit Entry", path: "/cashier/deposit-services/recurring", icon: RepeatIcon, roles: ["branch_cashier"] },
+      { name: "Fixed Deposit Entry", path: "/cashier/deposit-services/fixed", icon: BanknotesIcon, roles: ["branch_cashier"] },
     ],
   },
   {
-    name: "Cash Management",
-    href: "/dashboard/cash-management",
-    icon: BanknotesIcon,
-    subItems: [
-      {
-        name: "Digital Wallet",
-        href: "/dashboard/cash-management/wallet",
-        icon: WalletIcon,
-      },
-      {
-        name: "Transactions",
-        href: "/dashboard/cash-management/transactions",
-        icon: ArrowsRightLeftIcon,
-      },
-      {
-        name: "Branch Dashboard",
-        href: "/dashboard/cash-management/branch-dashboard",
-        icon: PresentationChartLineIcon,
-      },
-      {
-        name: "Liquidity Report",
-        href: "/dashboard/cash-management/liquidity",
-        icon: DocumentChartBarIcon,
-      },
-      {
-        name: "Interbranch Reports",
-        href: "/dashboard/cash-management/interbranch",
-        icon: ArrowPathIcon,
-      },
+    name: "Loan Support",
+    icon: HandCoinsIcon,
+    path: "/cashier/loan-support",
+    roles: ["branch_cashier"],
+    children: [
+      { name: "Disbursement", path: "/cashier/loan-support/disbursement", icon: ArrowDownToLineIcon, roles: ["branch_cashier"] },
+      { name: "EMI Collection", path: "/cashier/loan-support/emi", icon: ReceiptTextIcon, roles: ["branch_cashier"] },
     ],
   },
   {
-    name: "Insurance Management",
-    href: "/dashboard/insurance-management",
-    icon: BanknotesIcon,
-    subItems: [
-      {
-        name: "Insurance Product",
-        href: "/dashboard/insurance-management/insurance-product",
-        icon: BanknotesIcon,
-      },
-      {
-        name: "Insurance Policy",
-        href: "/dashboard/insurance-management/insurance-policy",
-        icon: BanknotesIcon,
-      },
-      {
-        name: "Insurance Claim",
-        href: "/dashboard/insurance-management/insurance-claim",
-        icon: BanknotesIcon,
-      },
+    name: "Reporting",
+    icon: FileBarChartIcon,
+    path: "/cashier/reports",
+    roles: ["branch_cashier"],
+    children: [
+      { name: "Daily Summary", path: "/cashier/reports/daily", icon: ClipboardDocumentListIcon, roles: ["branch_cashier"] },
+      { name: "Transaction Logs", path: "/cashier/reports/logs", icon: HistoryIcon, roles: ["branch_cashier"] },
     ],
   },
-  {
-    name: "Reports",
-    href: "/dashboard/reports",
-    icon: ClipboardDocumentListIcon,
-  },
-  { name: "Security", href: "/dashboard/security", icon: ShieldCheckIcon },
-  { name: "Settings", href: "/dashboard/settings", icon: CogIcon },
 ];
 
 function Sidebar() {
@@ -171,6 +208,11 @@ function Sidebar() {
   // Get user data from localStorage
   const userRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : null;
   const userEmail = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : null;
+
+  // Filter navigation based on user role
+  const filteredNavigation = navigationConfig.filter(item => 
+    item.roles.includes(userRole || '')
+  );
 
   // Get user display name based on role
   const getUserDisplayName = () => {
@@ -202,8 +244,8 @@ function Sidebar() {
   // Auto-expand parent items if we're on a sub-page
   const autoExpandParents = () => {
     const shouldExpand: string[] = [];
-    navigation.forEach((item) => {
-      if (item.subItems && pathname.startsWith(item.href + "/")) {
+    filteredNavigation.forEach((item) => {
+      if (item.children && pathname.startsWith(item.path + "/")) {
         shouldExpand.push(item.name);
       }
     });
@@ -254,24 +296,15 @@ function Sidebar() {
       <nav className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
         <div className="p-6">
           <ul className="space-y-2">
-            {navigation.map((item) => {
-              // Fix highlighting logic: Dashboard should only be active when exactly on /dashboard
-              // Other items should be active when on their path or sub-paths
-              const isActive =
-                item.href === "/dashboard"
-                  ? pathname === "/dashboard"
-                  : pathname === item.href ||
-                    pathname.startsWith(item.href + "/");
-
-              const isExpanded =
-                expandedItems.includes(item.name) ||
-                (item.subItems && pathname.startsWith(item.href + "/"));
+            {filteredNavigation.map((item) => {
+              const isActive = pathname === item.path || pathname.startsWith(item.path + "/");
+              const isExpanded = expandedItems.includes(item.name) || (item.children && pathname.startsWith(item.path + "/"));
 
               return (
                 <li key={item.name}>
                   <div className="flex items-center">
                     <Link
-                      href={item.href}
+                      href={item.path}
                       className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 flex-1 ${
                         isActive
                           ? "bg-slate-800 text-white border-r-2 border-blue-500"
@@ -282,8 +315,8 @@ function Sidebar() {
                       {item.name}
                     </Link>
 
-                    {/* Dropdown toggle button for items with subitems */}
-                    {item.subItems && (
+                    {/* Dropdown toggle button for items with children */}
+                    {item.children && (
                       <button
                         onClick={(e) => {
                           e.preventDefault();
@@ -303,15 +336,15 @@ function Sidebar() {
                   </div>
 
                   {/* Render sub-items with smooth transition */}
-                  {item.subItems && (
+                  {item.children && (
                     <div
                       className={`overflow-hidden transition-all duration-300 ease-in-out ${
                         isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                       }`}
                     >
                       <div className="mt-2 ml-4 space-y-1">
-                        {item.subItems.map((subItem, index) => {
-                          const isSubActive = pathname === subItem.href;
+                        {item.children.map((subItem, index) => {
+                          const isSubActive = pathname === subItem.path;
                           return (
                             <div
                               key={subItem.name}
@@ -327,7 +360,7 @@ function Sidebar() {
                               }}
                             >
                               <Link
-                                href={subItem.href}
+                                href={subItem.path}
                                 className={`flex items-center px-4 py-2 text-xs font-medium rounded-md transition-colors duration-200 ${
                                   isSubActive
                                     ? "bg-slate-700 text-white border-r-2 border-blue-400"
