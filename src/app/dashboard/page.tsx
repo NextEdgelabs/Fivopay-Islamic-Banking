@@ -68,7 +68,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-slate-900">Islamic Banking Dashboard</h1>
+      <h1 className="text-2xl font-bold text-slate-900">Ethical Banking Dashboard</h1>
       
       {/* Date Range Selector */}
       <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
@@ -311,7 +311,7 @@ export default function DashboardPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">Sharia Compliance Status</h2>
-            <p className="text-slate-600">Overall system compliance with Islamic banking principles</p>
+            <p className="text-slate-600">Overall system compliance with Ethical banking principles</p>
           </div>
           <div className="flex items-center space-x-2">
             {compliancePercentage >= 90 ? (
@@ -362,7 +362,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Customers and Islamic Banking Principles */}
+      {/* Recent Customers and Ethical Banking Principles */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Customers */}
         <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
@@ -403,9 +403,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Islamic Banking Principles */}
+        {/* Ethical Banking Principles */}
         <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900 mb-6">Islamic Banking Principles</h2>
+          <h2 className="text-lg font-semibold text-slate-900 mb-6">Ethical Banking Principles</h2>
           
           <div className="space-y-4">
             <div className="flex items-start">
@@ -415,7 +415,7 @@ export default function DashboardPage() {
               <div className="ml-3">
                 <p className="text-sm font-medium text-slate-900">No Interest (Riba)</p>
                 <p className="text-xs text-slate-500">
-                  All financial products avoid interest-based transactions, complying with Islamic law
+                  All financial products avoid interest-based transactions, complying with Ethical law
                 </p>
               </div>
             </div>
