@@ -13,6 +13,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   ClockIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 interface BillingItem {
@@ -26,11 +27,30 @@ interface BillingItem {
   description: string;
 }
 
+interface InvoiceFormData {
+  customerName: string;
+  amount: number;
+  dueDate: string;
+  type: "service" | "product" | "subscription";
+  description: string;
+}
+
 export default function BillingPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<BillingItem | null>(null);
+  const [formData, setFormData] = useState<InvoiceFormData>({
+    customerName: "",
+    amount: 0,
+    dueDate: "",
+    type: "service",
+    description: "",
+  });
 
-  const billingItems: BillingItem[] = [
+  const [billingItems, setBillingItems] = useState<BillingItem[]>([
     {
       id: "1",
       customerName: "ABC Corporation",
@@ -71,7 +91,7 @@ export default function BillingPage() {
       type: "service",
       description: "Account maintenance fees",
     },
-  ];
+  ]);
 
   const filteredItems = billingItems.filter((item) => {
     const matchesStatus = selectedStatus === "all" || item.status === selectedStatus;
@@ -79,6 +99,76 @@ export default function BillingPage() {
                          item.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
+
+  const handleCreateInvoice = () => {
+    if (formData.customerName && formData.amount > 0 && formData.dueDate) {
+      const newInvoice: BillingItem = {
+        id: Date.now().toString(),
+        customerName: formData.customerName,
+        invoiceNumber: `INV-2024-${String(billingItems.length + 1).padStart(3, '0')}`,
+        amount: formData.amount,
+        status: "draft",
+        dueDate: formData.dueDate,
+        type: formData.type,
+        description: formData.description,
+      };
+      setBillingItems([...billingItems, newInvoice]);
+      setFormData({
+        customerName: "",
+        amount: 0,
+        dueDate: "",
+        type: "service",
+        description: "",
+      });
+      setShowCreateModal(false);
+    }
+  };
+
+  const handleViewItem = (item: BillingItem) => {
+    setSelectedItem(item);
+    setShowViewModal(true);
+  };
+
+  const handleEditItem = (item: BillingItem) => {
+    setSelectedItem(item);
+    setFormData({
+      customerName: item.customerName,
+      amount: item.amount,
+      dueDate: item.dueDate,
+      type: item.type,
+      description: item.description,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateItem = () => {
+    if (selectedItem && formData.customerName && formData.amount > 0 && formData.dueDate) {
+      setBillingItems(billingItems.map(item =>
+        item.id === selectedItem.id
+          ? { ...item, ...formData }
+          : item
+      ));
+      setSelectedItem(null);
+      setFormData({
+        customerName: "",
+        amount: 0,
+        dueDate: "",
+        type: "service",
+        description: "",
+      });
+      setShowEditModal(false);
+    }
+  };
+
+  const handleDeleteItem = (id: string) => {
+    setBillingItems(billingItems.filter(item => item.id !== id));
+  };
+
+  const handleStatusChange = (id: string, newStatus: BillingItem["status"]) => {
+    setBillingItems(billingItems.map(item =>
+      item.id === id ? { ...item, status: newStatus } : item
+    ));
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -137,7 +227,10 @@ export default function BillingPage() {
           <p className="text-gray-600">Manage invoices, payments, and billing configurations</p>
         </div>
         <div className="flex items-center space-x-3">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+          <button 
+            onClick={() => setShowCreateModal(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          >
             <PlusIcon className="h-5 w-5" />
             <span>Create Invoice</span>
           </button>
@@ -204,7 +297,7 @@ export default function BillingPage() {
               placeholder="Search by customer name or invoice number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="text-gray-700 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div className="flex items-center space-x-2">
@@ -212,7 +305,7 @@ export default function BillingPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="text-gray-700 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="paid">Paid</option>
@@ -289,13 +382,25 @@ export default function BillingPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">
+                        <button 
+                          onClick={() => handleViewItem(item)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="View Details"
+                        >
                           <EyeIcon className="h-4 w-4" />
                         </button>
-                        <button className="text-gray-600 hover:text-gray-900">
+                        <button 
+                          onClick={() => handleEditItem(item)}
+                          className="text-gray-600 hover:text-gray-900"
+                          title="Edit"
+                        >
                           <PencilIcon className="h-4 w-4" />
                         </button>
-                        <button className="text-red-600 hover:text-red-900">
+                        <button 
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete"
+                        >
                           <TrashIcon className="h-4 w-4" />
                         </button>
                       </div>
@@ -335,6 +440,230 @@ export default function BillingPage() {
           </button>
         </div>
       </div>
+
+      {/* Create Invoice Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Create New Invoice</h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                <input
+                  type="text"
+                  value={formData.customerName}
+                  onChange={(e) => setFormData({...formData, customerName: e.target.value})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter customer name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                <input
+                  type="number"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({...formData, amount: parseFloat(e.target.value) || 0})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter amount"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                <input
+                  type="date"
+                  value={formData.dueDate}
+                  onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({...formData, type: e.target.value as any})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="service">Service</option>
+                  <option value="product">Product</option>
+                  <option value="subscription">Subscription</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={3}
+                  placeholder="Enter description"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateInvoice}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Create Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Invoice Modal */}
+      {showViewModal && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Invoice Details</h3>
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Customer Name</label>
+                <p className="text-gray-900">{selectedItem.customerName}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Invoice Number</label>
+                <p className="text-gray-900">{selectedItem.invoiceNumber}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Amount</label>
+                <p className="text-gray-900">₹{selectedItem.amount.toLocaleString()}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedItem.status)}`}>
+                  {selectedItem.status.charAt(0).toUpperCase() + selectedItem.status.slice(1)}
+                </span>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Due Date</label>
+                <p className="text-gray-900">{selectedItem.dueDate}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Type</label>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(selectedItem.type)}`}>
+                  {selectedItem.type.charAt(0).toUpperCase() + selectedItem.type.slice(1)}
+                </span>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <p className="text-gray-900">{selectedItem.description}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Invoice Modal */}
+      {showEditModal && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Edit Invoice</h3>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                <input
+                  type="text"
+                  value={formData.customerName}
+                  onChange={(e) => setFormData({...formData, customerName: e.target.value})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                <input
+                  type="number"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({...formData, amount: parseFloat(e.target.value) || 0})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                <input
+                  type="date"
+                  value={formData.dueDate}
+                  onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({...formData, type: e.target.value as any})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="service">Service</option>
+                  <option value="product">Product</option>
+                  <option value="subscription">Subscription</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateItem}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Update Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

@@ -11,6 +11,7 @@ import {
   ExclamationTriangleIcon,
   ClockIcon,
   ArrowDownTrayIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 interface Invoice {
@@ -24,12 +25,30 @@ interface Invoice {
   description: string;
 }
 
+interface InvoiceFormData {
+  customerName: string;
+  amount: number;
+  dueDate: string;
+  issueDate: string;
+  description: string;
+}
+
 export default function InvoiceManagementPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [formData, setFormData] = useState<InvoiceFormData>({
+    customerName: "",
+    amount: 0,
+    dueDate: "",
+    issueDate: "",
+    description: "",
+  });
 
-  const invoices: Invoice[] = [
+  const [invoices, setInvoices] = useState<Invoice[]>([
     {
       id: "1",
       invoiceNumber: "INV-2024-001",
@@ -70,7 +89,7 @@ export default function InvoiceManagementPage() {
       issueDate: "2024-01-08",
       description: "Account maintenance fees",
     },
-  ];
+  ]);
 
   const filteredInvoices = invoices.filter((invoice) => {
     const matchesStatus = selectedStatus === "all" || invoice.status === selectedStatus;
@@ -78,6 +97,76 @@ export default function InvoiceManagementPage() {
                          invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
+
+  const handleCreateInvoice = () => {
+    if (formData.customerName && formData.amount > 0 && formData.dueDate && formData.issueDate) {
+      const newInvoice: Invoice = {
+        id: Date.now().toString(),
+        invoiceNumber: `INV-2024-${String(invoices.length + 1).padStart(3, '0')}`,
+        customerName: formData.customerName,
+        amount: formData.amount,
+        status: "draft",
+        dueDate: formData.dueDate,
+        issueDate: formData.issueDate,
+        description: formData.description,
+      };
+      setInvoices([...invoices, newInvoice]);
+      setFormData({
+        customerName: "",
+        amount: 0,
+        dueDate: "",
+        issueDate: "",
+        description: "",
+      });
+      setShowCreateForm(false);
+    }
+  };
+
+  const handleViewInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setShowViewModal(true);
+  };
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setFormData({
+      customerName: invoice.customerName,
+      amount: invoice.amount,
+      dueDate: invoice.dueDate,
+      issueDate: invoice.issueDate,
+      description: invoice.description,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateInvoice = () => {
+    if (selectedInvoice && formData.customerName && formData.amount > 0 && formData.dueDate && formData.issueDate) {
+      setInvoices(invoices.map(invoice =>
+        invoice.id === selectedInvoice.id
+          ? { ...invoice, ...formData }
+          : invoice
+      ));
+      setSelectedInvoice(null);
+      setFormData({
+        customerName: "",
+        amount: 0,
+        dueDate: "",
+        issueDate: "",
+        description: "",
+      });
+      setShowEditModal(false);
+    }
+  };
+
+  const handleDeleteInvoice = (id: string) => {
+    setInvoices(invoices.filter(invoice => invoice.id !== id));
+  };
+
+  const handleStatusChange = (id: string, newStatus: Invoice["status"]) => {
+    setInvoices(invoices.map(invoice =>
+      invoice.id === id ? { ...invoice, status: newStatus } : invoice
+    ));
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -205,7 +294,7 @@ export default function InvoiceManagementPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="text-gray-700 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="draft">Draft</option>
@@ -227,7 +316,7 @@ export default function InvoiceManagementPage() {
               onClick={() => setShowCreateForm(false)}
               className="text-gray-400 hover:text-gray-600"
             >
-              <span className="text-2xl">×</span>
+              <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -235,50 +324,62 @@ export default function InvoiceManagementPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
               <input
                 type="text"
+                value={formData.customerName}
+                onChange={(e) => setFormData({...formData, customerName: e.target.value})}
                 className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter customer name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Number</label>
-              <input
-                type="text"
-                className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Auto-generated"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
               <input
                 type="number"
+                value={formData.amount}
+                onChange={(e) => setFormData({...formData, amount: parseFloat(e.target.value) || 0})}
                 className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="0.00"
+                placeholder="Enter amount"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Issue Date</label>
+              <input
+                type="date"
+                value={formData.issueDate}
+                onChange={(e) => setFormData({...formData, issueDate: e.target.value})}
+                className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
               <input
                 type="date"
+                value={formData.dueDate}
+                onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
                 className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
                 className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={3}
-                placeholder="Enter invoice description"
+                placeholder="Enter description"
               />
             </div>
           </div>
           <div className="flex items-center justify-end space-x-3 mt-6">
             <button
               onClick={() => setShowCreateForm(false)}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
               Cancel
             </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <button
+              onClick={handleCreateInvoice}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
               Create Invoice
             </button>
           </div>
@@ -305,6 +406,9 @@ export default function InvoiceManagementPage() {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Issue Date
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Due Date
@@ -338,20 +442,32 @@ export default function InvoiceManagementPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {invoice.issueDate}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {invoice.dueDate}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">
+                        <button 
+                          onClick={() => handleViewInvoice(invoice)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="View Details"
+                        >
                           <EyeIcon className="h-4 w-4" />
                         </button>
-                        <button className="text-gray-600 hover:text-gray-900">
+                        <button 
+                          onClick={() => handleEditInvoice(invoice)}
+                          className="text-gray-600 hover:text-gray-900"
+                          title="Edit"
+                        >
                           <PencilIcon className="h-4 w-4" />
                         </button>
-                        <button className="text-green-600 hover:text-green-700">
-                          <ArrowDownTrayIcon className="h-4 w-4" />
-                        </button>
-                        <button className="text-red-600 hover:text-red-900">
+                        <button 
+                          onClick={() => handleDeleteInvoice(invoice.id)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete"
+                        >
                           <TrashIcon className="h-4 w-4" />
                         </button>
                       </div>
@@ -364,33 +480,140 @@ export default function InvoiceManagementPage() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <DocumentTextIcon className="h-6 w-6 text-blue-600" />
-            <div className="text-left">
-              <div className="font-medium text-gray-900">Invoice Templates</div>
-              <div className="text-sm text-gray-600">Manage invoice templates</div>
+      {/* View Invoice Modal */}
+      {showViewModal && selectedInvoice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Invoice Details</h3>
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
             </div>
-          </button>
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <ArrowDownTrayIcon className="h-6 w-6 text-green-600" />
-            <div className="text-left">
-              <div className="font-medium text-gray-900">Bulk Export</div>
-              <div className="text-sm text-gray-600">Export multiple invoices</div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Invoice Number</label>
+                <p className="text-gray-900">{selectedInvoice.invoiceNumber}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Customer Name</label>
+                <p className="text-gray-900">{selectedInvoice.customerName}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Amount</label>
+                <p className="text-gray-900">₹{selectedInvoice.amount.toLocaleString()}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedInvoice.status)}`}>
+                  {selectedInvoice.status.charAt(0).toUpperCase() + selectedInvoice.status.slice(1)}
+                </span>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Issue Date</label>
+                <p className="text-gray-900">{selectedInvoice.issueDate}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Due Date</label>
+                <p className="text-gray-900">{selectedInvoice.dueDate}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <p className="text-gray-900">{selectedInvoice.description}</p>
+              </div>
             </div>
-          </button>
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <ClockIcon className="h-6 w-6 text-purple-600" />
-            <div className="text-left">
-              <div className="font-medium text-gray-900">Payment Reminders</div>
-              <div className="text-sm text-gray-600">Send payment reminders</div>
+            <div className="flex items-center justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
             </div>
-          </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Edit Invoice Modal */}
+      {showEditModal && selectedInvoice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Edit Invoice</h3>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                <input
+                  type="text"
+                  value={formData.customerName}
+                  onChange={(e) => setFormData({...formData, customerName: e.target.value})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                <input
+                  type="number"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({...formData, amount: parseFloat(e.target.value) || 0})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Issue Date</label>
+                <input
+                  type="date"
+                  value={formData.issueDate}
+                  onChange={(e) => setFormData({...formData, issueDate: e.target.value})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                <input
+                  type="date"
+                  value={formData.dueDate}
+                  onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateInvoice}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Update Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
