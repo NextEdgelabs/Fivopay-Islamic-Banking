@@ -95,7 +95,7 @@ export default function NPAAssetFilters({
             placeholder="Search by asset ID, customer name, or loan account..."
             value={filters.searchTerm}
             onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="text-gray-700 w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function NPAAssetFilters({
           <select
             value={filters.classification}
             onChange={(e) => handleFilterChange('classification', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">All Classifications</option>
             <option value="Substandard">Substandard</option>
@@ -125,7 +125,7 @@ export default function NPAAssetFilters({
           <select
             value={filters.assetType}
             onChange={(e) => handleFilterChange('assetType', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">All Asset Types</option>
             <option value="Real Estate">Real Estate</option>
@@ -143,7 +143,7 @@ export default function NPAAssetFilters({
           <select
             value={filters.recoveryStatus}
             onChange={(e) => handleFilterChange('recoveryStatus', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">All Statuses</option>
             <option value="Pending">Pending</option>
@@ -162,7 +162,7 @@ export default function NPAAssetFilters({
             placeholder="Enter assignee name..."
             value={filters.assignedTo}
             onChange={(e) => handleFilterChange('assignedTo', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
@@ -183,7 +183,7 @@ export default function NPAAssetFilters({
                     type="date"
                     value={filters.dateRange.start}
                     onChange={(e) => handleDateRangeChange('start', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
@@ -192,7 +192,7 @@ export default function NPAAssetFilters({
                     type="date"
                     value={filters.dateRange.end}
                     onChange={(e) => handleDateRangeChange('end', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -211,7 +211,7 @@ export default function NPAAssetFilters({
                     placeholder="0"
                     value={filters.amountRange.min || ''}
                     onChange={(e) => handleAmountRangeChange('min', Number(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
@@ -221,7 +221,7 @@ export default function NPAAssetFilters({
                     placeholder="No limit"
                     value={filters.amountRange.max || ''}
                     onChange={(e) => handleAmountRangeChange('max', Number(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="text-gray-700  w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>

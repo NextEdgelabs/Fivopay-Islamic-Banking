@@ -18,6 +18,8 @@ import {
   PresentationChartLineIcon,
   DocumentChartBarIcon,
   ArrowPathIcon,
+  DocumentTextIcon,
+  CalculatorIcon,
 } from "@heroicons/react/24/outline";
 import { CreditCardIcon } from "@heroicons/react/24/outline";
 
@@ -166,6 +168,55 @@ const navigation = [
     name: "Reports",
     href: "/dashboard/reports",
     icon: ClipboardDocumentListIcon,
+    subItems: [
+      {
+        name: "Financial Reports",
+        href: "/dashboard/reports/financial",
+        icon: DocumentTextIcon,
+      },
+      {
+        name: "Operational Reports",
+        href: "/dashboard/reports/operational",
+        icon: DocumentTextIcon,
+      },
+      {
+        name: "Compliance Reports",
+        href: "/dashboard/reports/compliance",
+        icon: DocumentTextIcon,
+      },
+      {
+        name: "Analytics Dashboard",
+        href: "/dashboard/reports/analytics",
+        icon: ChartBarIcon,
+      },
+    ],
+  },
+  {
+    name: "Billing Engine",
+    href: "/dashboard/billing",
+    icon: CalculatorIcon,
+    subItems: [
+      {
+        name: "Billing Configuration",
+        href: "/dashboard/billing/configuration",
+        icon: CalculatorIcon,
+      },
+      {
+        name: "Invoice Management",
+        href: "/dashboard/billing/invoices",
+        icon: DocumentTextIcon,
+      },
+      {
+        name: "Payment Processing",
+        href: "/dashboard/billing/payments",
+        icon: BanknotesIcon,
+      },
+      {
+        name: "Billing Reports",
+        href: "/dashboard/billing/reports",
+        icon: DocumentChartBarIcon,
+      },
+    ],
   },
   { name: "Security", href: "/dashboard/security", icon: ShieldCheckIcon },
   { name: "Settings", href: "/dashboard/settings", icon: CogIcon },

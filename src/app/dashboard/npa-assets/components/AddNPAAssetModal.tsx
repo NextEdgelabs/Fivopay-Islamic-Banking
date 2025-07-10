@@ -148,7 +148,7 @@ export default function AddNPAAssetModal({
                   type="text"
                   value={formData.customerId}
                   onChange={(e) => handleInputChange('customerId', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`text-gray-700 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.customerId ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Enter customer ID"
@@ -166,7 +166,7 @@ export default function AddNPAAssetModal({
                   type="text"
                   value={formData.customerName}
                   onChange={(e) => handleInputChange('customerName', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`text-gray-700 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.customerName ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Enter customer name"
@@ -184,7 +184,7 @@ export default function AddNPAAssetModal({
                   type="text"
                   value={formData.loanAccountNumber}
                   onChange={(e) => handleInputChange('loanAccountNumber', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`text-gray-700 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.loanAccountNumber ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Enter loan account number"
@@ -202,7 +202,7 @@ export default function AddNPAAssetModal({
                   type="text"
                   value={formData.assignedTo}
                   onChange={(e) => handleInputChange('assignedTo', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`text-gray-700 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.assignedTo ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Enter assignee name"
@@ -226,7 +226,7 @@ export default function AddNPAAssetModal({
                   type="number"
                   value={formData.originalLoanAmount}
                   onChange={(e) => handleInputChange('originalLoanAmount', Number(e.target.value))}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`text-gray-700 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.originalLoanAmount ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0"
@@ -245,7 +245,7 @@ export default function AddNPAAssetModal({
                   type="number"
                   value={formData.outstandingAmount}
                   onChange={(e) => handleInputChange('outstandingAmount', Number(e.target.value))}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`text-gray-700 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.outstandingAmount ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0"
@@ -264,7 +264,7 @@ export default function AddNPAAssetModal({
                   type="number"
                   value={formData.estimatedValue}
                   onChange={(e) => handleInputChange('estimatedValue', Number(e.target.value))}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`text-gray-700 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.estimatedValue ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0"
@@ -288,7 +288,7 @@ export default function AddNPAAssetModal({
                 <select
                   value={formData.assetType}
                   onChange={(e) => handleInputChange('assetType', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="Real Estate">Real Estate</option>
                   <option value="Vehicle">Vehicle</option>
@@ -305,7 +305,7 @@ export default function AddNPAAssetModal({
                 <select
                   value={formData.classification}
                   onChange={(e) => handleInputChange('classification', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="Substandard">Substandard</option>
                   <option value="Doubtful">Doubtful</option>
@@ -320,7 +320,7 @@ export default function AddNPAAssetModal({
                 <textarea
                   value={formData.assetDescription}
                   onChange={(e) => handleInputChange('assetDescription', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`text-gray-700 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.assetDescription ? 'border-red-500' : 'border-gray-300'
                   }`}
                   rows={3}
@@ -339,7 +339,7 @@ export default function AddNPAAssetModal({
                   type="text"
                   value={formData.location}
                   onChange={(e) => handleInputChange('location', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`text-gray-700 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.location ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Enter asset location"
@@ -363,7 +363,7 @@ export default function AddNPAAssetModal({
                   type="date"
                   value={formData.acquisitionDate}
                   onChange={(e) => handleInputChange('acquisitionDate', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`text-gray-700 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.acquisitionDate ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -380,7 +380,7 @@ export default function AddNPAAssetModal({
                   type="date"
                   value={formData.npaDate}
                   onChange={(e) => handleInputChange('npaDate', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`text-gray-700 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.npaDate ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -399,7 +399,7 @@ export default function AddNPAAssetModal({
             <textarea
               value={formData.remarks}
               onChange={(e) => handleInputChange('remarks', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               rows={3}
               placeholder="Additional remarks or notes"
             />
