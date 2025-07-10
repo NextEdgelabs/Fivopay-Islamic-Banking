@@ -280,7 +280,7 @@ export default function NPAAssetFilters({
             )}
             {filters.searchTerm && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                Search: "{filters.searchTerm}"
+                Search: &quot;{filters.searchTerm}&quot;
                 <button
                   onClick={() => handleFilterChange('searchTerm', '')}
                   className="ml-1 text-gray-600 hover:text-gray-800"

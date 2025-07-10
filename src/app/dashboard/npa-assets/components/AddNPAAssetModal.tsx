@@ -35,7 +35,7 @@ export default function AddNPAAssetModal({
     remarks: '',
   });
 
-  const [errors, setErrors] = useState<Partial<NPAAssetFormData>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (field: keyof NPAAssetFormData, value: any) => {
     setFormData({
@@ -44,15 +44,14 @@ export default function AddNPAAssetModal({
     });
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors({
-        ...errors,
-        [field]: undefined,
-      });
+      const newErrors = { ...errors };
+      delete newErrors[field];
+      setErrors(newErrors);
     }
   };
 
   const validateForm = () => {
-    const newErrors: Partial<NPAAssetFormData> = {};
+    const newErrors: Record<string, string> = {};
 
     if (!formData.customerId.trim()) {
       newErrors.customerId = 'Customer ID is required';

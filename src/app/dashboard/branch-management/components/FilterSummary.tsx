@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 'use client';
 
 import { Branch } from '../types';
@@ -40,7 +39,7 @@ export default function FilterSummary({
           </p>
           <div className="flex items-center space-x-4 mt-1 text-xs text-blue-600">
             {searchTerm && (
-              <span>Search: "{searchTerm}"</span>
+              <span>Search: &quot;{searchTerm}&quot;</span>
             )}
             {selectedState !== 'All States' && (
               <span>State: {selectedState}</span>

@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 'use client';
 
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
@@ -102,7 +101,7 @@ export default function BranchFilters({
           <span>Active filters:</span>
           {searchTerm && (
             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-              Search: "{searchTerm}"
+              Search: &quot;{searchTerm}&quot;
             </span>
           )}
           {selectedState !== 'All States' && (
