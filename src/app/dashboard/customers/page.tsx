@@ -1,288 +1,516 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
-import { 
-  UserIcon, 
-  PlusIcon,
-  ArrowPathIcon,
-  ClipboardDocumentListIcon,
-  ListBulletIcon,
-  ChartBarIcon,
+import {
+  MagnifyingGlassIcon,
+  UserIcon,
   PhoneIcon,
-  ComputerDesktopIcon,
-  DevicePhoneMobileIcon,
-  BuildingStorefrontIcon
+  EnvelopeIcon,
+  IdentificationIcon,
+  MapPinIcon,
+  CurrencyDollarIcon,
+  CalendarIcon,
+  TagIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  EyeIcon,
+  XMarkIcon,
+  FunnelIcon,
 } from "@heroicons/react/24/outline";
 
-const tabs = [
-  { id: "overview", name: "Overview", icon: ChartBarIcon },
-  { id: "intake", name: "Customer Intake", icon: UserIcon },
-  { id: "routing", name: "Request Routing", icon: ArrowPathIcon },
-  { id: "cases", name: "Case Management", icon: ClipboardDocumentListIcon },
-  { id: "list", name: "Customer List", icon: ListBulletIcon },
-  { id: "analytics", name: "Analytics", icon: ChartBarIcon },
-];
+interface Customer {
+  customer_id: string;
+  full_name: string;
+  date_of_birth: string;
+  gender: string;
+  mobile_number: string;
+  email_address: string;
+  pan_number: string;
+  aadhaar_number: string;
+  current_address: string;
+  permanent_address: string;
+  occupation: string;
+  annual_income: number;
+  customer_segment: string;
+  risk_category: string;
+  customer_type: 'Individual' | 'Business';
+  account_status: 'Active' | 'Inactive' | 'Suspended';
+  kyc_status: 'Pending' | 'Completed' | 'Expired';
+  registration_date: string;
+  total_relationship_value: number;
+  active_products: string[];
+  loan_outstanding: number;
+  deposit_balance: number;
+  last_transaction_date: string;
+  customer_since: string;
+}
 
-const recentIntakes = [
-  {
-    id: "INT-001",
-    customerName: "Ahmad Hassan",
-    channel: "Web Portal",
-    requestType: "Account Inquiry", 
-    priority: "Medium",
-    status: "Pending",
-    timestamp: "2 hours ago",
-  },
-  {
-    id: "INT-002", 
-    customerName: "Fatima Al-Zahra",
-    channel: "Mobile App",
-    requestType: "Islamic Loan Query",
-    priority: "High",
-    status: "In Progress",
-    timestamp: "4 hours ago",
-  },
-  {
-    id: "INT-003",
-    customerName: "Omar Ibrahim", 
-    channel: "Call Center",
-    requestType: "Card Issue",
-    priority: "Low",
-    status: "Resolved",
-    timestamp: "1 day ago",
-  },
-];
+export default function CustomerDatabasePage() {
+  const [searchCustomerId, setSearchCustomerId] = useState("");
+  const [searchCustomerName, setSearchCustomerName] = useState("");
+  const [searchMobileNumber, setSearchMobileNumber] = useState("");
+  const [customerType, setCustomerType] = useState("all");
+  const [accountStatus, setAccountStatus] = useState("all");
+  const [kycStatus, setKycStatus] = useState("all");
+  const [registrationDateRange, setRegistrationDateRange] = useState({ start: "", end: "" });
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
-const channelStats = [
-  {
-    name: "Web Portal",
-    icon: ComputerDesktopIcon,
-    requests: 234,
-    change: "+12%",
-    color: "blue",
-  },
-  {
-    name: "Mobile App", 
-    icon: DevicePhoneMobileIcon,
-    requests: 189,
-    change: "+8%",
-    color: "green",
-  },
-  {
-    name: "Call Center",
-    icon: PhoneIcon,
-    requests: 156,
-    change: "+5%", 
-    color: "purple",
-  },
-  {
-    name: "Branch Visit",
-    icon: BuildingStorefrontIcon,
-    requests: 98,
-    change: "-2%",
-    color: "orange",
-  },
-];
+  const mockCustomers: Customer[] = [
+    {
+      customer_id: "CUST001",
+      full_name: "Rajesh Kumar",
+      date_of_birth: "1985-03-15",
+      gender: "Male",
+      mobile_number: "+91 98765 43210",
+      email_address: "rajesh.kumar@email.com",
+      pan_number: "ABCDE1234F",
+      aadhaar_number: "1234-5678-9012",
+      current_address: "123, Green Park, New Delhi - 110016",
+      permanent_address: "456, Model Town, Delhi - 110009",
+      occupation: "Software Engineer",
+      annual_income: 850000,
+      customer_segment: "Premium",
+      risk_category: "Low Risk",
+      customer_type: "Individual",
+      account_status: "Active",
+      kyc_status: "Completed",
+      registration_date: "2022-01-15",
+      total_relationship_value: 2500000,
+      active_products: ["Savings Account", "Fixed Deposit", "Personal Loan"],
+      loan_outstanding: 500000,
+      deposit_balance: 1500000,
+      last_transaction_date: "2024-01-20",
+      customer_since: "2022-01-15",
+    },
+    {
+      customer_id: "CUST002",
+      full_name: "Sunita Enterprises",
+      date_of_birth: "1990-07-22",
+      gender: "Female",
+      mobile_number: "+91 87654 32109",
+      email_address: "sunita.enterprises@email.com",
+      pan_number: "FGHIJ5678K",
+      aadhaar_number: "2345-6789-0123",
+      current_address: "789, Connaught Place, New Delhi - 110001",
+      permanent_address: "321, Karol Bagh, Delhi - 110005",
+      occupation: "Business Owner",
+      annual_income: 2500000,
+      customer_segment: "Business",
+      risk_category: "Medium Risk",
+      customer_type: "Business",
+      account_status: "Active",
+      kyc_status: "Completed",
+      registration_date: "2021-06-10",
+      total_relationship_value: 5000000,
+      active_products: ["Current Account", "Business Loan", "Term Deposit"],
+      loan_outstanding: 2000000,
+      deposit_balance: 2500000,
+      last_transaction_date: "2024-01-18",
+      customer_since: "2021-06-10",
+    },
+    {
+      customer_id: "CUST003",
+      full_name: "Amit Patel",
+      date_of_birth: "1988-11-08",
+      gender: "Male",
+      mobile_number: "+91 76543 21098",
+      email_address: "amit.patel@email.com",
+      pan_number: "KLMNO9012P",
+      aadhaar_number: "3456-7890-1234",
+      current_address: "456, Lajpat Nagar, New Delhi - 110024",
+      permanent_address: "654, Defence Colony, Delhi - 110024",
+      occupation: "Doctor",
+      annual_income: 1200000,
+      customer_segment: "Gold",
+      risk_category: "Low Risk",
+      customer_type: "Individual",
+      account_status: "Active",
+      kyc_status: "Completed",
+      registration_date: "2023-03-20",
+      total_relationship_value: 1800000,
+      active_products: ["Savings Account", "Health Insurance"],
+      loan_outstanding: 0,
+      deposit_balance: 800000,
+      last_transaction_date: "2024-01-19",
+      customer_since: "2023-03-20",
+    },
+  ];
 
-export default function CustomersPage() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const filteredCustomers = mockCustomers.filter(customer => {
+    const matchesId = customer.customer_id.toLowerCase().includes(searchCustomerId.toLowerCase());
+    const matchesName = customer.full_name.toLowerCase().includes(searchCustomerName.toLowerCase());
+    const matchesMobile = customer.mobile_number.includes(searchMobileNumber);
+    const matchesType = customerType === "all" || customer.customer_type === customerType;
+    const matchesStatus = accountStatus === "all" || customer.account_status === accountStatus;
+    const matchesKyc = kycStatus === "all" || customer.kyc_status === kycStatus;
+    
+    return matchesId && matchesName && matchesMobile && matchesType && matchesStatus && matchesKyc;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Active": return "bg-green-100 text-green-800";
+      case "Inactive": return "bg-gray-100 text-gray-800";
+      case "Suspended": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getKycStatusColor = (status: string) => {
+    switch (status) {
+      case "Completed": return "bg-green-100 text-green-800";
+      case "Pending": return "bg-yellow-100 text-yellow-800";
+      case "Expired": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getSegmentColor = (segment: string) => {
+    switch (segment) {
+      case "Premium": return "bg-purple-100 text-purple-800";
+      case "Gold": return "bg-yellow-100 text-yellow-800";
+      case "Business": return "bg-blue-100 text-blue-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case "Low Risk": return "bg-green-100 text-green-800";
+      case "Medium Risk": return "bg-yellow-100 text-yellow-800";
+      case "High Risk": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const maskAadhaar = (aadhaar: string) => {
+    return aadhaar.replace(/(\d{4})-(\d{4})-(\d{4})/, "****-****-$3");
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Customer Management</h1>
-          <p className="text-slate-600">
-            Manage customer relationships and requests across all channels
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">Customer Database Management</h1>
+          <p className="text-gray-600">Comprehensive customer 360° view and management</p>
         </div>
-        <Link 
-          href="/dashboard/customers/create"
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Customer
-        </Link>
+        <div className="flex items-center space-x-3">
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+            <UserIcon className="h-4 w-4" />
+            <span>Add Customer</span>
+          </button>
+        </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="border-b border-slate-200">
-        <nav className="-mb-px flex space-x-8">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === tab.id
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-              }`}
+      {/* Customer Search & Filter */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Customer Search & Filter</h2>
+          
+          {/* Search and Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="relative">
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Customer ID"
+                value={searchCustomerId}
+                onChange={(e) => setSearchCustomerId(e.target.value)}
+                className="text-gray-700 w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div className="relative">
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Customer Name"
+                value={searchCustomerName}
+                onChange={(e) => setSearchCustomerName(e.target.value)}
+                className="text-gray-700 w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div className="relative">
+              <PhoneIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Mobile Number"
+                value={searchMobileNumber}
+                onChange={(e) => setSearchMobileNumber(e.target.value)}
+                className="text-gray-700 w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <select
+              value={customerType}
+              onChange={(e) => setCustomerType(e.target.value)}
+              className="text-gray-700 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <tab.icon className="h-5 w-5 mr-2" />
-              {tab.name}
-            </button>
-          ))}
-        </nav>
+              <option value="all">All Types</option>
+              <option value="Individual">Individual</option>
+              <option value="Business">Business</option>
+            </select>
+            
+            <select
+              value={accountStatus}
+              onChange={(e) => setAccountStatus(e.target.value)}
+              className="text-gray-700 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Suspended">Suspended</option>
+            </select>
+            
+            <select
+              value={kycStatus}
+              onChange={(e) => setKycStatus(e.target.value)}
+              className="text-gray-700 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All KYC Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Completed">Completed</option>
+              <option value="Expired">Expired</option>
+            </select>
+            
+            <input
+              type="date"
+              value={registrationDateRange.start}
+              onChange={(e) => setRegistrationDateRange(prev => ({ ...prev, start: e.target.value }))}
+              className="text-gray-700 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            
+            <input
+              type="date"
+              value={registrationDateRange.end}
+              onChange={(e) => setRegistrationDateRange(prev => ({ ...prev, end: e.target.value }))}
+              className="text-gray-700 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Customers Table */}
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KYC</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Segment</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredCustomers.map((customer) => (
+                  <tr key={customer.customer_id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{customer.full_name}</div>
+                        <div className="text-sm text-gray-500">{customer.customer_id}</div>
+                        <div className="text-xs text-gray-400">{customer.occupation}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm text-gray-900">{customer.mobile_number}</div>
+                        <div className="text-sm text-gray-500">{customer.email_address}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-900">{customer.customer_type}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(customer.account_status)}`}>
+                        {customer.account_status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getKycStatusColor(customer.kyc_status)}`}>
+                        {customer.kyc_status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSegmentColor(customer.customer_segment)}`}>
+                        {customer.customer_segment}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => setSelectedCustomer(customer)}
+                        className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                      >
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      {/* Tab Content */}
-      {activeTab === "overview" && (
-        <div className="space-y-6">
-          {/* Channel Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {channelStats.map((channel) => (
-              <div key={channel.name} className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className={`p-3 rounded-lg ${
-                      channel.color === 'blue' ? 'bg-blue-50' :
-                      channel.color === 'green' ? 'bg-green-50' :
-                      channel.color === 'purple' ? 'bg-purple-50' :
-                      'bg-orange-50'
-                    }`}>
-                      <channel.icon className={`h-6 w-6 ${
-                        channel.color === 'blue' ? 'text-blue-600' :
-                        channel.color === 'green' ? 'text-green-600' :
-                        channel.color === 'purple' ? 'text-purple-600' :
-                        'text-orange-600'
-                      }`} />
+      {/* Customer Profile Section */}
+      {selectedCustomer && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Customer Profile - {selectedCustomer.full_name}</h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Personal Information */}
+              <div>
+                <h3 className="text-md font-semibold text-gray-900 mb-4">Personal Information</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Customer ID</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedCustomer.customer_id}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedCustomer.full_name}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedCustomer.date_of_birth}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Gender</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedCustomer.gender}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Mobile Number</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedCustomer.mobile_number}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Email Address</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedCustomer.email_address}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">PAN Number</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedCustomer.pan_number}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Aadhaar Number</label>
+                      <p className="text-sm text-gray-900 mt-1">{maskAadhaar(selectedCustomer.aadhaar_number)}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-slate-900">{channel.requests}</p>
-                    <p className={`text-sm ${
-                      channel.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {channel.change}
-                    </p>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Current Address</label>
+                    <p className="text-sm text-gray-900 mt-1">{selectedCustomer.current_address}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Permanent Address</label>
+                    <p className="text-sm text-gray-900 mt-1">{selectedCustomer.permanent_address}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Occupation</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedCustomer.occupation}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Annual Income</label>
+                      <p className="text-sm text-gray-900 mt-1">₹{selectedCustomer.annual_income.toLocaleString()}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Customer Segment</label>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${getSegmentColor(selectedCustomer.customer_segment)}`}>
+                        {selectedCustomer.customer_segment}
+                      </span>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Risk Category</label>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${getRiskColor(selectedCustomer.risk_category)}`}>
+                        {selectedCustomer.risk_category}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <p className="mt-3 text-sm font-medium text-slate-600">{channel.name}</p>
               </div>
-            ))}
-          </div>
 
-          {/* Recent Intake Requests */}
-          <div className="bg-white shadow-lg rounded-2xl border border-slate-200">
-            <div className="p-6 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-900">Recent Intake Requests</h3>
-                <Link href="/dashboard/customers/intake" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                  View All Intakes
-                </Link>
+              {/* Account Summary */}
+              <div>
+                <h3 className="text-md font-semibold text-gray-900 mb-4">Account Summary</h3>
+                <div className="space-y-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-blue-600">Total Relationship Value</p>
+                        <p className="text-2xl font-bold text-blue-900">₹{(selectedCustomer.total_relationship_value / 100000).toFixed(1)}L</p>
+                      </div>
+                      <CurrencyDollarIcon className="h-8 w-8 text-blue-500" />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-green-600">Deposit Balance</p>
+                        <p className="text-xl font-bold text-green-900">₹{(selectedCustomer.deposit_balance / 100000).toFixed(1)}L</p>
+                      </div>
+                      <CheckCircleIcon className="h-6 w-6 text-green-500" />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-orange-50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-orange-600">Loan Outstanding</p>
+                        <p className="text-xl font-bold text-orange-900">₹{(selectedCustomer.loan_outstanding / 100000).toFixed(1)}L</p>
+                      </div>
+                      <ExclamationTriangleIcon className="h-6 w-6 text-orange-500" />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Active Products</label>
+                    <div className="space-y-1">
+                      {selectedCustomer.active_products.map((product, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <CheckCircleIcon className="h-4 w-4 text-green-500" />
+                          <span className="text-sm text-gray-900">{product}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Last Transaction</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedCustomer.last_transaction_date}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Customer Since</label>
+                      <p className="text-sm text-gray-900 mt-1">{selectedCustomer.customer_since}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Request ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Customer
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Channel
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Request Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Priority
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Time
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {recentIntakes.map((intake) => (
-                    <tr key={intake.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                        {intake.id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                        {intake.customerName}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                        {intake.channel}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                        {intake.requestType}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          intake.priority === 'High' ? 'bg-red-100 text-red-800' :
-                          intake.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-green-100 text-green-800'
-                        }`}>
-                          {intake.priority}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          intake.status === 'Resolved' ? 'bg-green-100 text-green-800' :
-                          intake.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {intake.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                        {intake.timestamp}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link href="/dashboard/customers/intake" className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-shadow duration-300">
-              <UserIcon className="h-8 w-8 text-blue-600 mb-4" />
-              <h4 className="font-semibold text-slate-900 mb-2">Customer Intake</h4>
-              <p className="text-sm text-slate-600">Process new customer requests from multiple channels</p>
-            </Link>
-
-            <Link href="/dashboard/customers/cases" className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-shadow duration-300">
-              <ClipboardDocumentListIcon className="h-8 w-8 text-green-600 mb-4" />
-              <h4 className="font-semibold text-slate-900 mb-2">Manage Cases</h4>
-              <p className="text-sm text-slate-600">Track and resolve customer service cases</p>
-            </Link>
-
-            <Link href="/dashboard/customers/analytics" className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-shadow duration-300">
-              <ChartBarIcon className="h-8 w-8 text-purple-600 mb-4" />
-              <h4 className="font-semibold text-slate-900 mb-2">View Analytics</h4>
-              <p className="text-sm text-slate-600">Customer insights and performance metrics</p>
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Other tab contents can be implemented here */}
-      {activeTab !== "overview" && (
-        <div className="bg-white shadow-lg rounded-2xl p-8 border border-slate-200 text-center">
-          <div className="max-w-md mx-auto">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">
-              {tabs.find(tab => tab.id === activeTab)?.name}
-            </h3>
-            <p className="text-slate-600 mb-6">
-              This section is under development. Please use the dedicated pages for full functionality.
-            </p>
-            <div className="space-y-2">
-              <Link 
-                href={`/dashboard/customers/${activeTab}`}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+            
+            <div className="mt-6 flex space-x-3">
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                Edit Profile
+              </button>
+              <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                View Transactions
+              </button>
+              <button 
+                onClick={() => setSelectedCustomer(null)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
               >
-                Go to {tabs.find(tab => tab.id === activeTab)?.name}
-              </Link>
+                Close
+              </button>
             </div>
           </div>
         </div>

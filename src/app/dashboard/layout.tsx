@@ -64,9 +64,9 @@ const navigationConfig = [
     path: "/dashboard/operations-management",
     roles: ["admin"],
     children: [
-      { name: "Loan Processing", path: "/dashboard/operations-management/branch", icon: BanknotesIcon, roles: ["admin"] },
-      { name: "Staff Allocation", path: "/dashboard/operations-management/staff", icon: UsersIcon, roles: ["admin"] },
-      { name: "Process Optimization", path: "/dashboard/operations-management/optimization", icon: ListChecksIcon, roles: ["admin"] },
+      { name: "Loan Operations", path: "/dashboard/operations-management/loan-operations", icon: BanknotesIcon, roles: ["admin"] },
+      { name: "Collections Analytics", path: "/dashboard/operations-management/collections-analytics", icon: UsersIcon, roles: ["admin"] },
+      { name: "Risk Monitoring", path: "/dashboard/operations-management/risk-monitoring", icon: ListChecksIcon, roles: ["admin"] },
     ],
   },
   {
