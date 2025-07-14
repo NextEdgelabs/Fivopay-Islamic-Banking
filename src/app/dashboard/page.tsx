@@ -17,7 +17,7 @@ import {
   CheckCircleIcon,
   XCircleIcon
 } from "@heroicons/react/24/outline";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "@/app/context/AppContext";
 
 export default function DashboardPage() {
   const { customers, employees, dashboardData } = useAppContext();

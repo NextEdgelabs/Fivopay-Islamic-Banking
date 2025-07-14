@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ChartBarIcon,
   UserIcon,
@@ -20,6 +20,7 @@ import {
   ArrowPathIcon,
   DocumentTextIcon,
   CalculatorIcon,
+  ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline";
 import { CreditCardIcon } from "@heroicons/react/24/outline";
 
@@ -75,6 +76,11 @@ const navigation = [
     subItems:[
       {name:"NPA Assets",href:"/dashboard/npa-assets/npa-assets",icon:BanknotesIcon},
     ]
+  },
+  {
+    name:"AI Companion",
+    href:"/dashboard/ai-companion",
+    icon:ChatBubbleLeftRightIcon,
   },
   {
     name: "Account Management",
@@ -270,12 +276,12 @@ function Sidebar() {
   };
 
   // Initialize expanded items based on current path
-  useState(() => {
+  useEffect(() => {
     const autoExpanded = autoExpandParents();
     if (autoExpanded.length > 0) {
       setExpandedItems(autoExpanded);
     }
-  });
+  }, [pathname]);
 
   const toggleExpanded = (itemName: string) => {
     setExpandedItems((prev) =>

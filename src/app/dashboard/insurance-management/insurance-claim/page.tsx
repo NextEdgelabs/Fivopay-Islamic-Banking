@@ -31,6 +31,7 @@ interface InsuranceClaim {
   status: "pending" | "under_review" | "approved" | "rejected" | "paid";
   claimType: "medical" | "accident" | "property_damage" | "theft" | "natural_disaster" | "other";
   amount: number;
+  approvedAmount?: number;
   description: string;
   incidentDate: string;
   filedDate: string;
@@ -65,6 +66,7 @@ export default function InsuranceClaimPage() {
       status: "pending",
       claimType: "medical",
       amount: 25000,
+      approvedAmount: 0,
       description: "Hospitalization due to appendicitis surgery",
       incidentDate: "2024-01-10",
       filedDate: "2024-01-15",
@@ -83,6 +85,7 @@ export default function InsuranceClaimPage() {
       status: "approved",
       claimType: "accident",
       amount: 15000,
+      approvedAmount: 12000,
       description: "Vehicle damage from rear-end collision",
       incidentDate: "2024-01-05",
       filedDate: "2024-01-08",
@@ -102,6 +105,7 @@ export default function InsuranceClaimPage() {
       status: "under_review",
       claimType: "medical",
       amount: 50000,
+      approvedAmount: 0,
       description: "Critical illness claim for cancer treatment",
       incidentDate: "2024-01-01",
       filedDate: "2024-01-20",
@@ -120,6 +124,7 @@ export default function InsuranceClaimPage() {
       status: "rejected",
       claimType: "property_damage",
       amount: 5000,
+      approvedAmount: 0,
       description: "Water damage claim for basement flooding",
       incidentDate: "2024-01-12",
       filedDate: "2024-01-15",
@@ -139,6 +144,7 @@ export default function InsuranceClaimPage() {
       status: "paid",
       claimType: "medical",
       amount: 3000,
+      approvedAmount: 3000,
       description: "Medical emergency during international travel",
       incidentDate: "2023-12-20",
       filedDate: "2023-12-25",
@@ -158,6 +164,7 @@ export default function InsuranceClaimPage() {
       status: "pending",
       claimType: "medical",
       amount: 12000,
+      approvedAmount: 0,
       description: "Dental surgery and treatment",
       incidentDate: "2024-01-18",
       filedDate: "2024-01-22",
@@ -182,6 +189,9 @@ export default function InsuranceClaimPage() {
     description: "",
     incidentDate: "",
   });
+
+  // For file uploads in the claim form
+  const [newClaimDocuments, setNewClaimDocuments] = useState<File[]>([]);
 
   const statuses = [
     { value: "all", label: "All Status" },
@@ -301,15 +311,16 @@ export default function InsuranceClaimPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const claimNumber = `CLM-${new Date().getFullYear()}-${String(claims.length + 1).padStart(3, '0')}`;
-    
+
     const newClaimData: InsuranceClaim = {
       id: (claims.length + 1).toString(),
       claimNumber,
       ...newClaim,
       status: "pending",
       filedDate: new Date().toISOString().split('T')[0],
-      documents: [],
+      documents: newClaimDocuments.map((file) => file.name),
       notes: ["Claim submitted"],
+      approvedAmount: 0,
     };
     setClaims([...claims, newClaimData]);
     setShowAddModal(false);
@@ -324,6 +335,7 @@ export default function InsuranceClaimPage() {
       description: "",
       incidentDate: "",
     });
+    setNewClaimDocuments([]);
   };
 
   return (
@@ -434,7 +446,7 @@ export default function InsuranceClaimPage() {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Amount
+                  Claimed / Approved Amount
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Dates
@@ -527,7 +539,7 @@ export default function InsuranceClaimPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-slate-900">
-                      ${claim.amount.toLocaleString()}
+                      ${claim.amount.toLocaleString()} <span className="text-xs text-slate-500">/ ${claim.approvedAmount?.toLocaleString() ?? 0}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -729,6 +741,29 @@ export default function InsuranceClaimPage() {
                   className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Describe the incident and claim details"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Upload Documents
+                </label>
+                <input
+                  type="file"
+                  multiple
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setNewClaimDocuments(Array.from(e.target.files));
+                    }
+                  }}
+                  className="block w-full text-sm text-gray-700 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {newClaimDocuments.length > 0 && (
+                  <ul className="mt-2 text-xs text-slate-600 list-disc list-inside">
+                    {newClaimDocuments.map((file, idx) => (
+                      <li key={idx}>{file.name}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div className="flex justify-end space-x-3 pt-6 border-t border-slate-200">
