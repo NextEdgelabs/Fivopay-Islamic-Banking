@@ -240,7 +240,7 @@ export default function DepositManagementPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Deposit Management</h1>
-          <p className="text-gray-600 mt-1">Manage Islamic banking deposit products and accounts</p>
+                      <p className="text-gray-600 mt-1">Manage Ethical banking deposit products and accounts</p>
         </div>
         <div className="flex space-x-3">
           <button

@@ -167,7 +167,7 @@ const initialEmployees: Employee[] = [
     name: "Ahmed Al-Rashid",
     email: "ahmed.rashid@fivopay.com",
     phone: "+971-50-123-4567",
-    position: "Senior Islamic Banking Specialist",
+          position: "Senior Ethical Banking Specialist",
     department: "Sharia Compliance",
     role: "Compliance",
     status: 'Active',
@@ -235,7 +235,7 @@ const initialCustomers: Customer[] = [
     name: "Ahmed Al-Mahmoud",
     email: "ahmed.mahmoud@email.com",
     phone: "+971-50-123-4567",
-    accountType: "Islamic Savings",
+    accountType: "Ethical Savings",
     kycStatus: "Verified",
     verificationLevel: "Level 3",
     joinDate: "2023-11-15",
@@ -248,7 +248,7 @@ const initialCustomers: Customer[] = [
     name: "Fatima Al-Zahra",
     email: "fatima.zahra@email.com", 
     phone: "+971-52-987-6543",
-    accountType: "Islamic Current",
+    accountType: "Ethical Current",
     kycStatus: "Verified",
     verificationLevel: "Level 2",
     joinDate: "2023-10-22",
@@ -287,7 +287,7 @@ const initialCustomers: Customer[] = [
     name: "Yusuf Al-Rashid",
     email: "yusuf.rashid@email.com",
     phone: "+971-50-876-5432",
-    accountType: "Islamic Savings",
+    accountType: "Ethical Savings",
     kycStatus: "Under Review",
     verificationLevel: "Level 2",
     joinDate: "2023-11-28",
@@ -495,7 +495,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     {
       id: '2',
-      name: 'Islamic Business Financing',
+      name: 'Ethical Business Financing',
       type: 'Business',
       minAmount: 500000,
       maxAmount: 10000000,
@@ -519,7 +519,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       applications: 234,
       disbursed: 167,
       createdDate: '2024-01-05',
-      description: 'Islamic home financing through Ijara (lease-to-own) structure'
+      description: 'Ethical home financing through Ijara (lease-to-own) structure'
     }
   ]);
 

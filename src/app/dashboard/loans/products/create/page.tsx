@@ -20,7 +20,7 @@ interface ProductFormData {
   tenure: string;
   description: string;
   
-  // Islamic Banking Specific Fields
+      // Ethical Banking Specific Fields
   shariaStructure: 'Murabaha' | 'Musharakah' | 'Ijara' | 'Istisna' | 'Salam' | '';
   profitSharingRatio: string;
   
@@ -183,7 +183,7 @@ export default function CreateProductPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Create New Product</h1>
-          <p className="text-slate-600">Create a new Islamic banking loan product</p>
+          <p className="text-slate-600">Create a new Ethical banking loan product</p>
         </div>
       </div>
 
@@ -299,7 +299,7 @@ export default function CreateProductPage() {
         <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
           <div className="flex items-center space-x-2 mb-6">
             <DocumentTextIcon className="h-5 w-5 text-green-600" />
-            <h2 className="text-lg font-semibold text-slate-900">Islamic Banking Configuration</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Ethical Banking Configuration</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -353,7 +353,7 @@ export default function CreateProductPage() {
                 <h4 className="text-sm font-medium text-green-800">Sharia Compliance</h4>
                 <p className="text-sm text-green-700 mt-1">
                   This product will be reviewed by our Sharia Advisory Board to ensure full compliance 
-                  with Islamic banking principles before activation.
+                  with Ethical banking principles before activation.
                 </p>
               </div>
             </div>

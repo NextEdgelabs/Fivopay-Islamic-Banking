@@ -755,7 +755,7 @@ export default function LoansDashboard() {
                 <div className="text-center p-6 bg-blue-50 rounded-lg">
                   <CalculatorIcon className="h-8 w-8 text-blue-600 mx-auto mb-3" />
                   <h5 className="font-medium text-gray-900 mb-2">EMI Calculator</h5>
-                  <p className="text-sm text-gray-600 mb-4">Calculate monthly payments based on Islamic financing principles</p>
+                  <p className="text-sm text-gray-600 mb-4">Calculate monthly payments based on Ethical financing principles</p>
                   <button 
                     onClick={() => setShowProfitCalculator(true)}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -774,7 +774,7 @@ export default function LoansDashboard() {
                 <div className="text-center p-6 bg-purple-50 rounded-lg">
                   <DocumentTextIcon className="h-8 w-8 text-purple-600 mx-auto mb-3" />
                   <h5 className="font-medium text-gray-900 mb-2">Sharia Compliance</h5>
-                  <p className="text-sm text-gray-600 mb-4">Ensure all financing structures comply with Islamic law</p>
+                  <p className="text-sm text-gray-600 mb-4">Ensure all financing structures comply with Ethical law</p>
                   <button className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
                     Review Compliance
                   </button>
@@ -830,7 +830,7 @@ export default function LoansDashboard() {
                 },
                 {
                   title: 'Profit Analysis',
-                  description: 'Islamic financing profit distribution and performance',
+                  description: 'Ethical financing profit distribution and performance',
                   icon: CalculatorIcon,
                   color: 'teal'
                 },

@@ -14,9 +14,43 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FivoPay Islamic Banking - BaaS Platform",
-  description: "Sharia-compliant Banking as a Service platform with comprehensive customer, employee, and authentication management",
-  keywords: "Islamic banking, Sharia compliant, BaaS, Banking as a Service, Halal finance",
+  title: "FivoPay Ethical Banking - BaaS Platform",
+  description: "Ethical Banking as a Service platform with comprehensive customer, employee, and authentication management",
+  keywords: "Ethical banking, Sharia compliant, BaaS, Banking as a Service, Halal finance",
+  icons: {
+    icon: [
+      {
+        url: '/logo.jpeg',
+        sizes: 'any',
+        type: 'image/jpeg',
+      },
+    ],
+    apple: [
+      {
+        url: '/logo.jpeg',
+        sizes: 'any',
+        type: 'image/jpeg',
+      },
+    ],
+  },
+  openGraph: {
+    title: "FivoPay Ethical Banking - BaaS Platform",
+    description: "Ethical Banking as a Service platform with comprehensive customer, employee, and authentication management",
+    images: [
+      {
+        url: '/logo.jpeg',
+        width: 1200,
+        height: 630,
+        alt: 'FivoPay Ethical Banking Platform',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "FivoPay Ethical Banking - BaaS Platform",
+    description: "Ethical Banking as a Service platform with comprehensive customer, employee, and authentication management",
+    images: ['/logo.jpeg'],
+  },
 };
 
 export default function RootLayout({

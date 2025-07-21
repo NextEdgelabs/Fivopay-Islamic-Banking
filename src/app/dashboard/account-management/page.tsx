@@ -173,7 +173,7 @@ export default function AccountManagementPage() {
             </div>
             <div className="ml-4">
               <h3 className="text-lg font-semibold text-slate-900">Account Creation</h3>
-              <p className="text-sm text-slate-600">Create new customer accounts with Islamic banking compliance</p>
+              <p className="text-sm text-slate-600">Create new customer accounts with Ethical banking compliance</p>
             </div>
           </div>
         </Link>

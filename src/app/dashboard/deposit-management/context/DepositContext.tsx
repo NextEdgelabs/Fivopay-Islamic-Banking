@@ -220,7 +220,7 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
   const [fdProducts, setFdProducts] = useState<FDProduct[]>([
     {
       id: '1',
-      name: 'Islamic Fixed Deposit - 1 Year',
+      name: 'Ethical Fixed Deposit - 1 Year',
       minAmount: 10000,
       maxAmount: 10000000,
       profitRate: 7.2,
@@ -230,7 +230,7 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
     },
     {
       id: '2',
-      name: 'Islamic Fixed Deposit - 2 Years',
+      name: 'Ethical Fixed Deposit - 2 Years',
       minAmount: 25000,
       maxAmount: 10000000,
       profitRate: 7.5,
@@ -240,7 +240,7 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
     },
     {
       id: '3',
-      name: 'Islamic Fixed Deposit - 3 Years',
+      name: 'Ethical Fixed Deposit - 3 Years',
       minAmount: 50000,
       maxAmount: 10000000,
       profitRate: 7.8,
@@ -253,7 +253,7 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
   const [rdProducts, setRdProducts] = useState<RDProduct[]>([
     {
       id: '1',
-      name: 'Islamic Recurring Deposit - 1 Year',
+      name: 'Ethical Recurring Deposit - 1 Year',
       minMonthlyDeposit: 1000,
       maxMonthlyDeposit: 100000,
       profitRate: 6.8,
@@ -263,7 +263,7 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
     },
     {
       id: '2',
-      name: 'Islamic Recurring Deposit - 2 Years',
+      name: 'Ethical Recurring Deposit - 2 Years',
       minMonthlyDeposit: 2000,
       maxMonthlyDeposit: 100000,
       profitRate: 7.0,
@@ -273,7 +273,7 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
     },
     {
       id: '3',
-      name: 'Islamic Recurring Deposit - 3 Years',
+      name: 'Ethical Recurring Deposit - 3 Years',
       minMonthlyDeposit: 5000,
       maxMonthlyDeposit: 100000,
       profitRate: 7.2,

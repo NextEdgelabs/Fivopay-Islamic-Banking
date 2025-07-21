@@ -171,7 +171,7 @@ export default function LoanApplicationsPage() {
     { 
       value: 'home', 
       label: 'Home Financing', 
-      description: 'Islamic home purchase financing through Ijara structure',
+              description: 'Ethical home purchase financing through Ijara structure',
       icon: HomeIcon,
       minAmount: 1000000,
       maxAmount: 50000000,
@@ -189,7 +189,7 @@ export default function LoanApplicationsPage() {
     { 
       value: 'business', 
       label: 'Business Financing', 
-      description: 'Islamic business financing through Musharakah principles',
+              description: 'Ethical business financing through Musharakah principles',
       icon: BuildingOfficeIcon,
       minAmount: 500000,
       maxAmount: 10000000,
@@ -689,10 +689,10 @@ export default function LoanApplicationsPage() {
             </div>
             
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Islamic Banking Compliance</h4>
+              <h4 className="text-sm font-medium text-blue-900 mb-2">Ethical Banking Compliance</h4>
               <p className="text-sm text-blue-800">
                 This application will be processed according to Sharia-compliant banking principles. 
-                No interest will be charged, and the financing structure will follow Islamic banking guidelines.
+                No interest will be charged, and the financing structure will follow Ethical banking guidelines.
               </p>
             </div>
           </div>
@@ -808,7 +808,7 @@ export default function LoanApplicationsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Loan Applications</h1>
-          <p className="text-slate-600">Manage and track Islamic banking loan applications</p>
+          <p className="text-slate-600">Manage and track Ethical banking loan applications</p>
         </div>
         <button
           onClick={() => setViewMode('form')}

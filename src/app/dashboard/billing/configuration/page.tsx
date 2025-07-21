@@ -16,6 +16,7 @@ interface BillingRule {
   name: string;
   type: "service" | "product" | "subscription";
   rate: number;
+  rateType: "percentage" | "fixed";
   currency: string;
   frequency: "one-time" | "monthly" | "quarterly" | "annual";
   description: string;
@@ -26,6 +27,7 @@ interface BillingRuleFormData {
   name: string;
   type: "service" | "product" | "subscription";
   rate: number;
+  rateType: "percentage" | "fixed";
   currency: string;
   frequency: "one-time" | "monthly" | "quarterly" | "annual";
   description: string;
@@ -37,41 +39,56 @@ export default function BillingConfigurationPage() {
       id: "1",
       name: "Account Maintenance Fee",
       type: "service",
-      rate: 500,
+      rate: 0.5,
+      rateType: "percentage",
       currency: "INR",
       frequency: "monthly",
-      description: "Monthly account maintenance and service charges",
+      description: "Monthly account maintenance fee as percentage of balance",
       isActive: true,
     },
     {
       id: "2",
       name: "Loan Processing Fee",
       type: "product",
-      rate: 2500,
+      rate: 2.5,
+      rateType: "percentage",
       currency: "INR",
       frequency: "one-time",
-      description: "One-time loan processing and documentation fee",
+      description: "One-time loan processing fee as percentage of loan amount",
       isActive: true,
     },
     {
       id: "3",
-      name: "Premium Banking Package",
-      type: "subscription",
-      rate: 1500,
+      name: "Transaction Fee",
+      type: "service",
+      rate: 0.1,
+      rateType: "percentage",
       currency: "INR",
-      frequency: "monthly",
-      description: "Premium banking services and priority support",
-      isActive: true,
+      frequency: "one-time",
+      description: "Per transaction processing fee as percentage of transaction amount",
+      isActive: false,
     },
     {
       id: "4",
-      name: "Transaction Fee",
+      name: "Late Payment Fee",
       type: "service",
-      rate: 50,
+      rate: 1.5,
+      rateType: "percentage",
       currency: "INR",
       frequency: "one-time",
-      description: "Per transaction processing fee",
-      isActive: false,
+      description: "Late payment penalty as percentage of overdue amount",
+      isActive: true,
+    },
+    {
+      id: "5",
+      name: "Documentation Fee",
+      type: "service",
+      rate: 0.8,
+      rateType: "percentage",
+      currency: "INR",
+      frequency: "one-time",
+      description: "Documentation and processing fee as percentage of transaction value",
+      isActive: true,
     },
   ]);
 
@@ -81,6 +98,7 @@ export default function BillingConfigurationPage() {
     name: "",
     type: "service",
     rate: 0,
+    rateType: "percentage",
     currency: "INR",
     frequency: "monthly",
     description: "",
@@ -98,6 +116,7 @@ export default function BillingConfigurationPage() {
         name: "",
         type: "service",
         rate: 0,
+        rateType: "percentage",
         currency: "INR",
         frequency: "monthly",
         description: "",
@@ -112,6 +131,7 @@ export default function BillingConfigurationPage() {
       name: rule.name,
       type: rule.type,
       rate: rule.rate,
+      rateType: rule.rateType,
       currency: rule.currency,
       frequency: rule.frequency,
       description: rule.description,
@@ -130,6 +150,7 @@ export default function BillingConfigurationPage() {
         name: "",
         type: "service",
         rate: 0,
+        rateType: "percentage",
         currency: "INR",
         frequency: "monthly",
         description: "",
@@ -175,6 +196,13 @@ export default function BillingConfigurationPage() {
     }
   };
 
+  const formatRate = (rate: number, rateType: string) => {
+    if (rateType === "percentage") {
+      return `${rate}%`;
+    }
+    return `${rate.toLocaleString()}`;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -207,6 +235,7 @@ export default function BillingConfigurationPage() {
                   name: "",
                   type: "service",
                   rate: 0,
+                  rateType: "percentage",
                   currency: "INR",
                   frequency: "monthly",
                   description: "",
@@ -241,13 +270,27 @@ export default function BillingConfigurationPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Rate</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Rate Type</label>
+              <select
+                value={formData.rateType}
+                onChange={(e) => setFormData({ ...formData, rateType: e.target.value as any })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="percentage">Percentage (%)</option>
+                <option value="fixed">Fixed Amount</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rate {formData.rateType === "percentage" ? "(%)" : "(Amount)"}
+              </label>
               <input
                 type="number"
+                step={formData.rateType === "percentage" ? "0.01" : "1"}
                 value={formData.rate}
                 onChange={(e) => setFormData({ ...formData, rate: Number(e.target.value) })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="0.00"
+                placeholder={formData.rateType === "percentage" ? "0.00" : "0"}
               />
             </div>
             <div>
@@ -275,7 +318,7 @@ export default function BillingConfigurationPage() {
                 <option value="annual">Annual</option>
               </select>
             </div>
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <input
                 type="text"
@@ -295,6 +338,7 @@ export default function BillingConfigurationPage() {
                   name: "",
                   type: "service",
                   rate: 0,
+                  rateType: "percentage",
                   currency: "INR",
                   frequency: "monthly",
                   description: "",
@@ -359,7 +403,7 @@ export default function BillingConfigurationPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {rule.currency} {rule.rate.toLocaleString()}
+                    {formatRate(rule.rate, rule.rateType)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getFrequencyColor(rule.frequency)}`}>

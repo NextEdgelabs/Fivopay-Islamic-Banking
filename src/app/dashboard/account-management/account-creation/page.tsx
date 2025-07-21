@@ -72,25 +72,25 @@ export default function AccountCreationPage() {
   const accountTypes = [
     {
       type: 'Savings' as const,
-      name: 'Islamic Savings Account',
+      name: 'Ethical Savings Account',
       description: 'Sharia-compliant savings with profit sharing',
       minDeposit: 1000
     },
     {
       type: 'Current' as const,
-      name: 'Islamic Current Account',
+      name: 'Ethical Current Account',
       description: 'Business current account with Sharia compliance',
       minDeposit: 5000
     },
     {
       type: 'Investment' as const,
-      name: 'Islamic Investment Account',
+      name: 'Ethical Investment Account',
       description: 'High-yield investment account based on Mudarabah',
       minDeposit: 50000
     },
     {
       type: 'Business' as const,
-      name: 'Islamic Business Account',
+      name: 'Ethical Business Account',
       description: 'Comprehensive business banking solutions',
       minDeposit: 25000
     }
@@ -323,7 +323,7 @@ export default function AccountCreationPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Account Creation</h1>
-          <p className="text-slate-600">Create a new Islamic banking account</p>
+          <p className="text-slate-600">Create a new Ethical banking account</p>
         </div>
       </div>
 

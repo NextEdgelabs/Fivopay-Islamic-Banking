@@ -204,7 +204,7 @@ export default function ProductManagementPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Product Management</h1>
-          <p className="text-slate-600">Manage Islamic banking loan products and financing options</p>
+          <p className="text-slate-600">Manage Ethical banking loan products and financing options</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}

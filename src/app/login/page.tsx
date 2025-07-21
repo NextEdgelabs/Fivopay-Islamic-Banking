@@ -76,7 +76,7 @@ export default function LoginPage() {
             <LockClosedIcon className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            FivoPay Islamic Banking
+            FivoPay Ethical Banking
           </h1>
           <p className="text-slate-600">
             Sharia-compliant Banking as a Service

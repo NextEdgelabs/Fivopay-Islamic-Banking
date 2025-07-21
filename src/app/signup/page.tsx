@@ -90,7 +90,7 @@ export default function SignupPage() {
             <UserPlusIcon className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Join FivoPay Islamic Banking
+            Join FivoPay Ethical Banking
           </h1>
           <p className="text-slate-600">
             Create your employee account for the Sharia-compliant banking platform
@@ -308,7 +308,7 @@ export default function SignupPage() {
                   <Link href="/privacy" className="text-purple-600 hover:text-purple-700 font-medium">
                     Privacy Policy
                   </Link>{" "}
-                  of FivoPay Islamic Banking
+                  of FivoPay Ethical Banking
                 </label>
               </div>
             </div>

@@ -120,7 +120,7 @@ export default function CreateEmployeePage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Create New Employee</h1>
           <p className="text-slate-600">
-            Add a new staff member to the Islamic banking platform
+            Add a new staff member to the Ethical banking platform
           </p>
         </div>
         <Link 
@@ -210,7 +210,7 @@ export default function CreateEmployeePage() {
                 value={formData.position}
                 onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
                 className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="e.g., Senior Islamic Banking Specialist"
+                placeholder="e.g., Senior Ethical Banking Specialist"
                 required
               />
             </div>
@@ -293,7 +293,7 @@ export default function CreateEmployeePage() {
                 Verified Sharia Compliance
               </label>
               <p className="text-slate-500">
-                Employee has completed Sharia compliance training and understands Islamic banking principles
+                Employee has completed Sharia compliance training and understands Ethical banking principles
               </p>
             </div>
           </div>

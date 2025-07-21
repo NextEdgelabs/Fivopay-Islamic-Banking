@@ -8,9 +8,53 @@ import {
   EyeIcon,
   PencilIcon,
   TrashIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  ShieldCheckIcon,
+  CogIcon,
+  UserGroupIcon,
+  KeyIcon,
+  LockClosedIcon,
+  EyeSlashIcon,
+  CheckIcon,
+  XMarkIcon,
+  PlusCircleIcon,
+  PencilSquareIcon,
+  TrashIcon as TrashIconSolid,
 } from "@heroicons/react/24/outline";
 import { useAppContext } from "@/app/context/AppContext";
+
+// Permission types
+type PermissionType = 'read' | 'create' | 'update' | 'delete';
+
+// Access level types
+type AccessLevel = 'none' | 'read_only' | 'crud';
+
+// Feature interface
+interface Feature {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  permissions: PermissionType[];
+}
+
+// Role interface
+interface Role {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  permissions: Record<string, PermissionType[]>; // featureId -> permissions[]
+  accessLevels: Record<string, AccessLevel>; // featureId -> accessLevel
+  isDefault?: boolean;
+}
+
+// Permission matrix interface
+interface PermissionMatrix {
+  [roleId: string]: {
+    [featureId: string]: PermissionType[];
+  };
+}
 
 export default function EmployeesPage() {
   const { employees, deleteEmployee } = useAppContext();
@@ -18,6 +62,123 @@ export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  
+  // Roles and permissions state
+  const [roles, setRoles] = useState<Role[]>([
+    {
+      id: "admin",
+      name: "Admin",
+      description: "Full system access with all permissions",
+      color: "purple",
+      permissions: {},
+      accessLevels: {},
+      isDefault: true
+    },
+    {
+      id: "manager",
+      name: "Manager",
+      description: "Customer and account management with limited system access",
+      color: "blue",
+      permissions: {},
+      accessLevels: {}
+    },
+    {
+      id: "support",
+      name: "Support",
+      description: "Customer service tools and basic operations",
+      color: "green",
+      permissions: {},
+      accessLevels: {}
+    },
+    {
+      id: "compliance",
+      name: "Compliance",
+      description: "Sharia compliance features and reporting",
+      color: "orange",
+      permissions: {},
+      accessLevels: {}
+    },
+    {
+      id: "it_admin",
+      name: "IT Admin",
+      description: "System configuration and technical operations",
+      color: "indigo",
+      permissions: {},
+      accessLevels: {}
+    },
+  ]);
+
+  const [features, setFeatures] = useState<Feature[]>([
+    // Dashboard
+    { id: "dashboard", name: "Dashboard", description: "Main dashboard and overview", category: "Core", permissions: ["read"] },
+    
+    // Customer Management
+    { id: "customers", name: "Customer Management", description: "Customer data and profiles", category: "Customer", permissions: ["read", "create", "update"] },
+    { id: "customer_intake", name: "Customer Intake", description: "New customer registration", category: "Customer", permissions: ["read", "create"] },
+    { id: "customer_list", name: "Customer List", description: "View and search customers", category: "Customer", permissions: ["read"] },
+    
+    // Account Management
+    { id: "accounts", name: "Account Management", description: "Account creation and management", category: "Accounts", permissions: ["read", "create", "update"] },
+    { id: "account_creation", name: "Account Creation", description: "Create new accounts", category: "Accounts", permissions: ["read", "create"] },
+    { id: "account_verification", name: "Account Verification", description: "Verify account documents", category: "Accounts", permissions: ["read", "update"] },
+    
+    // Loans
+    { id: "loans", name: "Loan Management", description: "Ethical loan products and applications", category: "Loans", permissions: ["read", "create", "update"] },
+    { id: "loan_applications", name: "Loan Applications", description: "Process loan applications", category: "Loans", permissions: ["read", "create", "update"] },
+    { id: "loan_approval", name: "Loan Approval", description: "Approve or reject loans", category: "Loans", permissions: ["read", "update"] },
+    { id: "loan_disbursement", name: "Loan Disbursement", description: "Process loan disbursements", category: "Loans", permissions: ["read", "update"] },
+    { id: "loan_repayment", name: "Loan Repayment", description: "Track loan repayments", category: "Loans", permissions: ["read", "update"] },
+    { id: "loan_products", name: "Loan Products", description: "Manage loan products", category: "Loans", permissions: ["read", "create", "update", "delete"] },
+    
+    // Deposits
+    { id: "deposits", name: "Deposit Management", description: "Ethical deposit products", category: "Deposits", permissions: ["read", "create", "update"] },
+    { id: "fd_products", name: "Fixed Deposit Products", description: "Manage FD products", category: "Deposits", permissions: ["read", "create", "update", "delete"] },
+    { id: "rd_products", name: "Recurring Deposit Products", description: "Manage RD products", category: "Deposits", permissions: ["read", "create", "update", "delete"] },
+    
+    // Cash Management
+    { id: "cash_management", name: "Cash Management", description: "Branch cash operations", category: "Cash", permissions: ["read", "create", "update"] },
+    { id: "branch_dashboard", name: "Branch Dashboard", description: "Branch cash overview", category: "Cash", permissions: ["read"] },
+    { id: "interbranch", name: "Interbranch Transfers", description: "Transfer between branches", category: "Cash", permissions: ["read", "create", "update"] },
+    { id: "liquidity", name: "Liquidity Management", description: "Liquidity monitoring", category: "Cash", permissions: ["read"] },
+    { id: "transactions", name: "Transactions", description: "Cash transactions", category: "Cash", permissions: ["read", "create"] },
+    { id: "wallet", name: "Digital Wallet", description: "Digital wallet operations", category: "Cash", permissions: ["read", "create", "update"] },
+    
+    // Billing
+    { id: "billing", name: "Billing Management", description: "Billing and invoicing", category: "Billing", permissions: ["read", "create", "update"] },
+    { id: "invoices", name: "Invoices", description: "Generate and manage invoices", category: "Billing", permissions: ["read", "create", "update"] },
+    { id: "payments", name: "Payments", description: "Payment processing", category: "Billing", permissions: ["read", "create", "update"] },
+    { id: "reports", name: "Billing Reports", description: "Billing reports and analytics", category: "Billing", permissions: ["read"] },
+    { id: "configuration", name: "Billing Configuration", description: "Configure billing rules", category: "Billing", permissions: ["read", "create", "update", "delete"] },
+    
+    // Reports
+    { id: "reports_analytics", name: "Reports & Analytics", description: "System reports and analytics", category: "Reports", permissions: ["read"] },
+    { id: "financial_reports", name: "Financial Reports", description: "Financial reporting", category: "Reports", permissions: ["read"] },
+    { id: "operational_reports", name: "Operational Reports", description: "Operational reporting", category: "Reports", permissions: ["read"] },
+    { id: "compliance_reports", name: "Compliance Reports", description: "Compliance reporting", category: "Reports", permissions: ["read"] },
+    { id: "analytics", name: "Analytics", description: "Data analytics and insights", category: "Reports", permissions: ["read"] },
+    
+    // NPA Assets
+    { id: "npa_assets", name: "NPA Assets", description: "Non-performing assets management", category: "NPA", permissions: ["read", "create", "update"] },
+    
+    // Insurance
+    { id: "insurance", name: "Insurance Management", description: "Insurance products and claims", category: "Insurance", permissions: ["read", "create", "update"] },
+    { id: "insurance_products", name: "Insurance Products", description: "Manage insurance products", category: "Insurance", permissions: ["read", "create", "update", "delete"] },
+    { id: "insurance_policies", name: "Insurance Policies", description: "Policy management", category: "Insurance", permissions: ["read", "create", "update"] },
+    { id: "insurance_claims", name: "Insurance Claims", description: "Claims processing", category: "Insurance", permissions: ["read", "create", "update"] },
+    
+    // AI Companion
+    { id: "ai_companion", name: "AI Companion", description: "AI-powered banking assistant", category: "AI", permissions: ["read"] },
+    
+    // System Settings
+    { id: "system_settings", name: "System Settings", description: "System configuration", category: "System", permissions: ["read", "create", "update", "delete"] },
+    { id: "employees", name: "Employee Management", description: "Manage employees and roles", category: "System", permissions: ["read", "create", "update", "delete"] },
+    { id: "roles_permissions", name: "Roles & Permissions", description: "Manage roles and permissions", category: "System", permissions: ["read", "create", "update", "delete"] },
+  ]);
+
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
 
   // Check if we're returning from employee creation
   useEffect(() => {
@@ -54,18 +215,113 @@ export default function EmployeesPage() {
     { id: "roles", name: "Roles & Permissions", count: null },
   ];
 
-  const roles = [
-    { id: "Admin", name: "Admin", description: "Full system access", count: employees.filter(emp => emp.role === "Admin").length, color: "purple" },
-    { id: "Manager", name: "Manager", description: "Customer and account management", count: employees.filter(emp => emp.role === "Manager").length, color: "blue" },
-    { id: "Support", name: "Support", description: "Customer service tools", count: employees.filter(emp => emp.role === "Support").length, color: "green" },
-    { id: "Compliance", name: "Compliance", description: "Sharia compliance features", count: employees.filter(emp => emp.role === "Compliance").length, color: "orange" },
-    { id: "IT Admin", name: "IT Admin", description: "System configuration", count: employees.filter(emp => emp.role === "IT Admin").length, color: "indigo" },
-  ];
-
   const handleDeleteEmployee = (id: string) => {
     if (confirm("Are you sure you want to delete this employee?")) {
       deleteEmployee(id);
     }
+  };
+
+  // Role management functions
+  const handleCreateRole = () => {
+    setEditingRole({
+      id: "",
+      name: "",
+      description: "",
+      color: "blue",
+      permissions: {},
+      accessLevels: {}
+    });
+    setShowRoleModal(true);
+  };
+
+  const handleEditRole = (role: Role) => {
+    setEditingRole({ ...role });
+    setShowRoleModal(true);
+  };
+
+  const handleSaveRole = () => {
+    if (!editingRole || !editingRole.name.trim()) return;
+
+    if (editingRole.id) {
+      // Update existing role
+      setRoles(prev => prev.map(role => 
+        role.id === editingRole.id ? editingRole : role
+      ));
+    } else {
+      // Create new role
+      const newRole = {
+        ...editingRole,
+        id: `role_${Date.now()}`,
+        permissions: {},
+        accessLevels: {}
+      };
+      setRoles(prev => [...prev, newRole]);
+    }
+    setShowRoleModal(false);
+    setEditingRole(null);
+  };
+
+  const handleDeleteRole = (roleId: string) => {
+    if (confirm("Are you sure you want to delete this role? This will affect all employees with this role.")) {
+      setRoles(prev => prev.filter(role => role.id !== roleId));
+    }
+  };
+
+  const handleManagePermissions = (role: Role) => {
+    setSelectedRole(role);
+    setShowPermissionModal(true);
+  };
+
+  const handleAccessLevelChange = (featureId: string, accessLevel: AccessLevel) => {
+    if (!selectedRole) return;
+
+    const updatedRole = { ...selectedRole };
+    updatedRole.accessLevels[featureId] = accessLevel;
+
+    // Update permissions based on access level
+    if (accessLevel === 'none') {
+      updatedRole.permissions[featureId] = [];
+    } else if (accessLevel === 'read_only') {
+      updatedRole.permissions[featureId] = ['read'];
+    } else if (accessLevel === 'crud') {
+      updatedRole.permissions[featureId] = ['read', 'create', 'update', 'delete'];
+    }
+
+    setSelectedRole(updatedRole);
+    setRoles(prev => prev.map(role => role.id === updatedRole.id ? updatedRole : role));
+  };
+
+  const getPermissionColor = (permission: PermissionType) => {
+    switch (permission) {
+      case 'read': return 'bg-blue-100 text-blue-800';
+      case 'create': return 'bg-green-100 text-green-800';
+      case 'update': return 'bg-yellow-100 text-yellow-800';
+      case 'delete': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getAccessLevelColor = (accessLevel: AccessLevel) => {
+    switch (accessLevel) {
+      case 'none': return 'bg-gray-100 text-gray-800';
+      case 'read_only': return 'bg-blue-100 text-blue-800';
+      case 'crud': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getRoleColor = (color: string) => {
+    const colorMap: Record<string, string> = {
+      purple: 'bg-purple-100 text-purple-800',
+      blue: 'bg-blue-100 text-blue-800',
+      green: 'bg-green-100 text-green-800',
+      orange: 'bg-orange-100 text-orange-800',
+      indigo: 'bg-indigo-100 text-indigo-800',
+      red: 'bg-red-100 text-red-800',
+      yellow: 'bg-yellow-100 text-yellow-800',
+      pink: 'bg-pink-100 text-pink-800',
+    };
+    return colorMap[color] || 'bg-gray-100 text-gray-800';
   };
 
   return (
@@ -83,7 +339,7 @@ export default function EmployeesPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Employee Management</h1>
           <p className="text-slate-600">
-            Manage staff members, roles, and permissions for Islamic banking operations
+            Manage staff members, roles, and permissions for Ethical banking operations
           </p>
         </div>
         <Link 
@@ -127,23 +383,59 @@ export default function EmployeesPage() {
       {activeTab === "roles" ? (
         /* Roles & Permissions Tab */
         <div className="space-y-6">
+          {/* Role Management */}
           <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-900 mb-6">Role Management</h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-slate-900">Role Management</h3>
+              <button
+                onClick={handleCreateRole}
+                className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors duration-200"
+              >
+                <PlusCircleIcon className="h-5 w-5 mr-2" />
+                Create Role
+              </button>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {roles.map((role) => (
-                <div key={role.id} className="border border-slate-200 rounded-lg p-4">
+                <div key={role.id} className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <div className={`w-3 h-3 rounded-full bg-${role.color}-500`}></div>
-                    <span className={`text-xs px-2 py-1 rounded-full bg-${role.color}-100 text-${role.color}-800`}>
-                      {role.count} {role.count === 1 ? 'user' : 'users'}
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-xs px-2 py-1 rounded-full ${getRoleColor(role.color)}`}>
+                        {employees.filter(emp => emp.role === role.name).length} users
+                      </span>
+                      {role.isDefault && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800">
+                          Default
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <h4 className="font-semibold text-slate-900 mb-1">{role.name}</h4>
                   <p className="text-sm text-slate-600 mb-3">{role.description}</p>
-                  <button className="text-sm text-purple-600 hover:text-purple-700 font-medium">
-                    Manage Permissions →
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      onClick={() => handleManagePermissions(role)}
+                      className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                    >
+                      Manage Permissions
+                    </button>
+                    <button 
+                      onClick={() => handleEditRole(role)}
+                      className="text-sm text-blue-600 hover:text-blue-700"
+                    >
+                      <PencilSquareIcon className="h-4 w-4" />
+                    </button>
+                    {!role.isDefault && (
+                      <button 
+                        onClick={() => handleDeleteRole(role.id)}
+                        className="text-sm text-red-600 hover:text-red-700"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -157,52 +449,40 @@ export default function EmployeesPage() {
               <table className="min-w-full">
                 <thead>
                   <tr className="border-b border-slate-200">
-                    <th className="text-left py-3 px-4 font-semibold text-slate-900">Module</th>
-                    <th className="text-center py-3 px-4 font-semibold text-slate-900">Admin</th>
-                    <th className="text-center py-3 px-4 font-semibold text-slate-900">Manager</th>
-                    <th className="text-center py-3 px-4 font-semibold text-slate-900">Support</th>
-                    <th className="text-center py-3 px-4 font-semibold text-slate-900">Compliance</th>
-                    <th className="text-center py-3 px-4 font-semibold text-slate-900">IT Admin</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-900">Feature</th>
+                    {roles.map((role) => (
+                      <th key={role.id} className="text-center py-3 px-4 font-semibold text-slate-900">
+                        {role.name}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {[
-                    "Dashboard",
-                    "Customer Management", 
-                    "Account Management",
-                    "Islamic Loan Management",
-                    "Sharia Compliance",
-                    "Reports & Analytics",
-                    "System Settings"
-                  ].map((module) => (
-                    <tr key={module}>
-                      <td className="py-3 px-4 font-medium text-slate-900">{module}</td>
-                      <td className="py-3 px-4 text-center">
-                        <span className="w-4 h-4 bg-green-500 rounded-full inline-block"></span>
+                  {features.map((feature) => (
+                    <tr key={feature.id}>
+                      <td className="py-3 px-4">
+                        <div>
+                          <div className="font-medium text-slate-900">{feature.name}</div>
+                          <div className="text-xs text-slate-500">{feature.category}</div>
+                        </div>
                       </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className={`w-4 h-4 rounded-full inline-block ${
-                          module.includes("System") ? "bg-slate-300" : "bg-green-500"
-                        }`}></span>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className={`w-4 h-4 rounded-full inline-block ${
-                          module.includes("Customer") || module.includes("Dashboard") 
-                            ? "bg-green-500" : "bg-slate-300"
-                        }`}></span>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className={`w-4 h-4 rounded-full inline-block ${
-                          module.includes("Sharia") || module.includes("Islamic") || module.includes("Dashboard")
-                            ? "bg-green-500" : "bg-slate-300"
-                        }`}></span>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className={`w-4 h-4 rounded-full inline-block ${
-                          module.includes("System") || module.includes("Dashboard")
-                            ? "bg-green-500" : "bg-slate-300"
-                        }`}></span>
-                      </td>
+                      {roles.map((role) => {
+                        const accessLevel = role.accessLevels[feature.id] || 'none';
+                        const permissions = role.permissions[feature.id] || [];
+                        return (
+                          <td key={role.id} className="py-3 px-4 text-center">
+                            <div className="flex flex-wrap justify-center gap-1">
+                              {accessLevel === 'none' ? (
+                                <span className="text-xs text-slate-400">No access</span>
+                              ) : (
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getAccessLevelColor(accessLevel)}`}>
+                                  {accessLevel === 'read_only' ? 'READ ONLY' : 'CRUD'}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
@@ -339,6 +619,171 @@ export default function EmployeesPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Role Modal */}
+      {showRoleModal && editingRole && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {editingRole.id ? 'Edit Role' : 'Create Role'}
+              </h3>
+              <button
+                onClick={() => setShowRoleModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role Name</label>
+                <input
+                  type="text"
+                  value={editingRole.name}
+                  onChange={(e) => setEditingRole({ ...editingRole, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter role name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={editingRole.description}
+                  onChange={(e) => setEditingRole({ ...editingRole, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  rows={3}
+                  placeholder="Enter role description"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                <select
+                  value={editingRole.color}
+                  onChange={(e) => setEditingRole({ ...editingRole, color: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="purple">Purple</option>
+                  <option value="blue">Blue</option>
+                  <option value="green">Green</option>
+                  <option value="orange">Orange</option>
+                  <option value="indigo">Indigo</option>
+                  <option value="red">Red</option>
+                  <option value="yellow">Yellow</option>
+                  <option value="pink">Pink</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowRoleModal(false)}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveRole}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
+                {editingRole.id ? 'Update' : 'Create'} Role
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Permission Modal */}
+      {showPermissionModal && selectedRole && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">
+                Manage Permissions: {selectedRole.name}
+              </h3>
+              <button
+                onClick={() => setShowPermissionModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {Object.entries(
+                features.reduce((acc, feature) => {
+                  if (!acc[feature.category]) acc[feature.category] = [];
+                  acc[feature.category].push(feature);
+                  return acc;
+                }, {} as Record<string, Feature[]>)
+              ).map(([category, categoryFeatures]) => (
+                <div key={category} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">{category}</h4>
+                  <div className="space-y-4">
+                    {categoryFeatures.map((feature) => (
+                      <div key={feature.id} className="border border-gray-100 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h5 className="font-medium text-gray-900">{feature.name}</h5>
+                            <p className="text-sm text-gray-600">{feature.description}</p>
+                          </div>
+                        </div>
+                                                 <div className="flex items-center space-x-4">
+                           <label className="flex items-center space-x-2">
+                             <input
+                               type="radio"
+                               name={`access_${feature.id}`}
+                               value="none"
+                               checked={(selectedRole.accessLevels[feature.id] || 'none') === 'none'}
+                               onChange={(e) => handleAccessLevelChange(feature.id, e.target.value as AccessLevel)}
+                               className="text-purple-600 focus:ring-purple-500"
+                             />
+                             <span className="text-sm text-gray-600">No Access</span>
+                           </label>
+                           <label className="flex items-center space-x-2">
+                             <input
+                               type="radio"
+                               name={`access_${feature.id}`}
+                               value="read_only"
+                               checked={(selectedRole.accessLevels[feature.id] || 'none') === 'read_only'}
+                               onChange={(e) => handleAccessLevelChange(feature.id, e.target.value as AccessLevel)}
+                               className="text-purple-600 focus:ring-purple-500"
+                             />
+                             <span className={`text-sm px-2 py-1 rounded-full ${getAccessLevelColor('read_only')}`}>
+                               Read Only
+                             </span>
+                           </label>
+                           <label className="flex items-center space-x-2">
+                             <input
+                               type="radio"
+                               name={`access_${feature.id}`}
+                               value="crud"
+                               checked={(selectedRole.accessLevels[feature.id] || 'none') === 'crud'}
+                               onChange={(e) => handleAccessLevelChange(feature.id, e.target.value as AccessLevel)}
+                               className="text-purple-600 focus:ring-purple-500"
+                             />
+                             <span className={`text-sm px-2 py-1 rounded-full ${getAccessLevelColor('crud')}`}>
+                               CRUD
+                             </span>
+                           </label>
+                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setShowPermissionModal(false)}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
+                Save Permissions
+              </button>
             </div>
           </div>
         </div>

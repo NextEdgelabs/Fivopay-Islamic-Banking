@@ -35,7 +35,7 @@ export interface InterbranchTransfer {
   toBranch: string;
   amount: number;
   purpose: string;
-  status: 'Pending' | 'Approved' | 'Completed' | 'Rejected';
+  status: 'Pending' | 'Level1_Approved' | 'Level2_Approved' | 'Completed' | 'Rejected';
   requestDate: string;
   approvalDate?: string;
   completionDate?: string;
@@ -468,7 +468,7 @@ export const CashProvider: React.FC<CashProviderProps> = ({ children }) => {
       prev.map(transfer => {
         if (transfer.id === transferId) {
           const updatedTransfer = { ...transfer, status };
-          if (status === 'Approved' && approvedBy) {
+          if ((status === 'Level1_Approved' || status === 'Level2_Approved' || status === 'Completed') && approvedBy) {
             updatedTransfer.approvalDate = new Date().toISOString();
             updatedTransfer.approvedBy = approvedBy;
           } else if (status === 'Completed') {

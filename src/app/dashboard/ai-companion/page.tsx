@@ -47,8 +47,6 @@ export default function AICompanionPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Store filter state for interactive reports
-  const [reportFilters, setReportFilters] = useState<Record<string, any>>({});
 
   const reportTemplates: ReportTemplate[] = [
     {
@@ -174,10 +172,14 @@ export default function AICompanionPage() {
     }, 2000);
   };
 
+  // Enhanced natural language detection
   const generateAIResponse = (userInput: string) => {
     const input = userInput.toLowerCase();
     
-    if (input.includes("financial summary") || input.includes("financial report")) {
+    // Financial reports and summaries
+    if (input.includes("financial") || input.includes("summary") || input.includes("overview") || 
+        input.includes("assets") || input.includes("liabilities") || input.includes("profit") ||
+        input.includes("revenue") || input.includes("earnings") || input.includes("balance sheet")) {
       return {
         content: "I've generated a comprehensive financial summary report for you. Here are the key highlights:",
         reportData: {
@@ -197,7 +199,10 @@ export default function AICompanionPage() {
       };
     }
 
-    if (input.includes("loan portfolio") || input.includes("loan analysis")) {
+    // Loan portfolio and lending
+    if (input.includes("loan") || input.includes("lending") || input.includes("portfolio") || 
+        input.includes("credit") || input.includes("disbursement") || input.includes("collection") ||
+        input.includes("interest") || input.includes("borrower")) {
       return {
         content: "Here's your loan portfolio analysis with detailed performance metrics:",
         reportData: {
@@ -218,7 +223,10 @@ export default function AICompanionPage() {
       };
     }
 
-    if (input.includes("customer") || input.includes("segmentation")) {
+    // Customer analytics and segmentation
+    if (input.includes("customer") || input.includes("client") || input.includes("segmentation") || 
+        input.includes("demographics") || input.includes("behavior") || input.includes("satisfaction") ||
+        input.includes("retention") || input.includes("acquisition")) {
       return {
         content: "I've analyzed your customer data and created a comprehensive segmentation report:",
         reportData: {
@@ -239,7 +247,10 @@ export default function AICompanionPage() {
       };
     }
 
-    if (input.includes("npa") || input.includes("non-performing")) {
+    // NPA and risk analysis
+    if (input.includes("npa") || input.includes("non-performing") || input.includes("bad loan") || 
+        input.includes("default") || input.includes("risk") || input.includes("provision") ||
+        input.includes("recovery") || input.includes("write-off")) {
       return {
         content: "Here's the NPA analysis with trends and risk assessment:",
         reportData: {
@@ -259,7 +270,10 @@ export default function AICompanionPage() {
       };
     }
 
-    if (input.includes("compliance") || input.includes("regulatory")) {
+    // Compliance and regulatory
+    if (input.includes("compliance") || input.includes("regulatory") || input.includes("audit") || 
+        input.includes("kyc") || input.includes("aml") || input.includes("rbi") ||
+        input.includes("regulation") || input.includes("legal")) {
       return {
         content: "Here's your compliance status report with regulatory adherence metrics:",
         reportData: {
@@ -279,141 +293,140 @@ export default function AICompanionPage() {
       };
     }
 
-    // Default response
+    // Operational metrics and efficiency
+    if (input.includes("operational") || input.includes("efficiency") || input.includes("performance") || 
+        input.includes("productivity") || input.includes("branch") || input.includes("transaction") ||
+        input.includes("process") || input.includes("workflow")) {
+      return {
+        content: "Here's your operational metrics dashboard with key performance indicators:",
+        reportData: {
+          type: "operational_metrics",
+          title: "Operational Metrics Dashboard",
+          data: {
+            totalBranches: "156",
+            averageTransactions: "2,450/day",
+            customerWaitTime: "8.5 min",
+            digitalAdoption: "78.5%",
+            employeeProductivity: "92.3%",
+            systemUptime: "99.8%",
+            costPerTransaction: "₹45",
+          },
+          charts: ["branch_performance", "transaction_volume", "efficiency_trends"],
+        },
+      };
+    }
+
+    // Deposit and savings
+    if (input.includes("deposit") || input.includes("savings") || input.includes("account") || 
+        input.includes("fd") || input.includes("rd") || input.includes("current") ||
+        input.includes("balance") || input.includes("growth")) {
+      return {
+        content: "Here's your deposit analysis with growth patterns and account distribution:",
+        reportData: {
+          type: "deposit_analysis",
+          title: "Deposit Analysis Report",
+          data: {
+            totalDeposits: "₹1,950 Cr",
+            savingsAccounts: "₹850 Cr",
+            currentAccounts: "₹420 Cr",
+            fixedDeposits: "₹580 Cr",
+            recurringDeposits: "₹100 Cr",
+            averageBalance: "₹15.5 L",
+            growthRate: "12.8%",
+            accountCount: "89,450",
+          },
+          charts: ["deposit_distribution", "growth_trends", "account_types"],
+        },
+      };
+    }
+
+    // Insurance and investment
+    if (input.includes("insurance") || input.includes("investment") || input.includes("mutual fund") || 
+        input.includes("policy") || input.includes("claim") || input.includes("premium") ||
+        input.includes("portfolio") || input.includes("returns")) {
+      return {
+        content: "Here's your insurance and investment portfolio analysis:",
+        reportData: {
+          type: "insurance_investment",
+          title: "Insurance & Investment Report",
+          data: {
+            totalPolicies: "15,680",
+            premiumCollection: "₹45.2 Cr",
+            claimSettlement: "₹12.8 Cr",
+            investmentPortfolio: "₹320 Cr",
+            averageReturns: "8.5%",
+            policyRenewal: "94.2%",
+            customerCoverage: "89,450",
+          },
+          charts: ["policy_distribution", "premium_trends", "investment_performance"],
+        },
+      };
+    }
+
+    // General banking queries
+    if (input.includes("bank") || input.includes("branch") || input.includes("atm") || 
+        input.includes("service") || input.includes("product") || input.includes("offer") ||
+        input.includes("rate") || input.includes("charge")) {
+      return {
+        content: "I can help you with various banking services and products. Here's a general overview of our key offerings:",
+        reportData: {
+          type: "banking_services",
+          title: "Banking Services Overview",
+          data: {
+            totalBranches: "156",
+            atmNetwork: "245",
+            digitalServices: "15+",
+            productCategories: "8",
+            customerSupport: "24/7",
+            mobileApp: "4.8★",
+            onlineBanking: "99.9%",
+            serviceQuality: "4.6/5",
+          },
+          charts: ["service_distribution", "customer_satisfaction", "digital_adoption"],
+        },
+      };
+    }
+
+    // Default response for unrecognized queries
     return {
-      content: "I understand you're asking about banking operations. I can help you generate various reports including financial summaries, loan portfolio analysis, customer analytics, compliance reports, and more. What specific information would you like me to analyze?",
+      content: "I understand you're asking about banking operations. I can help you generate various reports including financial summaries, loan portfolio analysis, customer analytics, compliance reports, operational metrics, deposit analysis, and more. What specific information would you like me to analyze?",
     };
   };
 
-  // Helper to update a report's filter and data in the chat
-  const updateReportInMessages = (msgId: string, newFilter: any, newReportData: any) => {
-    setReportFilters((prev) => ({ ...prev, [msgId]: newFilter }));
-    setMessages((prevMsgs) =>
-      prevMsgs.map((msg) =>
-        msg.id === msgId ? { ...msg, reportData: newReportData } : msg
-      )
+
+
+  const renderReportData = (reportData: any) => {
+    if (!reportData) return null;
+
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-4 mt-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+        <div className="mb-4">
+          <h4 className="text-lg font-semibold text-gray-900">{reportData.title}</h4>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Object.entries(reportData.data).map(([key, value]) => (
+            <div key={key} className="bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+              <div className="text-sm font-medium text-gray-600 capitalize">
+                {key.replace(/([A-Z])/g, ' $1').trim()}
+              </div>
+              <div className="text-lg font-bold text-gray-900">{String(value)}</div>
+            </div>
+          ))}
+        </div>
+        {reportData.charts && (
+          <div className="mt-4">
+            <h5 className="text-sm font-medium text-gray-700 mb-2">Available Charts:</h5>
+            <div className="flex flex-wrap gap-2">
+              {(reportData.charts as string[]).map((chart: string) => (
+                <span key={chart} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs hover:bg-blue-200 transition-colors duration-200">
+                  {chart.replace(/_/g, ' ')}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     );
-  };
-
-  // Chart generation function
-  const generateChart = (reportType: string, chartType: string) => {
-    // Simulate chart generation with visual feedback
-    console.log(`Generating ${chartType} chart for ${reportType} report`);
-    
-    // In a real implementation, this would:
-    // 1. Call an API to generate the chart
-    // 2. Return chart data or URL
-    // 3. Display the chart in the UI
-    
-    // For now, we'll show a success message
-    alert(`Chart "${chartType}" generated successfully for ${reportType} report!`);
-    
-    // You could also update the report data to include the generated chart
-    // setMessages(prev => prev.map(msg => 
-    //   msg.reportData?.type === reportType 
-    //     ? { ...msg, reportData: { ...msg.reportData, generatedChart: chartType } }
-    //     : msg
-    // ));
-  };
-
-  // Simulate report data generation with filters
-  const generateFilteredReportData = (type: string, filter: any) => {
-    if (type === "financial_summary") {
-      // Simulate different data for different date ranges
-      const { startDate, endDate } = filter;
-      return {
-        type: "financial_summary",
-        title: `Financial Summary Report (${startDate} to ${endDate})`,
-        data: {
-          totalAssets: startDate === endDate ? "₹2,000 Cr" : "₹2,450 Cr",
-          totalLiabilities: startDate === endDate ? "₹1,600 Cr" : "₹1,890 Cr",
-          netProfit: startDate === endDate ? "₹100 Cr" : "₹125 Cr",
-          loanPortfolio: startDate === endDate ? "₹1,500 Cr" : "₹1,680 Cr",
-          depositBase: startDate === endDate ? "₹1,700 Cr" : "₹1,950 Cr",
-          npaRatio: "3.2%",
-          capitalAdequacy: "15.8%",
-        },
-        charts: ["revenue_trend", "asset_allocation", "profit_margin"],
-      };
-    }
-    if (type === "loan_portfolio") {
-      const { loanType } = filter;
-      return {
-        type: "loan_portfolio",
-        title: `Loan Portfolio Analysis (${loanType})`,
-        data: {
-          totalLoans: loanType === "Personal" ? "₹450 Cr" : loanType === "Business" ? "₹780 Cr" : "₹1,680 Cr",
-          personalLoans: "₹450 Cr",
-          businessLoans: "₹780 Cr",
-          homeLoans: "₹320 Cr",
-          vehicleLoans: "₹130 Cr",
-          averageInterestRate: "12.5%",
-          disbursementRate: "94.2%",
-          collectionEfficiency: "96.8%",
-        },
-        charts: ["loan_distribution", "interest_trends", "collection_performance"],
-      };
-    }
-    if (type === "customer_analytics") {
-      const { segmentType } = filter;
-      return {
-        type: "customer_analytics",
-        title: `Customer Analytics Report (${segmentType})`,
-        data: {
-          totalCustomers: segmentType === "Premium" ? "12,450" : segmentType === "Business" ? "8,920" : "125,450",
-          activeCustomers: "98,230",
-          premiumCustomers: "12,450",
-          businessCustomers: "8,920",
-          averageAge: "42 years",
-          averageIncome: "₹8.5 L",
-          customerSatisfaction: "4.2/5",
-          retentionRate: "94.5%",
-        },
-        charts: ["customer_segments", "age_distribution", "income_analysis"],
-      };
-    }
-    if (type === "npa_analysis") {
-      const { timeRange } = filter;
-      const timeLabels: Record<string, string> = {
-        "3_months": "3 Months",
-        "6_months": "6 Months", 
-        "1_year": "1 Year",
-        "2_years": "2 Years"
-      };
-      return {
-        type: "npa_analysis",
-        title: `NPA Trends Analysis (${timeLabels[timeRange] || "6 Months"})`,
-        data: {
-          totalNPA: timeRange === "3_months" ? "₹45.2 Cr" : "₹54.2 Cr",
-          npaRatio: "3.2%",
-          grossNPA: "₹67.8 Cr",
-          netNPA: "₹42.1 Cr",
-          provisionCoverage: "85.2%",
-          recoveryRate: "68.5%",
-          writeOffAmount: "₹12.5 Cr",
-        },
-        charts: ["npa_trends", "recovery_performance", "provision_coverage"],
-      };
-    }
-    if (type === "compliance_report") {
-      const { complianceType } = filter;
-      return {
-        type: "compliance_report",
-        title: `Compliance Status Report (${complianceType})`,
-        data: {
-          kycCompletion: complianceType === "KYC" ? "100%" : "98.5%",
-          amlCompliance: complianceType === "AML" ? "100%" : "100%",
-          regulatoryReporting: complianceType === "Regulatory" ? "100%" : "100%",
-          auditFindings: "2 Minor",
-          capitalAdequacy: "15.8%",
-          liquidityRatio: "85.2%",
-          riskRating: "Low Risk",
-        },
-        charts: ["compliance_status", "audit_timeline", "risk_metrics"],
-      };
-    }
-    // Default: return the same data
-    return null;
   };
 
   const handleQuickPrompt = (prompt: string) => {
@@ -440,511 +453,6 @@ export default function AICompanionPage() {
         }
       }, 100);
     }
-  };
-
-  const exportReport = (reportData: any) => {
-    // Simulate report export with visual feedback
-    console.log("Exporting report:", reportData);
-    // In a real implementation, this would generate and download a PDF/Excel file
-  };
-
-  const renderReportData = (reportData: any, msgId?: string) => {
-    if (!reportData) return null;
-
-    // Interactive filters for financial_summary
-    if (reportData.type === "financial_summary" && msgId) {
-      const filter = reportFilters[msgId] || {
-        startDate: "2024-01-01",
-        endDate: "2024-03-31",
-        chartType: "revenue_trend"
-      };
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 mt-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="text-lg font-semibold text-gray-900">{reportData.title}</h4>
-            <button
-              onClick={() => exportReport(reportData)}
-              className="flex items-center space-x-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors duration-200 hover:scale-105 transform"
-            >
-              <ArrowDownTrayIcon className="h-4 w-4" />
-              <span>Export</span>
-            </button>
-          </div>
-          {/* Date range filter */}
-          <div className="flex items-center gap-2 mb-4">
-            <label className="text-sm text-gray-700">From:</label>
-            <input
-              type="date"
-              value={filter.startDate}
-              onChange={e => {
-                const newFilter = { ...filter, startDate: e.target.value };
-                const newData = generateFilteredReportData("financial_summary", newFilter);
-                updateReportInMessages(msgId, newFilter, newData);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            />
-            <label className="text-sm text-gray-700">To:</label>
-            <input
-              type="date"
-              value={filter.endDate}
-              onChange={e => {
-                const newFilter = { ...filter, endDate: e.target.value };
-                const newData = generateFilteredReportData("financial_summary", newFilter);
-                updateReportInMessages(msgId, newFilter, newData);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            />
-          </div>
-          {/* Chart type filter */}
-          <div className="flex items-center gap-2 mb-4">
-            <label className="text-sm text-gray-700">Chart Type:</label>
-            <select
-              value={filter.chartType}
-              onChange={e => {
-                const newFilter = { ...filter, chartType: e.target.value };
-                updateReportInMessages(msgId, newFilter, reportData);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-              <option value="revenue_trend">Revenue Trend</option>
-              <option value="asset_allocation">Asset Allocation</option>
-              <option value="profit_margin">Profit Margin</option>
-            </select>
-            <button
-              onClick={() => generateChart(reportData.type, filter.chartType)}
-              className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors duration-200"
-            >
-              Generate Chart
-            </button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(reportData.data).map(([key, value]) => (
-              <div key={key} className="bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                <div className="text-sm font-medium text-gray-600 capitalize">
-                  {key.replace(/([A-Z])/g, ' $1').trim()}
-                </div>
-                <div className="text-lg font-bold text-gray-900">{String(value)}</div>
-              </div>
-            ))}
-          </div>
-          {reportData.charts && (
-            <div className="mt-4">
-              <h5 className="text-sm font-medium text-gray-700 mb-2">Available Charts:</h5>
-              <div className="flex flex-wrap gap-2">
-                {(reportData.charts as string[]).map((chart: string) => (
-                  <span key={chart} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs hover:bg-blue-200 transition-colors duration-200">
-                    {chart.replace(/_/g, ' ')}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // Interactive filter for loan_portfolio
-    if (reportData.type === "loan_portfolio" && msgId) {
-      const filter = reportFilters[msgId] || { 
-        loanType: "All",
-        chartType: "loan_distribution"
-      };
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 mt-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="text-lg font-semibold text-gray-900">{reportData.title}</h4>
-            <button
-              onClick={() => exportReport(reportData)}
-              className="flex items-center space-x-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors duration-200 hover:scale-105 transform"
-            >
-              <ArrowDownTrayIcon className="h-4 w-4" />
-              <span>Export</span>
-            </button>
-          </div>
-          {/* Loan type filter */}
-          <div className="flex items-center gap-2 mb-4">
-            <label className="text-sm text-gray-700">Loan Type:</label>
-            <select
-              value={filter.loanType}
-              onChange={e => {
-                const newFilter = { ...filter, loanType: e.target.value };
-                const newData = generateFilteredReportData("loan_portfolio", newFilter);
-                updateReportInMessages(msgId, newFilter, newData);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-              <option value="All">All</option>
-              <option value="Personal">Personal</option>
-              <option value="Business">Business</option>
-              <option value="Home">Home</option>
-              <option value="Vehicle">Vehicle</option>
-            </select>
-          </div>
-          {/* Chart type filter */}
-          <div className="flex items-center gap-2 mb-4">
-            <label className="text-sm text-gray-700">Chart Type:</label>
-            <select
-              value={filter.chartType}
-              onChange={e => {
-                const newFilter = { ...filter, chartType: e.target.value };
-                updateReportInMessages(msgId, newFilter, reportData);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-              <option value="loan_distribution">Loan Distribution</option>
-              <option value="interest_trends">Interest Trends</option>
-              <option value="collection_performance">Collection Performance</option>
-            </select>
-            <button
-              onClick={() => generateChart(reportData.type, filter.chartType)}
-              className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors duration-200"
-            >
-              Generate Chart
-            </button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(reportData.data).map(([key, value]) => (
-              <div key={key} className="bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                <div className="text-sm font-medium text-gray-600 capitalize">
-                  {key.replace(/([A-Z])/g, ' $1').trim()}
-                </div>
-                <div className="text-lg font-bold text-gray-900">{String(value)}</div>
-              </div>
-            ))}
-          </div>
-          {reportData.charts && (
-            <div className="mt-4">
-              <h5 className="text-sm font-medium text-gray-700 mb-2">Available Charts:</h5>
-              <div className="flex flex-wrap gap-2">
-                {(reportData.charts as string[]).map((chart: string) => (
-                  <span key={chart} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs hover:bg-blue-200 transition-colors duration-200">
-                    {chart.replace(/_/g, ' ')}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // Interactive filter for customer_analytics
-    if (reportData.type === "customer_analytics" && msgId) {
-      const filter = reportFilters[msgId] || { 
-        segmentType: "All",
-        chartType: "customer_segments"
-      };
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 mt-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="text-lg font-semibold text-gray-900">{reportData.title}</h4>
-            <button
-              onClick={() => exportReport(reportData)}
-              className="flex items-center space-x-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors duration-200 hover:scale-105 transform"
-            >
-              <ArrowDownTrayIcon className="h-4 w-4" />
-              <span>Export</span>
-            </button>
-          </div>
-          {/* Segment type filter */}
-          <div className="flex items-center gap-2 mb-4">
-            <label className="text-sm text-gray-700">Segment Type:</label>
-            <select
-              value={filter.segmentType}
-              onChange={e => {
-                const newFilter = { ...filter, segmentType: e.target.value };
-                const newData = generateFilteredReportData("customer_analytics", newFilter);
-                updateReportInMessages(msgId, newFilter, newData);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-              <option value="All">All</option>
-              <option value="Premium">Premium</option>
-              <option value="Business">Business</option>
-              <option value="Retail">Retail</option>
-            </select>
-          </div>
-          {/* Chart type filter */}
-          <div className="flex items-center gap-2 mb-4">
-            <label className="text-sm text-gray-700">Chart Type:</label>
-            <select
-              value={filter.chartType}
-              onChange={e => {
-                const newFilter = { ...filter, chartType: e.target.value };
-                updateReportInMessages(msgId, newFilter, reportData);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-              <option value="customer_segments">Customer Segments</option>
-              <option value="age_distribution">Age Distribution</option>
-              <option value="income_analysis">Income Analysis</option>
-            </select>
-            <button
-              onClick={() => generateChart(reportData.type, filter.chartType)}
-              className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors duration-200"
-            >
-              Generate Chart
-            </button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(reportData.data).map(([key, value]) => (
-              <div key={key} className="bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                <div className="text-sm font-medium text-gray-600 capitalize">
-                  {key.replace(/([A-Z])/g, ' $1').trim()}
-                </div>
-                <div className="text-lg font-bold text-gray-900">{String(value)}</div>
-              </div>
-            ))}
-          </div>
-          {reportData.charts && (
-            <div className="mt-4">
-              <h5 className="text-sm font-medium text-gray-700 mb-2">Available Charts:</h5>
-              <div className="flex flex-wrap gap-2">
-                {(reportData.charts as string[]).map((chart: string) => (
-                  <span key={chart} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs hover:bg-blue-200 transition-colors duration-200">
-                    {chart.replace(/_/g, ' ')}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // Interactive filter for npa_analysis
-    if (reportData.type === "npa_analysis" && msgId) {
-      const filter = reportFilters[msgId] || { 
-        timeRange: "6_months",
-        chartType: "npa_trends"
-      };
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 mt-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="text-lg font-semibold text-gray-900">{reportData.title}</h4>
-            <button
-              onClick={() => exportReport(reportData)}
-              className="flex items-center space-x-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors duration-200 hover:scale-105 transform"
-            >
-              <ArrowDownTrayIcon className="h-4 w-4" />
-              <span>Export</span>
-            </button>
-          </div>
-          {/* Time range filter */}
-          <div className="flex items-center gap-2 mb-4">
-            <label className="text-sm text-gray-700">Time Range:</label>
-            <select
-              value={filter.timeRange}
-              onChange={e => {
-                const newFilter = { ...filter, timeRange: e.target.value };
-                const newData = generateFilteredReportData("npa_analysis", newFilter);
-                updateReportInMessages(msgId, newFilter, newData);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-              <option value="3_months">3 Months</option>
-              <option value="6_months">6 Months</option>
-              <option value="1_year">1 Year</option>
-              <option value="2_years">2 Years</option>
-            </select>
-          </div>
-          {/* Chart type filter */}
-          <div className="flex items-center gap-2 mb-4">
-            <label className="text-sm text-gray-700">Chart Type:</label>
-            <select
-              value={filter.chartType}
-              onChange={e => {
-                const newFilter = { ...filter, chartType: e.target.value };
-                updateReportInMessages(msgId, newFilter, reportData);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-              <option value="npa_trends">NPA Trends</option>
-              <option value="recovery_performance">Recovery Performance</option>
-              <option value="provision_coverage">Provision Coverage</option>
-            </select>
-            <button
-              onClick={() => generateChart(reportData.type, filter.chartType)}
-              className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors duration-200"
-            >
-              Generate Chart
-            </button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(reportData.data).map(([key, value]) => (
-              <div key={key} className="bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                <div className="text-sm font-medium text-gray-600 capitalize">
-                  {key.replace(/([A-Z])/g, ' $1').trim()}
-                </div>
-                <div className="text-lg font-bold text-gray-900">{String(value)}</div>
-              </div>
-            ))}
-          </div>
-          {reportData.charts && (
-            <div className="mt-4">
-              <h5 className="text-sm font-medium text-gray-700 mb-2">Available Charts:</h5>
-              <div className="flex flex-wrap gap-2">
-                {(reportData.charts as string[]).map((chart: string) => (
-                  <span key={chart} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs hover:bg-blue-200 transition-colors duration-200">
-                    {chart.replace(/_/g, ' ')}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // Interactive filter for compliance_report
-    if (reportData.type === "compliance_report" && msgId) {
-      const filter = reportFilters[msgId] || { 
-        complianceType: "All",
-        chartType: "compliance_status"
-      };
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 mt-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="text-lg font-semibold text-gray-900">{reportData.title}</h4>
-            <button
-              onClick={() => exportReport(reportData)}
-              className="flex items-center space-x-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors duration-200 hover:scale-105 transform"
-            >
-              <ArrowDownTrayIcon className="h-4 w-4" />
-              <span>Export</span>
-            </button>
-          </div>
-          {/* Compliance type filter */}
-          <div className="flex items-center gap-2 mb-4">
-            <label className="text-sm text-gray-700">Compliance Type:</label>
-            <select
-              value={filter.complianceType}
-              onChange={e => {
-                const newFilter = { ...filter, complianceType: e.target.value };
-                const newData = generateFilteredReportData("compliance_report", newFilter);
-                updateReportInMessages(msgId, newFilter, newData);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-              <option value="All">All</option>
-              <option value="KYC">KYC</option>
-              <option value="AML">AML</option>
-              <option value="Regulatory">Regulatory</option>
-            </select>
-          </div>
-          {/* Chart type filter */}
-          <div className="flex items-center gap-2 mb-4">
-            <label className="text-sm text-gray-700">Chart Type:</label>
-            <select
-              value={filter.chartType}
-              onChange={e => {
-                const newFilter = { ...filter, chartType: e.target.value };
-                updateReportInMessages(msgId, newFilter, reportData);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-              <option value="compliance_status">Compliance Status</option>
-              <option value="audit_timeline">Audit Timeline</option>
-              <option value="risk_metrics">Risk Metrics</option>
-            </select>
-            <button
-              onClick={() => generateChart(reportData.type, filter.chartType)}
-              className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors duration-200"
-            >
-              Generate Chart
-            </button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(reportData.data).map(([key, value]) => (
-              <div key={key} className="bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                <div className="text-sm font-medium text-gray-600 capitalize">
-                  {key.replace(/([A-Z])/g, ' $1').trim()}
-                </div>
-                <div className="text-lg font-bold text-gray-900">{String(value)}</div>
-              </div>
-            ))}
-          </div>
-          {reportData.charts && (
-            <div className="mt-4">
-              <h5 className="text-sm font-medium text-gray-700 mb-2">Available Charts:</h5>
-              <div className="flex flex-wrap gap-2">
-                {(reportData.charts as string[]).map((chart: string) => (
-                  <span key={chart} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs hover:bg-blue-200 transition-colors duration-200">
-                    {chart.replace(/_/g, ' ')}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // Default (non-interactive) report - now with basic interactivity
-    const filter = reportFilters[msgId || ""] || { chartType: "default" };
-    return (
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mt-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-        <div className="flex justify-between items-center mb-4">
-          <h4 className="text-lg font-semibold text-gray-900">{reportData.title}</h4>
-          <button
-            onClick={() => exportReport(reportData)}
-            className="flex items-center space-x-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors duration-200 hover:scale-105 transform"
-          >
-            <ArrowDownTrayIcon className="h-4 w-4" />
-            <span>Export</span>
-          </button>
-        </div>
-        {/* Basic chart generation for all reports */}
-        {msgId && (
-          <div className="flex items-center gap-2 mb-4">
-            <label className="text-sm text-gray-700">Chart Type:</label>
-            <select
-              value={filter.chartType}
-              onChange={e => {
-                const newFilter = { ...filter, chartType: e.target.value };
-                if (msgId) {
-                  updateReportInMessages(msgId, newFilter, reportData);
-                }
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-              <option value="default">Default Chart</option>
-              <option value="trend_analysis">Trend Analysis</option>
-              <option value="comparison">Comparison</option>
-              <option value="distribution">Distribution</option>
-            </select>
-            <button
-              onClick={() => generateChart(reportData.type || "default", filter.chartType)}
-              className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors duration-200"
-            >
-              Generate Chart
-            </button>
-          </div>
-        )}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {Object.entries(reportData.data).map(([key, value]) => (
-            <div key={key} className="bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-              <div className="text-sm font-medium text-gray-600 capitalize">
-                {key.replace(/([A-Z])/g, ' $1').trim()}
-              </div>
-              <div className="text-lg font-bold text-gray-900">{String(value)}</div>
-            </div>
-          ))}
-        </div>
-        {reportData.charts && (
-          <div className="mt-4">
-            <h5 className="text-sm font-medium text-gray-700 mb-2">Available Charts:</h5>
-            <div className="flex flex-wrap gap-2">
-              {(reportData.charts as string[]).map((chart: string) => (
-                <span key={chart} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs hover:bg-blue-200 transition-colors duration-200">
-                  {chart.replace(/_/g, ' ')}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
   };
 
   // Mock previous chat sessions
@@ -1017,7 +525,7 @@ export default function AICompanionPage() {
                     <div className="text-sm leading-relaxed">
                       {message.content}
                     </div>
-                    {message.reportData && renderReportData(message.reportData, message.id)}
+                    {message.reportData && renderReportData(message.reportData)}
                     <div className={`text-xs mt-2 ${
                       message.type === "user" ? "text-blue-100" : "text-gray-500"
                     }`}>

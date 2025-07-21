@@ -32,8 +32,8 @@ export default function CustomerIntakePage() {
   const [newCustomerId, setNewCustomerId] = useState<string | null>(null);
 
   const accountTypes = [
-    "Islamic Savings",
-    "Islamic Current",
+    "Ethical Savings",
+    "Ethical Current",
     "Mudarabah Investment",
     "Ijara Financing",
     "Halal Investment",
@@ -97,7 +97,7 @@ export default function CustomerIntakePage() {
           </div>
           <h2 className="text-2xl font-bold text-green-900 mb-2">Customer Account Created</h2>
           <p className="text-green-700 mb-4">
-            The new Islamic banking account has been created and is pending KYC verification.
+            The new Ethical banking account has been created and is pending KYC verification.
           </p>
           <p className="text-sm text-green-600">
             Customer ID: {newCustomerId}
@@ -122,7 +122,7 @@ export default function CustomerIntakePage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">New Customer Intake</h1>
           <p className="text-slate-600">
-            Register a new customer for Islamic banking services
+            Register a new customer for Ethical banking services
           </p>
         </div>
         <Link 
@@ -199,7 +199,7 @@ export default function CustomerIntakePage() {
 
         {/* Account Information */}
         <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Islamic Banking Account Information</h3>
+                      <h3 className="text-lg font-semibold text-slate-900 mb-4">Ethical Banking Account Information</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>

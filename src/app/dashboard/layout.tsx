@@ -142,7 +142,7 @@ const navigation = [
         icon: DocumentChartBarIcon,
       },
       {
-        name: "Interbranch Reports",
+        name: "Interbranch Transactions",
         href: "/dashboard/cash-management/interbranch",
         icon: ArrowPathIcon,
       },
@@ -305,8 +305,8 @@ function Sidebar() {
       {/* Header - Fixed at top */}
       <div className="flex-shrink-0 p-6 border-b border-slate-800">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">FP</span>
+          <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+            <img src="/logo.jpeg" alt="FivoPay Logo" className="w-full h-full object-cover rounded-lg" />
           </div>
           <div>
             <h1 className="text-lg font-semibold">FivoPay</h1>
