@@ -28,6 +28,33 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: ChartBarIcon },
   { name: "Customer Management", href: "/dashboard/customers", icon: UserIcon },
   {
+    name: "Field Agent Management",
+    href: "/dashboard/field-agents",
+    icon: UserGroupIcon,
+    subItems: [
+      {
+        name: "Agent Dashboard",
+        href: "/dashboard/field-agents",
+        icon: UserGroupIcon,
+      },
+      {
+        name: "Collection Management",
+        href: "/dashboard/field-agents/collections",
+        icon: BanknotesIcon,
+      },
+      {
+        name: "Customer Assignments",
+        href: "/dashboard/field-agents/assignments",
+        icon: UserIcon,
+      },
+      {
+        name: "Collection Reports",
+        href: "/dashboard/field-agents/reports",
+        icon: DocumentChartBarIcon,
+      },
+    ],
+  },
+  {
     name: "Employee Management",
     href: "/dashboard/employees",
     icon: UserGroupIcon,
