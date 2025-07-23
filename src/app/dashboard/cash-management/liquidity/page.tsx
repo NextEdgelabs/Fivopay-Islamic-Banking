@@ -15,6 +15,7 @@ import {
   XMarkIcon,
   BanknotesIcon,
   BuildingOfficeIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
 // Toast notification state
@@ -91,6 +92,8 @@ interface LiquidityData {
 export default function LiquidityReportPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("7d");
   const [selectedBranch, setSelectedBranch] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [showDetailedView, setShowDetailedView] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [confirmDialog, setConfirmDialog] = useState({ 
@@ -178,8 +181,42 @@ export default function LiquidityReportPage() {
     },
   ];
 
-  const currentLiquidity = liquidityData[0];
-  const averageLiquidityRatio = liquidityData.reduce((sum, data) => sum + data.liquidityRatio, 0) / liquidityData.length;
+  // Helper function to check if a date is within range
+  const isDateInRange = (dataDate: string, start: string, end: string) => {
+    if (!start && !end) return true; // No date filter applied
+    
+    const data = new Date(dataDate);
+    const startDate = start ? new Date(start) : null;
+    const endDate = end ? new Date(end + 'T23:59:59') : null; // Include entire end date
+    
+    if (startDate && endDate) {
+      return data >= startDate && data <= endDate;
+    } else if (startDate) {
+      return data >= startDate;
+    } else if (endDate) {
+      return data <= endDate;
+    }
+    
+    return true;
+  };
+
+  // Filter liquidity data based on date range
+  const filteredLiquidityData = liquidityData.filter(data => 
+    isDateInRange(data.date, startDate, endDate)
+  );
+
+  const currentLiquidity = filteredLiquidityData[0] || liquidityData[0];
+  const averageLiquidityRatio = filteredLiquidityData.length > 0 
+    ? filteredLiquidityData.reduce((sum, data) => sum + data.liquidityRatio, 0) / filteredLiquidityData.length
+    : liquidityData.reduce((sum, data) => sum + data.liquidityRatio, 0) / liquidityData.length;
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSelectedPeriod("7d");
+    setSelectedBranch("all");
+    setStartDate("");
+    setEndDate("");
+  };
 
   // Toast functions
   const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -233,34 +270,108 @@ export default function LiquidityReportPage() {
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex items-center space-x-2">
-            <CalendarIcon className="h-5 w-5 text-gray-400" />
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="7d">Last 7 Days</option>
-              <option value="30d">Last 30 Days</option>
-              <option value="90d">Last 90 Days</option>
-              <option value="1y">Last Year</option>
-            </select>
+        <div className="space-y-4">
+          {/* Basic Filters */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex items-center space-x-2">
+              <CalendarIcon className="h-5 w-5 text-gray-400" />
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+                <option value="90d">Last 90 Days</option>
+                <option value="1y">Last Year</option>
+              </select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <ChartBarIcon className="h-5 w-5 text-gray-400" />
+              <select
+                value={selectedBranch}
+                onChange={(e) => setSelectedBranch(e.target.value)}
+                className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Branches</option>
+                <option value="mumbai">Mumbai Central</option>
+                <option value="delhi">Delhi Main</option>
+                <option value="bangalore">Bangalore Tech Park</option>
+                <option value="chennai">Chennai Central</option>
+              </select>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <ChartBarIcon className="h-5 w-5 text-gray-400" />
-            <select
-              value={selectedBranch}
-              onChange={(e) => setSelectedBranch(e.target.value)}
-              className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
+          {/* Date Range Filters */}
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex items-center space-x-2">
+              <CalendarIcon className="h-5 w-5 text-gray-400" />
+              <span className="text-sm font-medium text-gray-700">Custom Date Range:</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-gray-600">From:</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-gray-600">To:</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <button
+              onClick={clearFilters}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              <option value="all">All Branches</option>
-              <option value="mumbai">Mumbai Central</option>
-              <option value="delhi">Delhi Main</option>
-              <option value="bangalore">Bangalore Tech Park</option>
-              <option value="chennai">Chennai Central</option>
-            </select>
+              <ArrowPathIcon className="h-4 w-4 mr-1" />
+              Clear Filters
+            </button>
           </div>
+
+          {/* Filter Summary */}
+          {(selectedPeriod !== "7d" || selectedBranch !== "all" || startDate || endDate) && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-blue-700">Active Filters:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedPeriod !== "7d" && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Period: {selectedPeriod === "30d" ? "Last 30 Days" : selectedPeriod === "90d" ? "Last 90 Days" : "Last Year"}
+                      </span>
+                    )}
+                    {selectedBranch !== "all" && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Branch: {selectedBranch.charAt(0).toUpperCase() + selectedBranch.slice(1)}
+                      </span>
+                    )}
+                    {startDate && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        From: {new Date(startDate).toLocaleDateString()}
+                      </span>
+                    )}
+                    {endDate && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        To: {new Date(endDate).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span className="text-sm text-blue-600">
+                  {filteredLiquidityData.length} of {liquidityData.length} records
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -495,7 +606,7 @@ export default function LiquidityReportPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {liquidityData.map((data, index) => (
+                {filteredLiquidityData.map((data, index) => (
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(data.date).toLocaleDateString()}

@@ -20,6 +20,7 @@ import {
   PlusCircleIcon,
   PencilSquareIcon,
   TrashIcon as TrashIconSolid,
+  ArrowDownTrayIcon
 } from "@heroicons/react/24/outline";
 import { useAppContext } from "@/app/context/AppContext";
 
@@ -62,6 +63,7 @@ export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
   
   // Roles and permissions state
   const [roles, setRoles] = useState<Role[]>([
@@ -324,6 +326,71 @@ export default function EmployeesPage() {
     return colorMap[color] || 'bg-gray-100 text-gray-800';
   };
 
+  // Export functions
+  const exportToCSV = (data: any[], filename: string) => {
+    const headers = [
+      'Employee ID',
+      'Name',
+      'Email',
+      'Phone',
+      'Position',
+      'Department',
+      'Role',
+      'Status',
+      'Join Date',
+      'Last Login',
+      'Manager',
+      'Location'
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      ...data.map(employee => [
+        employee.id,
+        `"${employee.name}"`,
+        employee.email,
+        employee.phone || '',
+        employee.position,
+        employee.department,
+        employee.role,
+        employee.status,
+        employee.joinDate || '',
+        employee.lastLogin || '',
+        employee.manager || '',
+        employee.location || ''
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportToExcel = (data: any[], filename: string) => {
+    // For Excel export, we'll use a simple CSV format that Excel can open
+    // In a real application, you might want to use a library like xlsx
+    exportToCSV(data, filename.replace('.xlsx', '.csv'));
+  };
+
+  const handleExport = (format: 'csv' | 'excel', exportAll: boolean = false) => {
+    const dataToExport = exportAll ? employees : filteredEmployees;
+    const timestamp = new Date().toISOString().split('T')[0];
+    
+    if (format === 'csv') {
+      exportToCSV(dataToExport, `employees_${exportAll ? 'all' : 'filtered'}_${timestamp}.csv`);
+    } else {
+      exportToExcel(dataToExport, `employees_${exportAll ? 'all' : 'filtered'}_${timestamp}.xlsx`);
+    }
+    
+    setShowExportMenu(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Success Message */}
@@ -519,6 +586,78 @@ export default function EmployeesPage() {
                     <option key={dept} value={dept}>{dept}</option>
                   ))}
                 </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Export and Actions Bar */}
+          <div className="bg-white shadow-md rounded-lg p-4 border border-slate-200">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-slate-600">
+                  Showing {filteredEmployees.length} of {employees.length} employees
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                {/* Export Menu */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowExportMenu(!showExportMenu)}
+                    className="inline-flex items-center px-4 py-2 border border-slate-300 rounded-md text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  >
+                    <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
+                    Export
+                  </button>
+                  
+                  {showExportMenu && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-slate-200 z-10">
+                      <div className="py-1">
+                        <div className="px-4 py-2 text-xs font-medium text-slate-500 uppercase tracking-wide">
+                          Export Current View
+                        </div>
+                        <button
+                          onClick={() => handleExport('csv', false)}
+                          className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                        >
+                          Export as CSV
+                        </button>
+                        <button
+                          onClick={() => handleExport('excel', false)}
+                          className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                        >
+                          Export as Excel
+                        </button>
+                        
+                        <div className="border-t border-slate-200 my-1"></div>
+                        
+                        <div className="px-4 py-2 text-xs font-medium text-slate-500 uppercase tracking-wide">
+                          Export All Employees
+                        </div>
+                        <button
+                          onClick={() => handleExport('csv', true)}
+                          className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                        >
+                          Export All as CSV
+                        </button>
+                        <button
+                          onClick={() => handleExport('excel', true)}
+                          className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                        >
+                          Export All as Excel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <Link
+                  href="/dashboard/employees/create"
+                  className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700"
+                >
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Add Employee
+                </Link>
               </div>
             </div>
           </div>
@@ -787,6 +926,14 @@ export default function EmployeesPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Click outside to close export menu */}
+      {showExportMenu && (
+        <div 
+          className="fixed inset-0 z-10" 
+          onClick={() => setShowExportMenu(false)}
+        />
       )}
     </div>
   );

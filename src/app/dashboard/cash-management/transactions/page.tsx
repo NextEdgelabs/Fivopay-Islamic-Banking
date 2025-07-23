@@ -17,6 +17,9 @@ import {
   EyeIcon,
   UserIcon,
   BanknotesIcon,
+  CalendarIcon,
+  CheckCircleIcon,
+  UserCircleIcon,
 } from "@heroicons/react/24/outline";
 
 // Toast notification state
@@ -80,6 +83,17 @@ const ConfirmDialog = ({
   );
 };
 
+// Approval Log Interface
+interface ApprovalLog {
+  id: string;
+  transactionId: string;
+  approverName: string;
+  approverRole: string;
+  approvalAction: 'approved' | 'rejected' | 'cancelled';
+  approvalDate: string;
+  comments?: string;
+}
+
 export default function TransactionsPage() {
   const {
     transactions,
@@ -91,6 +105,8 @@ export default function TransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [showNewTransactionModal, setShowNewTransactionModal] = useState(false);
   const [selectedTransactionType, setSelectedTransactionType] = useState<"Deposit" | "Withdrawal" | "Transfer">("Deposit");
   const [selectedTransaction, setSelectedTransaction] = useState<CashTransaction | null>(null);
@@ -110,6 +126,88 @@ export default function TransactionsPage() {
     branchId: ''
   });
 
+  // Mock approval logs data - these will show in the approval column and details modal
+  const [approvalLogs, setApprovalLogs] = useState<ApprovalLog[]>([
+    {
+      id: '1',
+      transactionId: '1',
+      approverName: 'Rajesh Kumar',
+      approverRole: 'Branch Manager',
+      approvalAction: 'approved',
+      approvalDate: '2024-01-20T10:30:00Z',
+      comments: 'Transaction approved after verification of customer documents'
+    },
+    {
+      id: '2',
+      transactionId: '2',
+      approverName: 'Priya Sharma',
+      approverRole: 'Senior Manager',
+      approvalAction: 'approved',
+      approvalDate: '2024-01-20T11:15:00Z',
+      comments: 'Withdrawal approved with proper verification'
+    },
+    {
+      id: '3',
+      transactionId: '3',
+      approverName: 'Amit Patel',
+      approverRole: 'Regional Manager',
+      approvalAction: 'approved',
+      approvalDate: '2024-01-20T12:00:00Z',
+      comments: 'Interbranch transfer approved'
+    },
+    // Add more sample approval logs for better visibility
+    {
+      id: '4',
+      transactionId: '1',
+      approverName: 'Fatima Al-Zahra',
+      approverRole: 'Regional Director',
+      approvalAction: 'approved',
+      approvalDate: '2024-01-20T09:15:00Z',
+      comments: 'Initial approval for large deposit'
+    },
+    {
+      id: '5',
+      transactionId: '2',
+      approverName: 'Mohammed Ali',
+      approverRole: 'Compliance Officer',
+      approvalAction: 'approved',
+      approvalDate: '2024-01-20T10:45:00Z',
+      comments: 'Compliance check completed'
+    },
+  ]);
+
+  // Helper function to get approval logs for a transaction
+  const getApprovalLogsForTransaction = (transactionId: string) => {
+    const logs = approvalLogs.filter(log => log.transactionId === transactionId);
+    console.log(`Approval logs for transaction ${transactionId}:`, logs);
+    return logs;
+  };
+
+  // Helper function to get the latest approval for a transaction
+  const getLatestApproval = (transactionId: string) => {
+    const logs = getApprovalLogsForTransaction(transactionId);
+    return logs.length > 0 ? logs[logs.length - 1] : null;
+  };
+
+  // Helper function to check if a date is within range
+  const isDateInRange = (transactionDate: string, start: string, end: string) => {
+    if (!start && !end) return true; // No date filter applied
+    
+    const transaction = new Date(transactionDate);
+    const startDate = start ? new Date(start) : null;
+    const endDate = end ? new Date(end + 'T23:59:59') : null; // Include entire end date
+    
+    if (startDate && endDate) {
+      return transaction >= startDate && transaction <= endDate;
+    } else if (startDate) {
+      return transaction >= startDate;
+    } else if (endDate) {
+      return transaction <= endDate;
+    }
+    
+    return true;
+  };
+
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch = 
       transaction.referenceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -117,7 +215,9 @@ export default function TransactionsPage() {
       transaction.branchId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || transaction.type.toLowerCase() === typeFilter.toLowerCase();
     const matchesStatus = statusFilter === "all" || transaction.status.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesType && matchesStatus;
+    const matchesDateRange = isDateInRange(transaction.timestamp, startDate, endDate);
+    
+    return matchesSearch && matchesType && matchesStatus && matchesDateRange;
   });
 
   const totalDeposits = transactions
@@ -154,9 +254,31 @@ export default function TransactionsPage() {
       addToast('Transaction has been cancelled successfully', 'success');
     } else if (action === 'approve') {
       updateTransactionStatus(transactionId, 'Completed');
+      // Add approval log entry
+      const newApprovalLog: ApprovalLog = {
+        id: Date.now().toString(),
+        transactionId: transactionId,
+        approverName: 'Current User', // In real app, get from auth context
+        approverRole: 'Branch Manager',
+        approvalAction: 'approved',
+        approvalDate: new Date().toISOString(),
+        comments: 'Transaction approved by current user'
+      };
+      setApprovalLogs(prev => [...prev, newApprovalLog]);
       addToast('Transaction has been approved successfully', 'success');
     } else if (action === 'reject') {
       updateTransactionStatus(transactionId, 'Failed');
+      // Add rejection log entry
+      const newApprovalLog: ApprovalLog = {
+        id: Date.now().toString(),
+        transactionId: transactionId,
+        approverName: 'Current User', // In real app, get from auth context
+        approverRole: 'Branch Manager',
+        approvalAction: 'rejected',
+        approvalDate: new Date().toISOString(),
+        comments: 'Transaction rejected by current user'
+      };
+      setApprovalLogs(prev => [...prev, newApprovalLog]);
       addToast('Transaction has been rejected successfully', 'success');
     } else if (action === 'delete') {
       deleteTransaction(transactionId);
@@ -211,6 +333,29 @@ export default function TransactionsPage() {
       description: '',
       branchId: ''
     });
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm("");
+    setTypeFilter("all");
+    setStatusFilter("all");
+    setStartDate("");
+    setEndDate("");
+  };
+
+  // Helper function to get approval status badge
+  const getApprovalStatusBadge = (action: string) => {
+    switch (action) {
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      case 'cancelled':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
   return (
@@ -291,22 +436,24 @@ export default function TransactionsPage() {
 
       {/* Filters and Search */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by reference, description, or branch..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="text-gray-700 w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+        <div className="space-y-4">
+          {/* Search and Basic Filters */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by reference, description, or branch..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="text-gray-700 w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
             </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <FunnelIcon className="h-5 w-5 text-gray-400" />
-                          <select
+            <div className="flex items-center space-x-2">
+              <FunnelIcon className="h-5 w-5 text-gray-400" />
+              <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
                 className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -326,7 +473,84 @@ export default function TransactionsPage() {
                 <option value="Pending">Pending</option>
                 <option value="Failed">Failed</option>
               </select>
+            </div>
           </div>
+
+          {/* Date Range Filters */}
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex items-center space-x-2">
+              <CalendarIcon className="h-5 w-5 text-gray-400" />
+              <span className="text-sm font-medium text-gray-700">Date Range:</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-gray-600">From:</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-gray-600">To:</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <button
+              onClick={clearFilters}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <ArrowPathIcon className="h-4 w-4 mr-1" />
+              Clear Filters
+            </button>
+          </div>
+
+          {/* Filter Summary */}
+          {(searchTerm || typeFilter !== "all" || statusFilter !== "all" || startDate || endDate) && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-blue-700">Active Filters:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {searchTerm && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Search: "{searchTerm}"
+                      </span>
+                    )}
+                    {typeFilter !== "all" && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Type: {typeFilter}
+                      </span>
+                    )}
+                    {statusFilter !== "all" && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Status: {statusFilter}
+                      </span>
+                    )}
+                    {startDate && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        From: {new Date(startDate).toLocaleDateString()}
+                      </span>
+                    )}
+                    {endDate && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        To: {new Date(endDate).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span className="text-sm text-blue-600">
+                  {filteredTransactions.length} of {transactions.length} transactions
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -362,6 +586,9 @@ export default function TransactionsPage() {
                   Branch
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Approval
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Timestamp
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -370,63 +597,88 @@ export default function TransactionsPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredTransactions.map((transaction) => (
-                <tr key={transaction.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 font-mono">
-                      {transaction.referenceNumber}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        transaction.type === "Deposit"
-                          ? "bg-green-100 text-green-800"
-                          : transaction.type === "Withdrawal"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-blue-100 text-blue-800"
-                      }`}
-                    >
-                      {transaction.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-semibold text-gray-900">
-                      ₹{transaction.amount.toLocaleString()}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      <div>{transaction.customerName}</div>
-                      <div className="text-gray-500">{transaction.accountNumber}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        transaction.status === "Completed"
-                          ? "bg-green-100 text-green-800"
-                          : transaction.status === "Pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {transaction.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {transaction.branchId}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(transaction.timestamp).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
+              {filteredTransactions.map((transaction) => {
+                const latestApproval = getLatestApproval(transaction.id);
+                return (
+                  <tr key={transaction.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 font-mono">
+                        {transaction.referenceNumber}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          transaction.type === "Deposit"
+                            ? "bg-green-100 text-green-800"
+                            : transaction.type === "Withdrawal"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {transaction.type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-semibold text-gray-900">
+                        ₹{transaction.amount.toLocaleString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        <div>{transaction.customerName}</div>
+                        <div className="text-gray-500">{transaction.accountNumber}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          transaction.status === "Completed"
+                            ? "bg-green-100 text-green-800"
+                            : transaction.status === "Pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {transaction.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transaction.branchId}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {latestApproval ? (
+                        <div className="flex items-center space-x-2 bg-green-50 p-2 rounded-lg border border-green-200">
+                          <UserCircleIcon className="h-4 w-4 text-green-600" />
+                          <div className="text-sm">
+                            <div className="font-semibold text-gray-900">{latestApproval.approverName}</div>
+                            <div className="text-xs text-gray-600 font-medium">{latestApproval.approverRole}</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-2 bg-yellow-50 p-2 rounded-lg border border-yellow-200">
+                          <UserCircleIcon className="h-4 w-4 text-yellow-600" />
+                          <span className="text-sm text-gray-700 font-medium">Pending Approval</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(transaction.timestamp).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                          <div className="flex space-x-2">
                       <button 
                         onClick={() => handleViewDetails(transaction)}
                         className="text-blue-600 hover:text-blue-900"
                       >
                         View Details
+                      </button>
+                      <button 
+                        onClick={() => handleViewDetails(transaction)}
+                        className="text-purple-600 hover:text-purple-900"
+                        title="View Approval Log"
+                      >
+                        <UserCircleIcon className="h-4 w-4" />
                       </button>
                       {transaction.status === "Pending" && (
                         <button 
@@ -443,9 +695,10 @@ export default function TransactionsPage() {
                         Delete
                       </button>
                     </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -582,7 +835,7 @@ export default function TransactionsPage() {
       {/* Transaction Details Modal */}
       {showDetailsModal && selectedTransaction && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold text-gray-900">
                 Transaction Details
@@ -595,7 +848,7 @@ export default function TransactionsPage() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium text-gray-500 mb-2">Transaction Information</h4>
@@ -648,9 +901,7 @@ export default function TransactionsPage() {
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium text-gray-500 mb-2">Branch Information</h4>
                   <div className="bg-gray-50 p-4 rounded-lg">
@@ -688,6 +939,12 @@ export default function TransactionsPage() {
                     <h4 className="text-sm font-medium text-gray-500 mb-2">Actions</h4>
                     <div className="space-y-2">
                       <button 
+                        onClick={() => openConfirm(selectedTransaction.id, 'approve')}
+                        className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm"
+                      >
+                        Approve Transaction
+                      </button>
+                      <button 
                         onClick={() => openConfirm(selectedTransaction.id, 'reject')}
                         className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm"
                       >
@@ -696,6 +953,64 @@ export default function TransactionsPage() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Approval Log Section */}
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-4 flex items-center bg-blue-50 p-3 rounded-lg">
+                    <UserCircleIcon className="h-6 w-6 mr-3 text-blue-600" />
+                    Approval Log & History
+                  </h4>
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    {(() => {
+                      const logs = getApprovalLogsForTransaction(selectedTransaction.id);
+                      console.log('Transaction ID:', selectedTransaction.id, 'Logs found:', logs);
+                      return logs.length > 0 ? (
+                        <div className="space-y-4">
+                          <div className="text-sm text-gray-600 mb-3">
+                            Found {logs.length} approval record(s) for this transaction
+                          </div>
+                          {logs.map((log, index) => (
+                            <div key={log.id} className={`border-l-4 pl-4 py-3 bg-gray-50 rounded-r-lg ${
+                              log.approvalAction === 'approved' ? 'border-green-500 bg-green-50' :
+                              log.approvalAction === 'rejected' ? 'border-red-500 bg-red-50' :
+                              'border-gray-500 bg-gray-50'
+                            }`}>
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  <UserCircleIcon className="h-5 w-5 text-gray-600" />
+                                  <div>
+                                    <div className="font-semibold text-gray-900">{log.approverName}</div>
+                                    <div className="text-sm text-gray-600 font-medium">{log.approverRole}</div>
+                                  </div>
+                                </div>
+                                <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getApprovalStatusBadge(log.approvalAction)}`}>
+                                  {log.approvalAction.charAt(0).toUpperCase() + log.approvalAction.slice(1)}
+                                </span>
+                              </div>
+                              <div className="text-sm text-gray-600 mb-2">
+                                <ClockIcon className="h-4 w-4 inline mr-1" />
+                                {new Date(log.approvalDate).toLocaleString()}
+                              </div>
+                              {log.comments && (
+                                <div className="text-sm text-gray-700 bg-white p-3 rounded border">
+                                  <span className="font-medium">Comments:</span> "{log.comments}"
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          <UserCircleIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                          <p className="text-lg font-medium">No approval history available</p>
+                          <p className="text-sm">This transaction has not been approved yet.</p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
