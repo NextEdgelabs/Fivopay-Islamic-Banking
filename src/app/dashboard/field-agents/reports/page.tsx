@@ -111,7 +111,7 @@ const AgentPerformanceTable = ({ agents }: { agents: AgentPerformance[] }) => (
                 {agent.totalCollections}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                AED {agent.totalAmount.toLocaleString()}
+                INR {agent.totalAmount.toLocaleString()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
@@ -140,7 +140,7 @@ const AgentPerformanceTable = ({ agents }: { agents: AgentPerformance[] }) => (
                   {((agent.monthlyAchievement / agent.monthlyTarget) * 100).toFixed(1)}%
                 </div>
                 <div className="text-sm text-gray-500">
-                  AED {agent.monthlyAchievement.toLocaleString()} / {agent.monthlyTarget.toLocaleString()}
+                  INR {agent.monthlyAchievement.toLocaleString()} / {agent.monthlyTarget.toLocaleString()}
                 </div>
               </td>
             </tr>
@@ -199,7 +199,7 @@ const TerritoryStatisticsTable = ({ territories }: { territories: TerritoryStati
                 {territory.totalCollections}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                AED {territory.totalAmount.toLocaleString()}
+                  INR {territory.totalAmount.toLocaleString()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
@@ -473,7 +473,7 @@ export default function ReportsPage() {
         />
         <ReportCard
           title="Total Amount"
-          value={`AED ${totalAmount.toLocaleString()}`}
+          value={`INR ${totalAmount.toLocaleString()}`}
           change="+8% from last month"
           icon={ChartBarIcon}
           color="bg-green-500"
@@ -489,7 +489,7 @@ export default function ReportsPage() {
         />
         <ReportCard
           title="Average Amount"
-          value={`AED ${averageAmount.toFixed(0)}`}
+          value={`INR ${averageAmount.toFixed(0)}`}
           change="-2% from last month"
           icon={ArrowTrendingUpIcon}
           color="bg-purple-500"
@@ -653,7 +653,7 @@ export default function ReportsPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">Amount</span>
-                        <span className="text-sm font-medium text-gray-900">AED {branch.totalAmount.toLocaleString()}</span>
+                        <span className="text-sm font-medium text-gray-900">INR {branch.totalAmount.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">Agents</span>

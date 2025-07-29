@@ -84,7 +84,7 @@ const StatisticsCards = ({ stats }: { stats: CollectionStatistics }) => (
     />
     <KPICard
       title="Total Amount Collected"
-      value={`AED ${stats.totalAmount.toLocaleString()}`}
+      value={`INR ${stats.totalAmount.toLocaleString()}`}
       change="+8% from last month"
       icon={ChartBarIcon}
       color="bg-green-500"
@@ -250,7 +250,7 @@ const AgentTable = ({ agents, onViewDetails }: { agents: FieldAgent[]; onViewDet
                 {agent.totalCollections}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                AED {agent.totalAmountCollected.toLocaleString()}
+                INR {agent.totalAmountCollected.toLocaleString()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
@@ -407,7 +407,7 @@ export default function FieldAgentsPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-medium text-gray-900">AED 15,000</p>
+                          <p className="text-sm font-medium text-gray-900">INR 15,000</p>
                           <p className="text-xs text-gray-500">2 hours ago</p>
                         </div>
                       </div>
@@ -420,15 +420,15 @@ export default function FieldAgentsPage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Monthly Target</span>
-                      <span className="text-sm font-medium text-gray-900">AED 5,000,000</span>
+                      <span className="text-sm font-medium text-gray-900">INR 5,000,000</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Achieved</span>
-                      <span className="text-sm font-medium text-gray-900">AED 3,080,000</span>
+                      <span className="text-sm font-medium text-gray-900">INR 3,080,000</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Remaining</span>
-                      <span className="text-sm font-medium text-gray-900">AED 1,920,000</span>
+                      <span className="text-sm font-medium text-gray-900">INR 1,920,000</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div className="bg-blue-600 h-2 rounded-full" style={{ width: '61.6%' }}></div>

@@ -123,7 +123,7 @@ const AddCollectionModal = ({
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Amount (AED)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Amount (INR)</label>
               <input
                 type="number"
                 value={formData.amount}
@@ -273,7 +273,7 @@ const CollectionDetailsModal = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Amount</label>
-              <p className="text-sm text-gray-900 mt-1">AED {collection.amount.toLocaleString()}</p>
+              <p className="text-sm text-gray-900 mt-1">INR {collection.amount.toLocaleString()}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Collection Type</label>
@@ -417,7 +417,7 @@ const CollectionTable = ({
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium text-gray-900">
-                  AED {collection.amount.toLocaleString()}
+                  INR {collection.amount.toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-500">{collection.collectionType}</div>
               </td>
@@ -669,7 +669,7 @@ export default function CollectionsPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">Total Amount</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
-                AED {collections.reduce((sum, c) => sum + c.amount, 0).toLocaleString()}
+                INR {collections.reduce((sum, c) => sum + c.amount, 0).toLocaleString()}
               </p>
             </div>
             <div className="p-3 rounded-lg bg-green-500">

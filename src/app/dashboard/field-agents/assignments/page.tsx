@@ -272,7 +272,7 @@ const AssignmentTable = ({
                   }
                 </div>
                 <div className="text-sm text-gray-500">
-                  AED {assignment.outstandingAmount.toLocaleString()} due
+                  INR {assignment.outstandingAmount.toLocaleString()} due
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -536,7 +536,7 @@ export default function AssignmentsPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">Total Outstanding</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
-                AED {assignments.reduce((sum, a) => sum + a.outstandingAmount, 0).toLocaleString()}
+                INR {assignments.reduce((sum, a) => sum + a.outstandingAmount, 0).toLocaleString()}
               </p>
             </div>
             <div className="p-3 rounded-lg bg-yellow-500">
