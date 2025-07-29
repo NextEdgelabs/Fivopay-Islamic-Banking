@@ -28,7 +28,7 @@ import { useAppContext } from "@/app/context/AppContext";
 type PermissionType = 'read' | 'create' | 'update' | 'delete';
 
 // Access level types
-type AccessLevel = 'none' | 'read_only' | 'crud';
+type AccessLevel = 'none' | 'read_only' | 'read_edit';
 
 // Feature interface
 interface Feature {
@@ -285,7 +285,7 @@ export default function EmployeesPage() {
       updatedRole.permissions[featureId] = [];
     } else if (accessLevel === 'read_only') {
       updatedRole.permissions[featureId] = ['read'];
-    } else if (accessLevel === 'crud') {
+    } else if (accessLevel === 'read_edit') {
       updatedRole.permissions[featureId] = ['read', 'create', 'update', 'delete'];
     }
 
@@ -307,7 +307,7 @@ export default function EmployeesPage() {
     switch (accessLevel) {
       case 'none': return 'bg-gray-100 text-gray-800';
       case 'read_only': return 'bg-blue-100 text-blue-800';
-      case 'crud': return 'bg-green-100 text-green-800';
+      case 'read_edit': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -543,7 +543,7 @@ export default function EmployeesPage() {
                                 <span className="text-xs text-slate-400">No access</span>
                               ) : (
                                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getAccessLevelColor(accessLevel)}`}>
-                                  {accessLevel === 'read_only' ? 'READ ONLY' : 'CRUD'}
+                                  {accessLevel === 'read_only' ? 'READ ONLY' : 'READ & EDIT'}
                                 </span>
                               )}
                             </div>
@@ -899,13 +899,13 @@ export default function EmployeesPage() {
                              <input
                                type="radio"
                                name={`access_${feature.id}`}
-                               value="crud"
-                               checked={(selectedRole.accessLevels[feature.id] || 'none') === 'crud'}
+                               value="read_edit"
+                               checked={(selectedRole.accessLevels[feature.id] || 'none') === 'read_edit'}
                                onChange={(e) => handleAccessLevelChange(feature.id, e.target.value as AccessLevel)}
                                className="text-purple-600 focus:ring-purple-500"
                              />
-                             <span className={`text-sm px-2 py-1 rounded-full ${getAccessLevelColor('crud')}`}>
-                               CRUD
+                             <span className={`text-sm px-2 py-1 rounded-full ${getAccessLevelColor('read_edit')}`}>
+                               Read & Edit
                              </span>
                            </label>
                          </div>

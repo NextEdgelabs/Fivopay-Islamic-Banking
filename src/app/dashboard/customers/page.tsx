@@ -160,8 +160,7 @@ const CustomerListComponent = () => {
       'KYC Status',
       'Verification Level',
       'Join Date',
-      'Last Activity',
-      'Branch'
+      'Last Activity'
     ];
 
     const csvContent = [
@@ -177,8 +176,7 @@ const CustomerListComponent = () => {
         customer.kycStatus,
         customer.verificationLevel,
         customer.joinDate,
-        customer.lastActivity,
-        customer.branch
+        customer.lastActivity
       ].join(','))
     ].join('\n');
 
