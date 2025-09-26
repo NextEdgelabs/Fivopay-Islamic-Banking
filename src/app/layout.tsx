@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "./context/AppContext";
+import { Providers } from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
   title: "FivoPay Ethical Banking - BaaS Platform",
   description: "Ethical Banking as a Service platform with comprehensive customer, employee, and authentication management",
   keywords: "Ethical banking, Sharia compliant, BaaS, Banking as a Service, Halal finance",
+  metadataBase: new URL('http://localhost:3000'),
   icons: {
     icon: [
       {
@@ -64,9 +66,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <AppProvider>
-          {children}
-        </AppProvider>
+        <Providers>
+          <AppProvider>
+            {children}
+          </AppProvider>
+        </Providers>
       </body>
     </html>
   );

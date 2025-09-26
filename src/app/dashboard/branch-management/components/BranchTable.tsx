@@ -1,5 +1,6 @@
 'use client';
 
+import Table, { Column } from '@/app/dashboard/components/Table';
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -46,6 +47,7 @@ export default function BranchTable({
   onSuspendBranch,
   onActivateBranch
 }: BranchTableProps) {
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active':
@@ -71,119 +73,110 @@ export default function BranchTable({
         return <CheckCircleIcon className="w-4 h-4 text-gray-600" />;
     }
   };
+  
+  const columns: Column<Branch>[] = [
+    {
+      accessor: 'branchName',
+      header: 'Branch Details',
+      render: (branch) => (
+        <div>
+          <div className="text-sm font-medium text-gray-900">{branch.branchName}</div>
+          <div className="text-sm text-gray-500">{branch.branchCode}</div>
+        </div>
+      ),
+    },
+    {
+      accessor: 'city',
+      header: 'Location',
+      render: (branch) => (
+        <div>
+          <div className="text-sm text-gray-900">{branch.city}, {branch.state}</div>
+          <div className="text-sm text-gray-500">{branch.pincode}</div>
+        </div>
+      ),
+    },
+    {
+      accessor: 'managerName',
+      header: 'Manager',
+      render: (branch) => (
+        <div>
+          <div className="text-sm font-medium text-gray-900">{branch.managerName}</div>
+          <div className="text-sm text-gray-500">{branch.managerPhone}</div>
+        </div>
+      ),
+    },
+    {
+      accessor: 'customerCount',
+      header: 'Performance',
+      render: (branch) => (
+        <div>
+          <div className="text-sm text-gray-900">{branch.customerCount} customers</div>
+          <div className="text-sm text-gray-500">{branch.employeeCount} employees</div>
+        </div>
+      ),
+    },
+    {
+      accessor: 'status',
+      header: 'Status',
+      render: (branch) => (
+        <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(branch.status)}`}>
+          {getStatusIcon(branch.status)}
+          <span className="ml-1">{branch.status}</span>
+        </span>
+      ),
+    },
+  ];
 
-  return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Branch Details
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Location
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Manager
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Performance
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {branches.map((branch) => (
-            <tr key={branch.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div>
-                  <div className="text-sm font-medium text-gray-900">{branch.branchName}</div>
-                  <div className="text-sm text-gray-500">{branch.branchCode}</div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div>
-                  <div className="text-sm text-gray-900">{branch.city}, {branch.state}</div>
-                  <div className="text-sm text-gray-500">{branch.pincode}</div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div>
-                  <div className="text-sm font-medium text-gray-900">{branch.managerName}</div>
-                  <div className="text-sm text-gray-500">{branch.managerPhone}</div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div>
-                  <div className="text-sm text-gray-900">{branch.customerCount} customers</div>
-                  <div className="text-sm text-gray-500">{branch.employeeCount} employees</div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(branch.status)}`}>
-                  {getStatusIcon(branch.status)}
-                  <span className="ml-1">{branch.status}</span>
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div className="flex flex-wrap gap-2">
-                  <button 
-                    onClick={() => onViewBranch(branch)}
-                    className="text-blue-600 hover:text-blue-900"
-                  >
-                    View
-                  </button>
-                  {onEditBranch && (
-                    <button 
-                      onClick={() => onEditBranch(branch)}
-                      className="text-green-600 hover:text-green-900"
-                    >
-                      Edit
-                    </button>
-                  )}
-                  {onGenerateReport && (
-                    <button 
-                      onClick={() => onGenerateReport(branch)}
-                      className="text-yellow-600 hover:text-yellow-900"
-                    >
-                      Report
-                    </button>
-                  )}
-                  {onDeleteBranch && (
-                    <button 
-                      onClick={() => onDeleteBranch(branch)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  )}
-                  {onSuspendBranch && branch.status === 'Active' && (
-                    <button 
-                      onClick={() => onSuspendBranch(branch)}
-                      className="text-yellow-600 hover:text-yellow-900"
-                    >
-                      Suspend
-                    </button>
-                  )}
-                  {onActivateBranch && branch.status === 'Inactive' && (
-                    <button 
-                      onClick={() => onActivateBranch(branch)}
-                      className="text-green-600 hover:text-green-900"
-                    >
-                      Activate
-                    </button>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  const renderActions = (branch: Branch) => (
+    <div className="flex flex-wrap gap-2">
+      <button 
+        onClick={() => onViewBranch(branch)}
+        className="text-blue-600 hover:text-blue-900"
+      >
+        View
+      </button>
+      {onEditBranch && (
+        <button 
+          onClick={() => onEditBranch(branch)}
+          className="text-green-600 hover:text-green-900"
+        >
+          Edit
+        </button>
+      )}
+      {onGenerateReport && (
+        <button 
+          onClick={() => onGenerateReport(branch)}
+          className="text-yellow-600 hover:text-yellow-900"
+        >
+          Report
+        </button>
+      )}
+      {onDeleteBranch && (
+        <button 
+          onClick={() => onDeleteBranch(branch)}
+          className="text-red-600 hover:text-red-900"
+        >
+          Delete
+        </button>
+      )}
+      {onSuspendBranch && branch.status === 'Active' && (
+        <button 
+          onClick={() => onSuspendBranch(branch)}
+          className="text-yellow-600 hover:text-yellow-900"
+        >
+          Suspend
+        </button>
+      )}
+      {onActivateBranch && branch.status === 'Inactive' && (
+        <button 
+          onClick={() => onActivateBranch(branch)}
+          className="text-green-600 hover:text-green-900"
+        >
+          Activate
+        </button>
+      )}
     </div>
   );
+
+  return <Table columns={columns} data={branches} renderActions={renderActions} />;
 } 

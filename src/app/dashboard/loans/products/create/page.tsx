@@ -1,6 +1,8 @@
 
 "use client";
-import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import Link from "next/link";
 import { 
   ArrowLeftIcon,
@@ -11,63 +13,61 @@ import {
   CogIcon
 } from "@heroicons/react/24/outline";
 
-interface ProductFormData {
-  name: string;
-  type: 'Personal' | 'Business' | 'Home' | 'Vehicle' | 'Education' | '';
-  minAmount: string;
-  maxAmount: string;
-  profitRate: string;
-  tenure: string;
-  description: string;
-  
-      // Ethical Banking Specific Fields
-  shariaStructure: 'Murabaha' | 'Musharakah' | 'Ijara' | 'Istisna' | 'Salam' | '';
-  profitSharingRatio: string;
-  
-  // Eligibility Criteria
-  minAge: string;
-  maxAge: string;
-  minIncome: string;
-  employmentType: string[];
-  creditScore: string;
-  
-  // Documentation Requirements
-  requiredDocuments: string[];
-  
-  // Terms and Conditions
-  processingFee: string;
-  prepaymentCharges: string;
-  latePaymentPenalty: string;
-  
-  // Product Status
-  status: 'Draft' | 'Active' | 'Inactive';
-}
+const productSchema = z.object({
+  name: z.string().min(1, "Product name is required"),
+  type: z.enum(['Personal', 'Business', 'Home', 'Vehicle', 'Education']),
+  minAmount: z.string().min(1, "Valid minimum amount is required"),
+  maxAmount: z.string().min(1, "Valid maximum amount is required"),
+  profitRate: z.string().optional(),
+  tenure: z.string().min(1, "Tenure is required"),
+  description: z.string().min(1, "Description is required"),
+  shariaStructure: z.enum(['Murabaha', 'Musharakah', 'Ijara', 'Istisna', 'Salam']),
+  profitSharingRatio: z.string().optional(),
+  minAge: z.string().optional(),
+  maxAge: z.string().optional(),
+  minIncome: z.string().optional(),
+  employmentType: z.array(z.string()).optional(),
+  creditScore: z.string().optional(),
+  requiredDocuments: z.array(z.string()).optional(),
+  processingFee: z.string().optional(),
+  prepaymentCharges: z.string().optional(),
+  latePaymentPenalty: z.string().optional(),
+  status: z.enum(['Draft', 'Active', 'Inactive']),
+}).refine(data => parseFloat(data.maxAmount) > parseFloat(data.minAmount), {
+  message: "Maximum amount must be greater than minimum",
+  path: ["maxAmount"],
+});
+
+type ProductFormData = z.infer<typeof productSchema>;
 
 export default function CreateProductPage() {
-  const [formData, setFormData] = useState<ProductFormData>({
-    name: '',
-    type: '',
-    minAmount: '',
-    maxAmount: '',
-    profitRate: '',
-    tenure: '',
-    description: '',
-    shariaStructure: '',
-    profitSharingRatio: '',
-    minAge: '18',
-    maxAge: '65',
-    minIncome: '',
-    employmentType: [],
-    creditScore: '',
-    requiredDocuments: [],
-    processingFee: '',
-    prepaymentCharges: '',
-    latePaymentPenalty: '',
-    status: 'Draft'
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<ProductFormData>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      name: '',
+      minAmount: '',
+      maxAmount: '',
+      profitRate: '',
+      tenure: '',
+      description: '',
+      profitSharingRatio: '',
+      minAge: '18',
+      maxAge: '65',
+      minIncome: '',
+      employmentType: [],
+      creditScore: '',
+      requiredDocuments: [],
+      processingFee: '',
+      prepaymentCharges: '',
+      latePaymentPenalty: '',
+      status: 'Draft'
+    }
   });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const productTypes = [
     { value: 'Personal', label: 'Personal Financing', description: 'Individual consumer financing' },
@@ -107,67 +107,14 @@ export default function CreateProductPage() {
     'Address Proof'
   ];
 
-  const handleInputChange = (field: keyof ProductFormData, value: string | string[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
-      });
-    }
-  };
-
-  const handleArrayToggle = (field: keyof ProductFormData, value: string) => {
-    const currentArray = (formData[field] as string[]) || [];
-    const newArray = currentArray.includes(value)
-      ? currentArray.filter(item => item !== value)
-      : [...currentArray, value];
-    
-    handleInputChange(field, newArray);
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Partial<ProductFormData> = {};
-    if (!formData.name.trim()) newErrors.name = 'Product name is required';
-    if (!formData.type) newErrors.type = '';
-    if (!formData.minAmount || parseFloat(formData.minAmount) <= 0) newErrors.minAmount = 'Valid minimum amount is required';
-    if (!formData.maxAmount || parseFloat(formData.maxAmount) <= 0) newErrors.maxAmount = 'Valid maximum amount is required';
-    if (parseFloat(formData.maxAmount) <= parseFloat(formData.minAmount)) newErrors.maxAmount = 'Maximum amount must be greater than minimum';
-    if (!formData.description.trim()) newErrors.description = 'Description is required';
-    if (!formData.shariaStructure) newErrors.shariaStructure = '';
-    if (!formData.tenure.trim()) newErrors.tenure = 'Tenure is required';
-
-    setErrors(newErrors as Record<string, string>);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    
+  const onSubmit = async (data: ProductFormData) => {
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Here you would normally send the data to your API
-      console.log('Creating product:', formData);
-      
-      // Redirect back to products page or show success message
-      // For now, we'll just log success
+      console.log('Creating product:', data);
       alert('Product created successfully!');
-      
     } catch (error) {
       console.error('Error creating product:', error);
       alert('Error creating product. Please try again.');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -177,46 +124,44 @@ export default function CreateProductPage() {
       <div className="flex items-center space-x-4">
         <Link
           href="/dashboard/loans/products"
-          className="text-slate-500 hover:text-slate-700"
+          className="text-dark-light hover:text-dark"
         >
           <ArrowLeftIcon className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Create New Product</h1>
-          <p className="text-slate-600">Create a new Ethical banking loan product</p>
+          <h1 className="text-2xl font-bold text-dark">Create New Product</h1>
+          <p className="text-dark-light">Create a new Ethical banking loan product</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Basic Information */}
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+        <div className="bg-light shadow-md rounded-lg p-6 border border-secondary-dark">
           <div className="flex items-center space-x-2 mb-6">
-            <BanknotesIcon className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-slate-900">Basic Information</h2>
+            <BanknotesIcon className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold text-dark">Basic Information</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Product Name *</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Product Name *</label>
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                className={`w-full px-4 py-2 border rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.name ? 'border-red-300' : 'border-gray-300'
+                {...register("name")}
+                className={`w-full px-4 py-2 border rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent ${
+                  errors.name ? 'border-danger' : 'border-secondary-dark'
                 }`}
                 placeholder="Enter product name"
               />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-danger text-xs mt-1">{errors.name.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Product Type *</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Product Type *</label>
               <select
-                value={formData.type}
-                onChange={(e) => handleInputChange('type', e.target.value)}
-                className={`w-full px-4 py-2 border rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.type ? 'border-red-300' : 'border-gray-300'
+                {...register("type")}
+                className={`w-full px-4 py-2 border rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent ${
+                  errors.type ? 'border-danger' : 'border-secondary-dark'
                 }`}
               >
                 <option value="">Select product type</option>
@@ -224,54 +169,51 @@ export default function CreateProductPage() {
                   <option key={type.value} value={type.value}>{type.label}</option>
                 ))}
               </select>
-              {errors.type && <p className="text-red-500 text-xs mt-1">{errors.type}</p>}
+              {errors.type && <p className="text-danger text-xs mt-1">{errors.type.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Minimum Amount (₹) *</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Minimum Amount (₹) *</label>
               <input
                 type="number"
-                value={formData.minAmount}
-                onChange={(e) => handleInputChange('minAmount', e.target.value)}
-                className={`w-full px-4 py-2 border rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.minAmount ? 'border-red-300' : 'border-gray-300'
+                {...register("minAmount")}
+                className={`w-full px-4 py-2 border rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent ${
+                  errors.minAmount ? 'border-danger' : 'border-secondary-dark'
                 }`}
                 placeholder="50000"
               />
-              {errors.minAmount && <p className="text-red-500 text-xs mt-1">{errors.minAmount}</p>}
+              {errors.minAmount && <p className="text-danger text-xs mt-1">{errors.minAmount.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Maximum Amount (₹) *</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Maximum Amount (₹) *</label>
               <input
                 type="number"
-                value={formData.maxAmount}
-                onChange={(e) => handleInputChange('maxAmount', e.target.value)}
-                className={`w-full px-4 py-2 border rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.maxAmount ? 'border-red-300' : 'border-gray-300'
+                {...register("maxAmount")}
+                className={`w-full px-4 py-2 border rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent ${
+                  errors.maxAmount ? 'border-danger' : 'border-secondary-dark'
                 }`}
                 placeholder="1000000"
               />
-              {errors.maxAmount && <p className="text-red-500 text-xs mt-1">{errors.maxAmount}</p>}
+              {errors.maxAmount && <p className="text-danger text-xs mt-1">{errors.maxAmount.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Tenure</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Tenure</label>
               <input
                 type="text"
-                value={formData.tenure}
-                onChange={(e) => handleInputChange('tenure', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                {...register("tenure")}
+                className="w-full px-4 py-2 border border-secondary-dark rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="e.g., 6-36 months"
               />
+              {errors.tenure && <p className="text-danger text-xs mt-1">{errors.tenure.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Status</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Status</label>
               <select
-                value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                {...register("status")}
+                className="w-full px-4 py-2 border border-secondary-dark rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="Draft">Draft</option>
                 <option value="Active">Active</option>
@@ -281,35 +223,33 @@ export default function CreateProductPage() {
           </div>
 
           <div className="mt-6">
-            <label className="block text-sm font-medium text-slate-700 mb-2">Description *</label>
+            <label className="block text-sm font-medium text-dark-light mb-2">Description *</label>
             <textarea
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              {...register("description")}
               rows={3}
-              className={`w-full px-4 py-2 border rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.description ? 'border-red-300' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent ${
+                errors.description ? 'border-danger' : 'border-secondary-dark'
               }`}
               placeholder="Describe the loan product features and benefits"
             />
-            {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
+            {errors.description && <p className="text-danger text-xs mt-1">{errors.description.message}</p>}
           </div>
         </div>
 
         {/* Islamic Banking Configuration */}
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+        <div className="bg-light shadow-md rounded-lg p-6 border border-secondary-dark">
           <div className="flex items-center space-x-2 mb-6">
-            <DocumentTextIcon className="h-5 w-5 text-green-600" />
-            <h2 className="text-lg font-semibold text-slate-900">Ethical Banking Configuration</h2>
+            <DocumentTextIcon className="h-5 w-5 text-accent" />
+            <h2 className="text-lg font-semibold text-dark">Ethical Banking Configuration</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Sharia Structure *</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Sharia Structure *</label>
               <select
-                value={formData.shariaStructure}
-                onChange={(e) => handleInputChange('shariaStructure', e.target.value)}
-                className={`w-full px-4 py-2 border rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.shariaStructure ? 'border-red-300' : 'border-gray-300'
+                {...register("shariaStructure")}
+                className={`w-full px-4 py-2 border rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent ${
+                  errors.shariaStructure ? 'border-danger' : 'border-secondary-dark'
                 }`}
               >
                 <option value="">Select Sharia structure</option>
@@ -317,41 +257,39 @@ export default function CreateProductPage() {
                   <option key={structure.value} value={structure.value}>{structure.label}</option>
                 ))}
               </select>
-              {errors.shariaStructure && <p className="text-red-500 text-xs mt-1">{errors.shariaStructure}</p>}
+              {errors.shariaStructure && <p className="text-danger text-xs mt-1">{errors.shariaStructure.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Profit Rate (%)</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Profit Rate (%)</label>
               <input
                 type="number"
                 step="0.01"
-                value={formData.profitRate}
-                onChange={(e) => handleInputChange('profitRate', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                {...register("profitRate")}
+                className="w-full px-4 py-2 border border-secondary-dark rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="0.00"
               />
-              <p className="text-xs text-slate-500 mt-1">Leave blank for profit-sharing products</p>
+              <p className="text-xs text-dark-light mt-1">Leave blank for profit-sharing products</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Profit Sharing Ratio (%)</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Profit Sharing Ratio (%)</label>
               <input
                 type="number"
-                value={formData.profitSharingRatio}
-                onChange={(e) => handleInputChange('profitSharingRatio', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                {...register("profitSharingRatio")}
+                className="w-full px-4 py-2 border border-secondary-dark rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="60"
               />
-              <p className="text-xs text-slate-500 mt-1">For Musharakah products</p>
+              <p className="text-xs text-dark-light mt-1">For Musharakah products</p>
             </div>
           </div>
 
-          <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+          <div className="mt-4 p-4 bg-accent/10 rounded-lg border border-accent/20">
             <div className="flex items-start space-x-3">
-              <InformationCircleIcon className="h-5 w-5 text-green-600 mt-0.5" />
+              <InformationCircleIcon className="h-5 w-5 text-accent mt-0.5" />
               <div>
-                <h4 className="text-sm font-medium text-green-800">Sharia Compliance</h4>
-                <p className="text-sm text-green-700 mt-1">
+                <h4 className="text-sm font-medium text-accent">Sharia Compliance</h4>
+                <p className="text-sm text-accent/80 mt-1">
                   This product will be reviewed by our Sharia Advisory Board to ensure full compliance 
                   with Ethical banking principles before activation.
                 </p>
@@ -361,119 +299,135 @@ export default function CreateProductPage() {
         </div>
 
         {/* Eligibility Criteria */}
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+        <div className="bg-light shadow-md rounded-lg p-6 border border-secondary-dark">
           <div className="flex items-center space-x-2 mb-6">
-            <CogIcon className="h-5 w-5 text-purple-600" />
-            <h2 className="text-lg font-semibold text-slate-900">Eligibility Criteria</h2>
+            <CogIcon className="h-5 w-5 text-info" />
+            <h2 className="text-lg font-semibold text-dark">Eligibility Criteria</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Minimum Age</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Minimum Age</label>
               <input
                 type="number"
-                value={formData.minAge}
-                onChange={(e) => handleInputChange('minAge', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                {...register("minAge")}
+                className="w-full px-4 py-2 border border-secondary-dark rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="18"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Maximum Age</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Maximum Age</label>
               <input
                 type="number"
-                value={formData.maxAge}
-                onChange={(e) => handleInputChange('maxAge', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                {...register("maxAge")}
+                className="w-full px-4 py-2 border border-secondary-dark rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="65"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Minimum Income (₹)</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Minimum Income (₹)</label>
               <input
                 type="number"
-                value={formData.minIncome}
-                onChange={(e) => handleInputChange('minIncome', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                {...register("minIncome")}
+                className="w-full px-4 py-2 border border-secondary-dark rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="25000"
               />
             </div>
           </div>
 
           <div className="mt-6">
-            <label className="block text-sm font-medium text-slate-700 mb-3">Employment Types</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {employmentTypes.map((type) => (
-                <label key={type} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.employmentType.includes(type)}
-                    onChange={() => handleArrayToggle('employmentType', type)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-600">{type}</span>
-                </label>
-              ))}
-            </div>
+            <label className="block text-sm font-medium text-dark-light mb-3">Employment Types</label>
+            <Controller
+              name="employmentType"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {employmentTypes.map((type) => (
+                    <label key={type} className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={field.value?.includes(type)}
+                        onChange={() => {
+                          const newValue = field.value?.includes(type)
+                            ? field.value.filter((item) => item !== type)
+                            : [...(field.value || []), type];
+                          field.onChange(newValue);
+                        }}
+                        className="rounded border-secondary-dark text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm text-dark-light">{type}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            />
           </div>
 
           <div className="mt-6">
-            <label className="block text-sm font-medium text-slate-700 mb-3">Required Documents</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {documentOptions.map((doc) => (
-                <label key={doc} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.requiredDocuments.includes(doc)}
-                    onChange={() => handleArrayToggle('requiredDocuments', doc)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-600">{doc}</span>
-                </label>
-              ))}
-            </div>
+            <label className="block text-sm font-medium text-dark-light mb-3">Required Documents</label>
+            <Controller
+              name="requiredDocuments"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {documentOptions.map((doc) => (
+                    <label key={doc} className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={field.value?.includes(doc)}
+                        onChange={() => {
+                          const newValue = field.value?.includes(doc)
+                            ? field.value.filter((item) => item !== doc)
+                            : [...(field.value || []), doc];
+                          field.onChange(newValue);
+                        }}
+                        className="rounded border-secondary-dark text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm text-dark-light">{doc}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            />
           </div>
         </div>
 
         {/* Terms and Conditions */}
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900 mb-6">Terms and Conditions</h2>
+        <div className="bg-light shadow-md rounded-lg p-6 border border-secondary-dark">
+          <h2 className="text-lg font-semibold text-dark mb-6">Terms and Conditions</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Processing Fee (%)</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Processing Fee (%)</label>
               <input
                 type="number"
                 step="0.01"
-                value={formData.processingFee}
-                onChange={(e) => handleInputChange('processingFee', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                {...register("processingFee")}
+                className="w-full px-4 py-2 border border-secondary-dark rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="1.00"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Prepayment Charges (%)</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Prepayment Charges (%)</label>
               <input
                 type="number"
                 step="0.01"
-                value={formData.prepaymentCharges}
-                onChange={(e) => handleInputChange('prepaymentCharges', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                {...register("prepaymentCharges")}
+                className="w-full px-4 py-2 border border-secondary-dark rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="2.00"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Late Payment Penalty (%)</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Late Payment Penalty (%)</label>
               <input
                 type="number"
                 step="0.01"
-                value={formData.latePaymentPenalty}
-                onChange={(e) => handleInputChange('latePaymentPenalty', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                {...register("latePaymentPenalty")}
+                className="w-full px-4 py-2 border border-secondary-dark rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="0.50"
               />
             </div>
@@ -481,40 +435,31 @@ export default function CreateProductPage() {
         </div>
 
         {/* Form Actions */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-end items-center">
           <Link
             href="/dashboard/loans/products"
-            className="bg-slate-200 text-slate-700 px-6 py-2 rounded-lg hover:bg-slate-300 transition-colors"
+            className="bg-secondary text-dark px-6 py-2 rounded-md hover:bg-secondary-dark transition-colors mr-3"
           >
             Cancel
           </Link>
 
-          <div className="flex space-x-3">
-            <button
-              type="button"
-              onClick={() => handleInputChange('status', 'Draft')}
-              className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              Save as Draft
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Creating...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircleIcon className="h-4 w-4" />
-                  <span>Create Product</span>
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Creating...</span>
+              </>
+            ) : (
+              <>
+                <CheckCircleIcon className="h-4 w-4" />
+                <span>Create Product</span>
+              </>
+            )}
+          </button>
         </div>
       </form>
     </div>
