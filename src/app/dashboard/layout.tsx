@@ -1,7 +1,6 @@
 "use client";
-import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   ChartBarIcon,
@@ -24,6 +23,7 @@ import {
   ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline";
 import { CreditCardIcon } from "@heroicons/react/24/outline";
+import { SettingsProvider } from "./settings/context/SettingsContext";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: ChartBarIcon },
@@ -258,12 +258,12 @@ const navigation = [
 
 function Sidebar() {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const router = useRouter();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-  // Get user data from session
-  const userRole = session?.user?.role;
-  const userEmail = session?.user?.email;
+  // Get user data from localStorage
+  const userRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : null;
+  const userEmail = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : null;
 
   // Get user display name based on role
   const getUserDisplayName = () => {
@@ -319,120 +319,144 @@ function Sidebar() {
     );
   };
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/login' });
+  const handleSignOut = () => {
+    // Clear any stored user data/session
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userEmail');
+    
+    // Redirect to login page
+    router.push('/login');
   };
 
   return (
-    <aside className="fixed top-0 left-0 w-64 bg-light text-dark h-screen flex flex-col border-r border-secondary-dark shadow-sm">
-      {/* Header */}
-      <div className="flex-shrink-0 p-4 border-b border-secondary-dark">
+    <aside className="fixed top-0 left-0 w-68 bg-white border-r border-stripe-border h-screen flex flex-col shadow-stripe-sm">
+      {/* Header - Fixed at top */}
+      <div className="flex-shrink-0 p-6 border-b border-stripe-border">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <img src="/logo.jpeg" alt="FivoPay Logo" className="w-full h-full object-cover rounded-lg" />
+          <div className="w-12 h-12 bg-stripe-primary rounded-stripe flex items-center justify-center">
+            <img src="/logo.jpeg" alt="FivoPay Logo" className="w-full h-full object-cover rounded-stripe" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">FivoPay</h1>
-            <p className="text-xs text-dark-light">Ethical Banking</p>
+            <h1 className="text-lg font-semibold text-stripe-text">FivoPay</h1>
+            <p className="text-xs text-stripe-text-secondary">Digital Banking</p>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden p-4">
-        <ul className="space-y-2">
-          {navigation.map((item) => {
-            const isActive =
-              item.href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname === item.href ||
-                  pathname.startsWith(item.href + "/");
+      {/* Navigation - Scrollable with hidden scrollbar */}
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
+        <div className="p-6">
+          <ul className="space-y-2">
+            {navigation.map((item) => {
+              // Fix highlighting logic: Dashboard should only be active when exactly on /dashboard
+              // Other items should be active when on their path or sub-paths
+              const isActive =
+                item.href === "/dashboard"
+                  ? pathname === "/dashboard"
+                  : pathname === item.href ||
+                    pathname.startsWith(item.href + "/");
 
-            const isExpanded =
-              expandedItems.includes(item.name) ||
-              (item.subItems && pathname.startsWith(item.href + "/"));
+              const isExpanded =
+                expandedItems.includes(item.name) ||
+                (item.subItems && pathname.startsWith(item.href + "/"));
 
-            return (
-              <li key={item.name}>
-                <div className="flex items-center">
-                  <Link
-                    href={item.href}
-                    className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 flex-1 ${
-                      isActive
-                        ? "bg-secondary-dark text-primary font-semibold"
-                        : "text-dark-light hover:bg-secondary-dark hover:text-dark"
-                    }`}
-                  >
-                    <item.icon className="mr-3 h-5 w-5" />
-                    {item.name}
-                  </Link>
-
-                  {item.subItems && (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        toggleExpanded(item.name);
-                      }}
-                      className="p-2 text-dark-light hover:text-dark transition-colors duration-200"
+              return (
+                <li key={item.name}>
+                  <div className="flex items-center">
+                    <Link
+                      href={item.href}
+                      className={`flex items-center px-4 py-2 text-sm font-medium rounded-stripe transition-colors duration-200 flex-1 ${
+                        isActive
+                          ? "bg-stripe-primary text-white shadow-stripe-sm"
+                          : "text-stripe-text-secondary hover:bg-gray-50 hover:text-stripe-text"
+                      }`}
                     >
-                      <div
-                        className={`transform transition-transform duration-200 ${
-                          isExpanded ? "rotate-90" : "rotate-0"
-                        }`}
-                      >
-                        <ChevronRightIcon className="h-4 w-4" />
-                      </div>
-                    </button>
-                  )}
-                </div>
+                      <item.icon className="mr-3 h-5 w-5" />
+                      {item.name}
+                    </Link>
 
-                {item.subItems && (
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                      isExpanded ? "max-h-96" : "max-h-0"
-                    }`}
-                  >
-                    <div className="mt-1 ml-4 pl-4 border-l border-secondary-dark space-y-1">
-                      {item.subItems.map((subItem) => {
-                        const isSubActive = pathname === subItem.href;
-                        return (
-                          <Link
-                            key={subItem.name}
-                            href={subItem.href}
-                            className={`flex items-center px-3 py-2 text-xs font-medium rounded-md transition-colors duration-200 ${
-                              isSubActive
-                                ? "bg-secondary-dark text-primary font-semibold"
-                                : "text-dark-light hover:bg-secondary-dark hover:text-dark"
-                            }`}
-                          >
-                            <subItem.icon className="mr-3 h-4 w-4" />
-                            {subItem.name}
-                          </Link>
-                        );
-                      })}
-                    </div>
+                    {/* Dropdown toggle button for items with subitems */}
+                    {item.subItems && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          toggleExpanded(item.name);
+                        }}
+                        className="p-2 text-stripe-text-muted hover:text-stripe-text transition-colors duration-200"
+                      >
+                        <div
+                          className={`transform transition-transform duration-200 ${
+                            isExpanded ? "rotate-90" : "rotate-0"
+                          }`}
+                        >
+                          <ChevronRightIcon className="h-4 w-4" />
+                        </div>
+                      </button>
+                    )}
                   </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+
+                  {/* Render sub-items with smooth transition */}
+                  {item.subItems && (
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                        isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                      }`}
+                    >
+                      <div className="mt-2 ml-4 space-y-1">
+                        {item.subItems.map((subItem, index) => {
+                          const isSubActive = pathname === subItem.href;
+                          return (
+                            <div
+                              key={subItem.name}
+                              className={`transform transition-all duration-200 ${
+                                isExpanded
+                                  ? "translate-x-0 opacity-100"
+                                  : "-translate-x-2 opacity-0"
+                              }`}
+                              style={{
+                                transitionDelay: isExpanded
+                                  ? `${index * 50}ms`
+                                  : "0ms",
+                              }}
+                            >
+                              <Link
+                                href={subItem.href}
+                                className={`flex items-center px-4 py-2 text-xs font-medium rounded-stripe transition-colors duration-200 ${
+                                  isSubActive
+                                    ? "bg-stripe-info-light text-stripe-primary border-l-2 border-stripe-primary"
+                                    : "text-stripe-text-muted hover:bg-gray-50 hover:text-stripe-text"
+                                }`}
+                              >
+                                <subItem.icon className="mr-3 h-4 w-4" />
+                                {subItem.name}
+                              </Link>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </nav>
 
-      {/* User Menu */}
-      <div className="flex-shrink-0 p-4 border-t border-secondary-dark">
-        <div className="flex items-center space-x-3 mb-3">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-            <span className="text-white text-sm font-semibold">{getUserInitials()}</span>
+      {/* User Menu - Fixed at bottom */}
+      <div className="flex-shrink-0 p-6 border-t border-stripe-border">
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="w-8 h-8 bg-stripe-primary rounded-full flex items-center justify-center">
+            <span className="text-white text-sm font-medium">{getUserInitials()}</span>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium">{getUserDisplayName()}</p>
-            <p className="text-xs text-dark-light">{userEmail || 'user@fivopay.com'}</p>
+            <p className="text-sm font-medium text-stripe-text">{getUserDisplayName()}</p>
+            <p className="text-xs text-stripe-text-secondary">{userEmail || 'user@fivopay.com'}</p>
           </div>
         </div>
         <button 
-          onClick={() => handleSignOut()}
-          className="flex items-center text-dark-light hover:text-dark text-sm w-full px-3 py-2 rounded-md hover:bg-secondary-dark transition-colors duration-200"
+          onClick={handleSignOut}
+          className="flex items-center text-stripe-text-secondary hover:text-stripe-text text-sm w-full transition-colors duration-200"
         >
           <ArrowLeftOnRectangleIcon className="mr-2 h-4 w-4" />
           Sign Out
@@ -444,20 +468,20 @@ function Sidebar() {
 
 function Header() {
   return (
-    <header className="bg-light border-b border-secondary-dark h-20 flex items-center justify-between px-8">
+    <header className="bg-white border-b border-stripe-border h-16 flex items-center justify-between px-6">
       <div>
-        <h2 className="text-2xl font-bold text-dark">
+        <h2 className="text-lg font-semibold text-stripe-text">
           Banking Administration
         </h2>
-        <p className="text-md text-dark-light">
-          Sharia-compliant Banking as a Service
+        <p className="text-sm text-stripe-text-secondary">
+          Regulatory-compliant Banking as a Service
         </p>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2 bg-accent/10 px-4 py-2 rounded-full">
-          <div className="w-2.5 h-2.5 bg-accent rounded-full"></div>
-          <span className="text-md font-semibold text-accent">
-            Sharia Compliant
+        <div className="flex items-center space-x-2 bg-stripe-success-light px-3 py-1 rounded-stripe border border-green-200">
+          <div className="w-2 h-2 bg-stripe-success rounded-full"></div>
+          <span className="text-sm font-medium text-green-700">
+            Regulatory Compliant
           </span>
         </div>
       </div>
@@ -471,16 +495,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar />
-      <div className="flex-1 flex flex-col ml-64">
-        <Header />
-        <main className="flex-1 p-8">
-          <div className="max-w-7xl mx-auto w-full">
-            {children}
+    <SettingsProvider>
+        <div className="flex min-h-screen bg-stripe-background">
+          <Sidebar />
+          <div className="flex-1 flex flex-col ml-68">
+            <Header />
+            <main className="flex-1 p-6 max-w-7xl mx-auto w-full overflow-y-auto">{children}</main>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+    </SettingsProvider>
   );
 }

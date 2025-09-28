@@ -30,7 +30,7 @@ const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => vo
   return (
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
       <span>{toast.message}</span>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-stripe-text-secondary">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
@@ -56,12 +56,12 @@ const ConfirmDialog = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold text-stripe-text mb-2">{title}</h3>
+        <p className="text-stripe-text-secondary mb-6">{message}</p>
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-stripe-border text-stripe-text rounded-lg hover:bg-stripe-background-light"
           >
             Cancel
           </button>
@@ -125,8 +125,8 @@ export default function AccountManagementPage() {
       case 'Active': return 'bg-green-100 text-green-800';
       case 'Pending': return 'bg-yellow-100 text-yellow-800';
       case 'Suspended': return 'bg-red-100 text-red-800';
-      case 'Closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Closed': return 'bg-stripe-background-dark text-stripe-text-secondary';
+      default: return 'bg-stripe-background-dark text-stripe-text-secondary';
     }
   };
 
@@ -136,7 +136,7 @@ export default function AccountManagementPage() {
       case 'Pending': return 'bg-yellow-100 text-yellow-800';
       case 'Under Review': return 'bg-blue-100 text-blue-800';
       case 'Rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-stripe-background-dark text-stripe-text-secondary';
     }
   };
 
@@ -147,8 +147,8 @@ export default function AccountManagementPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Account Management</h1>
-          <p className="text-slate-600">Manage customer accounts and banking services</p>
+          <h1 className="text-2xl font-bold text-stripe-text">Account Management</h1>
+          <p className="text-stripe-text-secondary">Manage customer accounts and banking services</p>
         </div>
         <div className="flex space-x-3">
           <Link
@@ -172,8 +172,8 @@ export default function AccountManagementPage() {
               <PlusIcon className="h-6 w-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <h3 className="text-lg font-semibold text-slate-900">Account Creation</h3>
-              <p className="text-sm text-slate-600">Create new customer accounts with Ethical banking compliance</p>
+              <h3 className="text-lg font-semibold text-stripe-text">Account Creation</h3>
+              <p className="text-sm text-stripe-text-secondary">Create new customer accounts with regulatory compliance</p>
             </div>
           </div>
         </Link>
@@ -187,8 +187,8 @@ export default function AccountManagementPage() {
               <ShieldCheckIcon className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <h3 className="text-lg font-semibold text-slate-900">Account Verification</h3>
-              <p className="text-sm text-slate-600">Verify KYC documents and approve customer accounts</p>
+              <h3 className="text-lg font-semibold text-stripe-text">Account Verification</h3>
+              <p className="text-sm text-stripe-text-secondary">Verify KYC documents and approve customer accounts</p>
             </div>
           </div>
         </Link>
@@ -202,8 +202,8 @@ export default function AccountManagementPage() {
               <CreditCardIcon className="h-6 w-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-slate-900">{accounts.length}</p>
-              <p className="text-sm font-medium text-slate-600">Total Accounts</p>
+              <p className="text-2xl font-bold text-stripe-text">{accounts.length}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Accounts</p>
             </div>
           </div>
         </div>
@@ -214,8 +214,8 @@ export default function AccountManagementPage() {
               <CheckCircleIcon className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-slate-900">{accounts.filter(acc => acc.status === 'Active').length}</p>
-              <p className="text-sm font-medium text-slate-600">Active Accounts</p>
+              <p className="text-2xl font-bold text-stripe-text">{accounts.filter(acc => acc.status === 'Active').length}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Active Accounts</p>
             </div>
           </div>
         </div>
@@ -226,8 +226,8 @@ export default function AccountManagementPage() {
               <ClockIcon className="h-6 w-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-slate-900">{accounts.filter(acc => acc.status === 'Pending').length}</p>
-              <p className="text-sm font-medium text-slate-600">Pending Approval</p>
+              <p className="text-2xl font-bold text-stripe-text">{accounts.filter(acc => acc.status === 'Pending').length}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Pending Approval</p>
             </div>
           </div>
         </div>
@@ -238,8 +238,8 @@ export default function AccountManagementPage() {
               <BanknotesIcon className="h-6 w-6 text-purple-600" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-slate-900">₹{(accounts.reduce((sum, acc) => sum + acc.balance, 0) / 100000).toFixed(1)}L</p>
-              <p className="text-sm font-medium text-slate-600">Total Balance</p>
+              <p className="text-2xl font-bold text-stripe-text">₹{(accounts.reduce((sum, acc) => sum + acc.balance, 0) / 100000).toFixed(1)}L</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Balance</p>
             </div>
           </div>
         </div>
@@ -249,32 +249,32 @@ export default function AccountManagementPage() {
       <div className="bg-white shadow-lg rounded-2xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-stripe-background-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Account</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type & Balance</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">KYC Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase">Account</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase">Type & Balance</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase">KYC Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {displayAccounts.map((account) => (
-                <tr key={account.id} className="hover:bg-gray-50">
+                <tr key={account.id} className="hover:bg-stripe-background-light">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                         <UserIcon className="h-5 w-5 text-blue-600" />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{account.customerName}</div>
-                        <div className="text-sm text-gray-500">{account.accountNumber}</div>
+                        <div className="text-sm font-medium text-stripe-text">{account.customerName}</div>
+                        <div className="text-sm text-stripe-text-secondary">{account.accountNumber}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{account.accountType}</div>
-                    <div className="text-sm text-gray-500">₹{account.balance.toLocaleString()}</div>
+                    <div className="text-sm font-medium text-stripe-text">{account.accountType}</div>
+                    <div className="text-sm text-stripe-text-secondary">₹{account.balance.toLocaleString()}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(account.status)}`}>

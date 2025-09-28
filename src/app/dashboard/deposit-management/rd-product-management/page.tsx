@@ -248,7 +248,7 @@ export default function RDProductManagementPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">RD Product Management</h1>
-          <p className="text-gray-600 mt-1">Manage Mudarabah Recurring Deposit products and configurations</p>
+          <p className="text-gray-600 mt-1">Manage Recurring Deposit products and configurations</p>
         </div>
         <button
           onClick={() => openModal('create')}
@@ -299,7 +299,7 @@ export default function RDProductManagementPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">Avg Profit Rate</p>
               <p className="text-3xl font-bold text-gray-900">{avgProfitRate.toFixed(1)}%</p>
-              <p className="text-sm text-blue-600 mt-1">Sharia Compliant</p>
+              <p className="text-sm text-blue-600 mt-1">Regulatory Compliant</p>
             </div>
             <ArrowTrendingUpIcon className="w-12 h-12 text-red-600" />
           </div>
@@ -366,7 +366,7 @@ export default function RDProductManagementPage() {
                   <p className="text-sm text-gray-600">ID: {product.id}</p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <ShieldCheckIcon className="w-5 h-5 text-green-600" title="Sharia Compliant" />
+                  <ShieldCheckIcon className="w-5 h-5 text-green-600" title="Regulatory Compliant" />
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                     product.status === 'Active'
                       ? 'text-green-600 bg-green-100' 

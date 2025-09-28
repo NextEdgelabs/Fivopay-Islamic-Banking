@@ -27,7 +27,7 @@ const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => vo
   return (
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
       <span>{toast.message}</span>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-stripe-text-secondary">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
@@ -72,25 +72,25 @@ export default function AccountCreationPage() {
   const accountTypes = [
     {
       type: 'Savings' as const,
-      name: 'Ethical Savings Account',
-      description: 'Sharia-compliant savings with profit sharing',
+      name: 'Standard Savings Account',
+      description: 'Standard savings with competitive interest rates',
       minDeposit: 1000
     },
     {
       type: 'Current' as const,
-      name: 'Ethical Current Account',
-      description: 'Business current account with Sharia compliance',
+      name: 'Business Current Account',
+      description: 'Business current account with regulatory compliance',
       minDeposit: 5000
     },
     {
       type: 'Investment' as const,
-      name: 'Ethical Investment Account',
-      description: 'High-yield investment account based on Mudarabah',
+      name: 'Investment Account',
+      description: 'High-yield investment account with competitive returns',
       minDeposit: 50000
     },
     {
       type: 'Business' as const,
-      name: 'Ethical Business Account',
+      name: 'Business Account',
       description: 'Comprehensive business banking solutions',
       minDeposit: 25000
     }
@@ -155,15 +155,15 @@ export default function AccountCreationPage() {
       case 1:
         return (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-slate-900">Personal Information</h2>
+            <h2 className="text-xl font-semibold text-stripe-text">Personal Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">First Name</label>
+                <label className="block text-sm font-medium text-stripe-text mb-2">First Name</label>
                 <input
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 text-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-stripe-border text-stripe-text rounded-lg focus:ring-2 focus:ring-stripe-primary"
                   placeholder="Enter first name"
                 />
               </div>
@@ -323,7 +323,7 @@ export default function AccountCreationPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Account Creation</h1>
-          <p className="text-slate-600">Create a new Ethical banking account</p>
+          <p className="text-slate-600">Create a new banking account</p>
         </div>
       </div>
 

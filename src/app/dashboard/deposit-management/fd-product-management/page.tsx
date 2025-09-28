@@ -268,7 +268,7 @@ export default function FDProductManagementPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">FD Product Management</h1>
-          <p className="text-gray-600 mt-1">Manage Mudarabah Fixed Deposit products and configurations</p>
+          <p className="text-gray-600 mt-1">Manage Fixed Deposit products and configurations</p>
         </div>
         <button
           onClick={() => openModal('create')}
@@ -324,7 +324,7 @@ export default function FDProductManagementPage() {
                   : '0.0'
                 }%
               </p>
-              <p className="text-sm text-blue-600 mt-1">Sharia Compliant</p>
+              <p className="text-sm text-blue-600 mt-1">Regulatory Compliant</p>
             </div>
             <ChartBarIcon className="w-12 h-12 text-red-600" />
           </div>
@@ -372,7 +372,7 @@ export default function FDProductManagementPage() {
                   <p className="text-sm text-gray-600">ID: {product.id}</p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <ShieldCheckIcon className="w-5 h-5 text-green-600" title="Sharia Compliant" />
+                  <ShieldCheckIcon className="w-5 h-5 text-green-600" title="Regulatory Compliant" />
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                     product.status === 'Active'
                       ? 'text-green-600 bg-green-100' 

@@ -13,7 +13,7 @@ export type Employee = {
   status: 'Active' | 'Inactive' | 'Pending';
   lastLogin?: string;
   joinDate: string;
-  shariaCompliant?: boolean;
+  regulatoryCompliant?: boolean;
 };
 
 export type Customer = {
@@ -31,7 +31,7 @@ export type Customer = {
 };
 
 // Interfaces for different loan-related data types
-interface LoanApplication {
+export interface LoanApplication {
   id: string;
   applicantName: string;
   loanType: string;
@@ -47,7 +47,7 @@ interface LoanApplication {
   tenure?: string;
 }
 
-interface LoanProduct {
+export interface LoanProduct {
   id: string;
   name: string;
   type: 'Personal' | 'Business' | 'Home' | 'Vehicle' | 'Education';
@@ -167,13 +167,13 @@ const initialEmployees: Employee[] = [
     name: "Ahmed Al-Rashid",
     email: "ahmed.rashid@fivopay.com",
     phone: "+971-50-123-4567",
-          position: "Senior Ethical Banking Specialist",
-    department: "Sharia Compliance",
+          position: "Senior Banking Specialist",
+    department: "Regulatory Compliance",
     role: "Compliance",
     status: 'Active',
     lastLogin: "2 hours ago",
     joinDate: "2023-03-15",
-    shariaCompliant: true,
+    regulatoryCompliant: true,
   },
   {
     id: "EMP-002", 
@@ -186,7 +186,7 @@ const initialEmployees: Employee[] = [
     status: 'Active', 
     lastLogin: "1 hour ago",
     joinDate: "2023-01-20",
-    shariaCompliant: true,
+    regulatoryCompliant: true,
   },
   {
     id: "EMP-003",
@@ -199,7 +199,7 @@ const initialEmployees: Employee[] = [
     status: 'Active',
     lastLogin: "30 minutes ago",
     joinDate: "2022-11-10",
-    shariaCompliant: true,
+    regulatoryCompliant: true,
   },
   {
     id: "EMP-004",
@@ -212,7 +212,7 @@ const initialEmployees: Employee[] = [
     status: 'Inactive',
     lastLogin: "3 days ago",
     joinDate: "2023-06-01",
-    shariaCompliant: false,
+    regulatoryCompliant: false,
   },
   {
     id: "EMP-005",
@@ -225,7 +225,7 @@ const initialEmployees: Employee[] = [
     status: 'Active',
     lastLogin: "5 hours ago", 
     joinDate: "2022-08-12",
-    shariaCompliant: true,
+    regulatoryCompliant: true,
   },
 ];
 
@@ -235,7 +235,7 @@ const initialCustomers: Customer[] = [
     name: "Ahmed Al-Mahmoud",
     email: "ahmed.mahmoud@email.com",
     phone: "+971-50-123-4567",
-    accountType: "Ethical Savings",
+    accountType: "Savings Account",
     kycStatus: "Verified",
     verificationLevel: "Level 3",
     joinDate: "2023-11-15",
@@ -248,7 +248,7 @@ const initialCustomers: Customer[] = [
     name: "Fatima Al-Zahra",
     email: "fatima.zahra@email.com", 
     phone: "+971-52-987-6543",
-    accountType: "Ethical Current",
+    accountType: "Current Account",
     kycStatus: "Verified",
     verificationLevel: "Level 2",
     joinDate: "2023-10-22",
@@ -261,7 +261,7 @@ const initialCustomers: Customer[] = [
     name: "Omar Hassan",
     email: "omar.hassan@email.com",
     phone: "+971-55-456-7890",
-    accountType: "Ijara Financing",
+    accountType: "Lease Financing",
     kycStatus: "Pending",
     verificationLevel: "Level 1",
     joinDate: "2023-12-01",
@@ -274,7 +274,7 @@ const initialCustomers: Customer[] = [
     name: "Aisha Mohammed",
     email: "aisha.mohammed@email.com",
     phone: "+971-56-234-5678",
-    accountType: "Halal Investment",
+    accountType: "Investment Account",
     kycStatus: "Verified",
     verificationLevel: "Level 3",
     joinDate: "2023-09-10",
@@ -287,7 +287,7 @@ const initialCustomers: Customer[] = [
     name: "Yusuf Al-Rashid",
     email: "yusuf.rashid@email.com",
     phone: "+971-50-876-5432",
-    accountType: "Ethical Savings",
+    accountType: "Savings Account",
     kycStatus: "Under Review",
     verificationLevel: "Level 2",
     joinDate: "2023-11-28",
@@ -481,7 +481,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<LoanProduct[]>([
     {
       id: '1',
-      name: 'Halal Personal Loan',
+      name: 'Personal Loan',
       type: 'Personal',
       minAmount: 50000,
       maxAmount: 1000000,
@@ -491,11 +491,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       applications: 156,
       disbursed: 89,
       createdDate: '2024-01-15',
-      description: 'Sharia-compliant personal financing based on Murabaha principles'
+      description: 'compliant personal financing based on financing principles'
     },
     {
       id: '2',
-      name: 'Ethical Business Financing',
+      name: 'Business Term Loan',
       type: 'Business',
       minAmount: 500000,
       maxAmount: 10000000,
@@ -505,7 +505,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       applications: 78,
       disbursed: 45,
       createdDate: '2024-01-10',
-      description: 'Profit-sharing business financing based on Musharakah principles'
+      description: 'Competitive business financing with flexible repayment terms'
     },
     {
       id: '3',
@@ -519,7 +519,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       applications: 234,
       disbursed: 167,
       createdDate: '2024-01-05',
-      description: 'Ethical home financing through Ijara (lease-to-own) structure'
+      description: 'Standard home financing with competitive mortgage rates'
     }
   ]);
 
@@ -557,7 +557,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       stages: [
         { id: '1', name: 'Document Verification', status: 'completed', completedDate: '2024-01-21', assignee: 'Sara Ahmed' },
         { id: '2', name: 'Credit Assessment', status: 'current', assignee: 'Omar Ali' },
-        { id: '3', name: 'Sharia Compliance Review', status: 'pending' },
+        { id: '3', name: 'Regulatory Compliance Review', status: 'pending' },
         { id: '4', name: 'Risk Assessment', status: 'pending' },
         { id: '5', name: 'Final Approval', status: 'pending' }
       ]
@@ -573,7 +573,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       stages: [
         { id: '1', name: 'Document Verification', status: 'completed', completedDate: '2024-01-19', assignee: 'Sara Ahmed' },
         { id: '2', name: 'Credit Assessment', status: 'completed', completedDate: '2024-01-20', assignee: 'Omar Ali' },
-        { id: '3', name: 'Sharia Compliance Review', status: 'current', assignee: 'Dr. Hassan Sheikh' },
+        { id: '3', name: 'Regulatory Compliance Review', status: 'current', assignee: 'Dr. Hassan Sheikh' },
         { id: '4', name: 'Risk Assessment', status: 'pending' },
         { id: '5', name: 'Final Approval', status: 'pending' }
       ]

@@ -32,7 +32,7 @@ const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => vo
   return (
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
       <span>{toast.message}</span>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-stripe-text-secondary">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
@@ -58,12 +58,12 @@ const ConfirmDialog = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold text-stripe-text mb-2">{title}</h3>
+        <p className="text-stripe-text-secondary mb-6">{message}</p>
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-stripe-border text-stripe-text rounded-lg hover:bg-stripe-background-light"
           >
             Cancel
           </button>
@@ -107,7 +107,7 @@ export default function DepositManagementPage() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [newAccountForm, setNewAccountForm] = useState<NewAccountFormData>({
     customerName: '',
-    accountType: 'Mudarabah Fixed Deposit',
+    accountType: 'Fixed Deposit',
     initialDeposit: 0,
     profitRate: 7.2,
     tenure: { years: 0, months: 0 }
@@ -162,7 +162,7 @@ export default function DepositManagementPage() {
     setShowNewAccountModal(false);
     setNewAccountForm({
       customerName: '',
-      accountType: 'Mudarabah Fixed Deposit',
+      accountType: 'Fixed Deposit',
       initialDeposit: 0,
       profitRate: 7.2,
       tenure: { years: 0, months: 0 }
@@ -198,7 +198,7 @@ export default function DepositManagementPage() {
       case 'Matured':
         return 'text-blue-600 bg-blue-100';
       case 'Closed':
-        return 'text-gray-600 bg-gray-100';
+        return 'text-stripe-text-secondary bg-stripe-background-dark';
       case 'Pending':
         return 'text-yellow-600 bg-yellow-100';
       case 'Completed':
@@ -206,7 +206,7 @@ export default function DepositManagementPage() {
       case 'Failed':
         return 'text-red-600 bg-red-100';
       default:
-        return 'text-gray-600 bg-gray-100';
+        return 'text-stripe-text-secondary bg-stripe-background-dark';
     }
   };
 
@@ -221,7 +221,7 @@ export default function DepositManagementPage() {
       case 'Maturity':
         return <CheckCircleIcon className="w-4 h-4 text-green-600" />;
       default:
-        return <CurrencyRupeeIcon className="w-4 h-4 text-gray-600" />;
+        return <CurrencyRupeeIcon className="w-4 h-4 text-stripe-text-secondary" />;
     }
   };
 
@@ -239,13 +239,13 @@ export default function DepositManagementPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Deposit Management</h1>
-                      <p className="text-gray-600 mt-1">Manage Ethical banking deposit products and accounts</p>
+          <h1 className="text-3xl font-bold text-stripe-text">Deposit Management</h1>
+                      <p className="text-stripe-text-secondary mt-1">Manage standard banking deposit products and accounts</p>
         </div>
         <div className="flex space-x-3">
           <button
             onClick={() => setShowNewAccountModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            className="btn btn-primary flex items-center space-x-2"
           >
             <PlusIcon className="w-5 h-5" />
             <span>New Account</span>
@@ -265,8 +265,8 @@ export default function DepositManagementPage() {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Deposits</p>
-              <p className="text-3xl font-bold text-gray-900">₹18.7 Cr</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Deposits</p>
+              <p className="text-3xl font-bold text-stripe-text">₹18.7 Cr</p>
               <p className="text-sm text-green-600 mt-1">+12.5% from last month</p>
             </div>
             <BanknotesIcon className="w-12 h-12 text-blue-600" />
@@ -289,7 +289,7 @@ export default function DepositManagementPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">Avg. Profit Rate</p>
               <p className="text-3xl font-bold text-gray-900">6.8%</p>
-              <p className="text-sm text-blue-600 mt-1">Sharia Compliant</p>
+              <p className="text-sm text-blue-600 mt-1">Competitive Rates</p>
             </div>
             <ArrowTrendingUpIcon className="w-12 h-12 text-yellow-600" />
           </div>
@@ -343,7 +343,7 @@ export default function DepositManagementPage() {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Deposit Distribution</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Mudarabah Fixed Deposits</span>
+                      <span className="text-sm font-medium text-gray-600">Fixed Deposits</span>
                       <span className="text-sm font-bold text-gray-900">65% (₹12.2 Cr)</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -352,7 +352,7 @@ export default function DepositManagementPage() {
                   </div>
                   <div className="space-y-3 mt-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Mudarabah Recurring Deposits</span>
+                      <span className="text-sm font-medium text-gray-600">Recurring Deposits</span>
                       <span className="text-sm font-bold text-gray-900">25% (₹4.7 Cr)</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -361,7 +361,7 @@ export default function DepositManagementPage() {
                   </div>
                   <div className="space-y-3 mt-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Wadiah Savings</span>
+                      <span className="text-sm font-medium text-gray-600">Savings Account</span>
                       <span className="text-sm font-bold text-gray-900">10% (₹1.8 Cr)</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -412,9 +412,9 @@ export default function DepositManagementPage() {
                   />
                   <select className="border border-gray-300 rounded-lg px-3 py-2 text-gray-700">
                     <option>All Types</option>
-                    <option>Mudarabah Fixed Deposit</option>
-                    <option>Mudarabah Recurring Deposit</option>
-                    <option>Wadiah Savings</option>
+                    <option>Fixed Deposit</option>
+                    <option>Recurring Deposit</option>
+                    <option>Savings Account</option>
                   </select>
                 </div>
                 <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
@@ -642,7 +642,7 @@ export default function DepositManagementPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700">Profit Rate</label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {selectedAccount.profitRate > 0 ? `${selectedAccount.profitRate}%` : 'N/A (Wadiah Account)'}
+                  {selectedAccount.profitRate > 0 ? `${selectedAccount.profitRate}%` : 'N/A (Basic Savings Account)'}
                 </p>
               </div>
               <div>
@@ -706,15 +706,15 @@ export default function DepositManagementPage() {
                   })}
                   className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                 >
-                  <option value="Mudarabah Fixed Deposit">Mudarabah Fixed Deposit</option>
-                  <option value="Mudarabah Recurring Deposit">Mudarabah Recurring Deposit</option>
-                  <option value="Wadiah Savings">Wadiah Savings</option>
+                  <option value="Fixed Deposit">Fixed Deposit</option>
+                  <option value="Recurring Deposit">Recurring Deposit</option>
+                  <option value="Savings Account">Savings Account</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  {newAccountForm.accountType === 'Mudarabah Recurring Deposit' ? 'Monthly Deposit' : 'Initial Deposit'}
+                  {newAccountForm.accountType === 'Recurring Deposit' ? 'Monthly Deposit' : 'Initial Deposit'}
                 </label>
                 <input
                   type="number"
@@ -726,10 +726,10 @@ export default function DepositManagementPage() {
                 />
               </div>
 
-              {newAccountForm.accountType !== 'Wadiah Savings' && (
+              {newAccountForm.accountType !== 'Savings Account' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Profit Rate (%)</label>
+                    <label className="block text-sm font-medium text-gray-700">Interest Rate (%)</label>
                     <input
                       type="number"
                       required

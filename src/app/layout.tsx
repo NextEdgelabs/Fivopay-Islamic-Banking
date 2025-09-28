@@ -1,23 +1,25 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "./context/AppContext";
 import { Providers } from "./providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "FivoPay Ethical Banking - BaaS Platform",
-  description: "Ethical Banking as a Service platform with comprehensive customer, employee, and authentication management",
-  keywords: "Ethical banking, Sharia compliant, BaaS, Banking as a Service, Halal finance",
+  title: "FivoPay Digital Banking - BaaS Platform",
+  description: "Digital Banking as a Service platform with comprehensive customer, employee, and authentication management",
+  keywords: "Digital banking, modern banking, BaaS, Banking as a Service, fintech platform",
   metadataBase: new URL('http://localhost:3000'),
   icons: {
     icon: [
@@ -36,21 +38,23 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "FivoPay Ethical Banking - BaaS Platform",
-    description: "Ethical Banking as a Service platform with comprehensive customer, employee, and authentication management",
+    title: "FivoPay Digital Banking - BaaS Platform",
+    description: "Digital Banking as a Service platform with comprehensive customer, employee, and authentication management",
+    url: "https://fivopay.com",
+    siteName: "FivoPay",
     images: [
       {
-        url: '/logo.jpeg',
+        url: "/logo.jpeg",
         width: 1200,
         height: 630,
-        alt: 'FivoPay Ethical Banking Platform',
-      },
+        alt: 'FivoPay Digital Banking Platform',
+      }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "FivoPay Ethical Banking - BaaS Platform",
-    description: "Ethical Banking as a Service platform with comprehensive customer, employee, and authentication management",
+    title: "FivoPay Digital Banking - BaaS Platform",
+    description: "Digital Banking as a Service platform with comprehensive customer, employee, and authentication management",
     images: ['/logo.jpeg'],
   },
 };
@@ -63,7 +67,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
         suppressHydrationWarning
       >
         <Providers>

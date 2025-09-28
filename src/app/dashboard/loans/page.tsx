@@ -111,7 +111,7 @@ export default function LoansDashboard() {
     principal: '',
     tenure: '',
     rate: '',
-    structure: 'Murabaha'
+    structure: 'Term Loan'
   });
 
   // Rate Manager State
@@ -320,10 +320,10 @@ export default function LoansDashboard() {
   ];
 
   const profitProducts: ProfitProduct[] = [
-    { type: 'Personal Financing', rate: '8.5%', structure: 'Murabaha' },
-    { type: 'Home Financing', rate: '7.2%', structure: 'Ijara' },
-    { type: 'Business Financing', rate: '60:40', structure: 'Musharakah' },
-    { type: 'Vehicle Financing', rate: '9.1%', structure: 'Murabaha' }
+    { type: 'Personal Financing', rate: '8.5%', structure: 'Term Loan' },
+    { type: 'Home Financing', rate: '7.2%', structure: 'Secured Loan' },
+    { type: 'Business Financing', rate: '8.5%', structure: 'Credit Line' },
+    { type: 'Vehicle Financing', rate: '9.1%', structure: 'Installment Loan' }
   ];
 
   const calculateProfit = () => {
@@ -376,7 +376,7 @@ export default function LoansDashboard() {
       case 'pending': return 'text-yellow-600 bg-yellow-50';
       case 'warning': return 'text-orange-600 bg-orange-50';
       case 'error': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
+      default: return 'text-stripe-text-secondary bg-stripe-background-light';
     }
   };
 
@@ -391,7 +391,7 @@ export default function LoansDashboard() {
       case 'Rejected':
         return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-stripe-background-dark text-stripe-text-secondary';
     }
   };
 
@@ -755,7 +755,7 @@ export default function LoansDashboard() {
                 <div className="text-center p-6 bg-blue-50 rounded-lg">
                   <CalculatorIcon className="h-8 w-8 text-blue-600 mx-auto mb-3" />
                   <h5 className="font-medium text-gray-900 mb-2">EMI Calculator</h5>
-                  <p className="text-sm text-gray-600 mb-4">Calculate monthly payments based on Ethical financing principles</p>
+                  <p className="text-sm text-gray-600 mb-4">Calculate monthly payments for loan products</p>
                   <button 
                     onClick={() => setShowProfitCalculator(true)}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -773,8 +773,8 @@ export default function LoansDashboard() {
                 </div>
                 <div className="text-center p-6 bg-purple-50 rounded-lg">
                   <DocumentTextIcon className="h-8 w-8 text-purple-600 mx-auto mb-3" />
-                  <h5 className="font-medium text-gray-900 mb-2">Sharia Compliance</h5>
-                  <p className="text-sm text-gray-600 mb-4">Ensure all financing structures comply with Ethical law</p>
+                  <h5 className="font-medium text-gray-900 mb-2">Regulatory Compliance</h5>
+                  <p className="text-sm text-gray-600 mb-4">Ensure all financing structures comply with banking regulations</p>
                   <button className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
                     Review Compliance
                   </button>
@@ -830,7 +830,7 @@ export default function LoansDashboard() {
                 },
                 {
                   title: 'Profit Analysis',
-                  description: 'Ethical financing profit distribution and performance',
+                  description: 'Financing performance and returns analysis',
                   icon: CalculatorIcon,
                   color: 'teal'
                 },
@@ -900,16 +900,16 @@ export default function LoansDashboard() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Loan Management Dashboard</h1>
-          <p className="text-slate-600">Manage and monitor all loan operations</p>
+          <h1 className="text-2xl font-bold text-stripe-text">Loan Management Dashboard</h1>
+          <p className="text-stripe-text-secondary">Manage and monitor all loan operations</p>
         </div>
         <div className="flex space-x-3">
-          <button className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+          <button className="btn btn-secondary">
             Export Report
           </button>
           <Link 
             href="/dashboard/loans/applications"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="btn btn-primary"
           >
             New Loan
           </Link>
@@ -919,14 +919,14 @@ export default function LoansDashboard() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Active Loans */}
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+        <div className="card">
           <div className="flex items-center">
             <div className="p-3 bg-blue-50 rounded-lg">
               <BanknotesIcon className="h-8 w-8 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-slate-900">{stats.activeLoans.toLocaleString()}</p>
-              <p className="text-sm font-medium text-slate-600">Active Loans</p>
+              <p className="text-2xl font-bold text-stripe-text">{stats.activeLoans.toLocaleString()}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Active Loans</p>
             </div>
           </div>
           <div className="mt-4 flex items-center">
@@ -1102,10 +1102,10 @@ export default function LoansDashboard() {
                   onChange={(e) => setCalculatorData({...calculatorData, structure: e.target.value})}
                   className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="Murabaha">Murabaha</option>
-                  <option value="Ijara">Ijara</option>
-                  <option value="Musharakah">Musharakah</option>
-                  <option value="Mudarabah">Mudarabah</option>
+                  <option value="Term Loan">Term Loan</option>
+                  <option value="Credit Line">Credit Line</option>
+                  <option value="Installment Loan">Installment Loan</option>
+                  <option value="Secured Loan">Secured Loan</option>
                 </select>
               </div>
               <div className="flex space-x-3 pt-4">

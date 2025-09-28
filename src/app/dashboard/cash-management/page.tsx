@@ -120,45 +120,53 @@ export default function CashManagementPage() {
     },
   ];
 
-  const quickActions = [
+  const managementOptions = [
     {
       title: "Digital Wallet",
       description: "Manage digital wallet functionality and balances",
       href: "/dashboard/cash-management/wallet",
       icon: WalletIcon,
-      color: "bg-gradient-to-r from-blue-500 to-blue-600",
+      color: "bg-white border border-stripe-border shadow-stripe-sm hover:shadow-stripe",
+      iconColor: "text-stripe-primary",
+      iconBg: "bg-stripe-primary bg-opacity-10",
     },
     {
       title: "Transactions",
       description: "Handle deposits, withdrawals, and transfers",
       href: "/dashboard/cash-management/transactions",
       icon: ArrowsRightLeftIcon,
-      color: "bg-gradient-to-r from-green-500 to-green-600",
+      color: "bg-white border border-stripe-border shadow-stripe-sm hover:shadow-stripe",
+      iconColor: "text-stripe-success",
+      iconBg: "bg-stripe-success bg-opacity-10",
     },
     {
       title: "Branch Dashboard",
       description: "Branch-specific cash management overview",
       href: "/dashboard/cash-management/branch-dashboard",
       icon: PresentationChartLineIcon,
-      color: "bg-gradient-to-r from-purple-500 to-purple-600",
+      color: "bg-white border border-stripe-border shadow-stripe-sm hover:shadow-stripe",
+      iconColor: "text-stripe-primary",
+      iconBg: "bg-stripe-primary bg-opacity-10",
     },
     {
       title: "Liquidity Report",
       description: "Monitor cash liquidity across branches",
       href: "/dashboard/cash-management/liquidity",
       icon: DocumentChartBarIcon,
-      color: "bg-gradient-to-r from-orange-500 to-orange-600",
+      color: "bg-white border border-stripe-border shadow-stripe-sm hover:shadow-stripe",
+      iconColor: "text-stripe-warning",
+      iconBg: "bg-stripe-warning bg-opacity-10",
     },
     {
       title: "Interbranch Reports",
       description: "Track cash movements between branches",
       href: "/dashboard/cash-management/interbranch",
       icon: ArrowPathIcon,
-      color: "bg-gradient-to-r from-red-500 to-red-600",
+      color: "bg-white border border-stripe-border shadow-stripe-sm hover:shadow-stripe",
+      iconColor: "text-stripe-error",
+      iconBg: "bg-stripe-error bg-opacity-10",
     },
-  ];
-
-  const recentAlerts = [
+  ];  const recentAlerts = [
     {
       type: "warning",
       message: "Low liquidity alert for Branch B001",
@@ -202,8 +210,8 @@ export default function CashManagementPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Cash Management</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-stripe-text">Cash Management</h1>
+          <p className="text-stripe-text-secondary">
             Comprehensive cash management and liquidity monitoring
           </p>
         </div>
@@ -211,7 +219,7 @@ export default function CashManagementPage() {
           <select
             value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
+            className="form-input"
           >
             <option value="1d">Last 24 Hours</option>
             <option value="7d">Last 7 Days</option>
@@ -226,12 +234,12 @@ export default function CashManagementPage() {
         {overviewCards.map((card, index) => (
           <div
             key={index}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+            className="card"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{card.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
+                <p className="text-sm font-medium text-stripe-text-secondary">{card.title}</p>
+                <p className="text-2xl font-bold text-stripe-text mt-1">
                   {card.value}
                 </p>
                 <div className="flex items-center mt-2">
@@ -249,7 +257,7 @@ export default function CashManagementPage() {
                   >
                     {card.change}
                   </span>
-                  <span className="text-sm text-gray-500 ml-1">vs last period</span>
+                  <span className="text-sm text-stripe-text-tertiary ml-1">vs last period</span>
                 </div>
               </div>
               <div
@@ -264,25 +272,25 @@ export default function CashManagementPage() {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg font-semibold text-stripe-text mb-4">
           Quick Actions
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {quickActions.map((action, index) => (
+          {managementOptions.map((action, index) => (
             <Link
               key={index}
               href={action.href}
-              className="group block bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200"
+              className={`group block ${action.color} rounded-stripe p-6 transition-shadow duration-200`}
             >
               <div className="flex items-center space-x-4">
-                <div className={`${action.color} p-3 rounded-lg text-white`}>
-                  <action.icon className="h-6 w-6" />
+                <div className={`${action.iconBg} p-3 rounded-stripe`}>
+                  <action.icon className={`h-6 w-6 ${action.iconColor}`} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                  <h3 className="text-lg font-semibold text-stripe-text group-hover:text-stripe-primary transition-colors duration-200">
                     {action.title}
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-stripe-text-secondary mt-1">
                     {action.description}
                   </p>
                 </div>
@@ -295,8 +303,8 @@ export default function CashManagementPage() {
       {/* Recent Activity and Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Transactions */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="card">
+          <h2 className="text-lg font-semibold text-stripe-text mb-4">
             Recent Transactions
           </h2>
           <div className="space-y-4">
@@ -325,7 +333,7 @@ export default function CashManagementPage() {
             ].map((transaction, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between p-3 bg-stripe-background rounded-stripe"
               >
                 <div className="flex items-center space-x-3">
                   <div
@@ -336,17 +344,17 @@ export default function CashManagementPage() {
                     }`}
                   />
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-stripe-text">
                       {transaction.type}
                     </p>
-                    <p className="text-sm text-gray-600">{transaction.branch}</p>
+                    <p className="text-sm text-stripe-text-secondary">{transaction.branch}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-gray-900">
+                  <p className="font-semibold text-stripe-text">
                     {transaction.amount}
                   </p>
-                  <p className="text-sm text-gray-500">{transaction.time}</p>
+                  <p className="text-sm text-stripe-text-tertiary">{transaction.time}</p>
                 </div>
               </div>
             ))}
@@ -354,15 +362,15 @@ export default function CashManagementPage() {
         </div>
 
         {/* Alerts */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="card">
+          <h2 className="text-lg font-semibold text-stripe-text mb-4">
             Recent Alerts
           </h2>
           <div className="space-y-4">
             {recentAlerts.map((alert, index) => (
               <div
                 key={index}
-                className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg"
+                className="flex items-start space-x-3 p-3 bg-stripe-background rounded-stripe"
               >
                 <div
                   className={`mt-1 ${
@@ -376,10 +384,10 @@ export default function CashManagementPage() {
                   <ExclamationTriangleIcon className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-stripe-text">
                     {alert.message}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">{alert.time}</p>
+                  <p className="text-xs text-stripe-text-tertiary mt-1">{alert.time}</p>
                 </div>
               </div>
             ))}

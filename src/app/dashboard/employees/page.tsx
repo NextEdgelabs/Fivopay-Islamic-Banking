@@ -95,7 +95,7 @@ export default function EmployeesPage() {
     {
       id: "compliance",
       name: "Compliance",
-      description: "Sharia compliance features and reporting",
+      description: "compliance features and reporting",
       color: "orange",
       permissions: {},
       accessLevels: {}
@@ -125,7 +125,7 @@ export default function EmployeesPage() {
     { id: "account_verification", name: "Account Verification", description: "Verify account documents", category: "Accounts", permissions: ["read", "update"] },
     
     // Loans
-    { id: "loans", name: "Loan Management", description: "Ethical loan products and applications", category: "Loans", permissions: ["read", "create", "update"] },
+    { id: "loans", name: "Loan Management", description: "Standard loan products and applications", category: "Loans", permissions: ["read", "create", "update"] },
     { id: "loan_applications", name: "Loan Applications", description: "Process loan applications", category: "Loans", permissions: ["read", "create", "update"] },
     { id: "loan_approval", name: "Loan Approval", description: "Approve or reject loans", category: "Loans", permissions: ["read", "update"] },
     { id: "loan_disbursement", name: "Loan Disbursement", description: "Process loan disbursements", category: "Loans", permissions: ["read", "update"] },
@@ -133,7 +133,7 @@ export default function EmployeesPage() {
     { id: "loan_products", name: "Loan Products", description: "Manage loan products", category: "Loans", permissions: ["read", "create", "update", "delete"] },
     
     // Deposits
-    { id: "deposits", name: "Deposit Management", description: "Ethical deposit products", category: "Deposits", permissions: ["read", "create", "update"] },
+    { id: "deposits", name: "Deposit Management", description: "Standard deposit products", category: "Deposits", permissions: ["read", "create", "update"] },
     { id: "fd_products", name: "Fixed Deposit Products", description: "Manage FD products", category: "Deposits", permissions: ["read", "create", "update", "delete"] },
     { id: "rd_products", name: "Recurring Deposit Products", description: "Manage RD products", category: "Deposits", permissions: ["read", "create", "update", "delete"] },
     
@@ -299,16 +299,16 @@ export default function EmployeesPage() {
       case 'create': return 'bg-green-100 text-green-800';
       case 'update': return 'bg-yellow-100 text-yellow-800';
       case 'delete': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-stripe-background-dark text-stripe-text-secondary';
     }
   };
 
   const getAccessLevelColor = (accessLevel: AccessLevel) => {
     switch (accessLevel) {
-      case 'none': return 'bg-gray-100 text-gray-800';
+      case 'none': return 'bg-stripe-background-dark text-stripe-text-secondary';
       case 'read_only': return 'bg-blue-100 text-blue-800';
       case 'read_edit': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-stripe-background-dark text-stripe-text-secondary';
     }
   };
 
@@ -323,7 +323,7 @@ export default function EmployeesPage() {
       yellow: 'bg-yellow-100 text-yellow-800',
       pink: 'bg-pink-100 text-pink-800',
     };
-    return colorMap[color] || 'bg-gray-100 text-gray-800';
+    return colorMap[color] || 'bg-stripe-background-dark text-stripe-text-secondary';
   };
 
   // Export functions
@@ -404,14 +404,14 @@ export default function EmployeesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Employee Management</h1>
-          <p className="text-slate-600">
-            Manage staff members, roles, and permissions for Ethical banking operations
+          <h1 className="text-2xl font-bold text-stripe-text">Employee Management</h1>
+          <p className="text-stripe-text-secondary">
+            Manage staff members, roles, and permissions for digital banking operations
           </p>
         </div>
         <Link 
           href="/dashboard/employees/create"
-          className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors duration-200"
+          className="btn btn-primary inline-flex items-center"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           Add Employee
@@ -419,7 +419,7 @@ export default function EmployeesPage() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="border-b border-slate-200">
+      <div className="border-b border-stripe-border">
         <nav className="-mb-px flex space-x-8">
           {tabs.map((tab) => (
             <button
@@ -427,16 +427,16 @@ export default function EmployeesPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                 activeTab === tab.id
-                  ? "border-purple-500 text-purple-600"
-                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                  ? "border-stripe-primary text-stripe-primary"
+                  : "border-transparent text-stripe-text-secondary hover:text-stripe-text hover:border-stripe-border"
               }`}
             >
               {tab.name}
               {tab.count !== null && (
                 <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
                   activeTab === tab.id
-                    ? "bg-purple-100 text-purple-600"
-                    : "bg-slate-100 text-slate-500"
+                    ? "bg-stripe-primary/10 text-stripe-primary"
+                    : "bg-stripe-background text-stripe-text-secondary"
                 }`}>
                   {tab.count}
                 </span>
@@ -451,12 +451,12 @@ export default function EmployeesPage() {
         /* Roles & Permissions Tab */
         <div className="space-y-6">
           {/* Role Management */}
-          <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+          <div className="card">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-slate-900">Role Management</h3>
+              <h3 className="text-lg font-semibold text-stripe-text">Role Management</h3>
               <button
                 onClick={handleCreateRole}
-                className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors duration-200"
+                className="btn btn-primary inline-flex items-center"
               >
                 <PlusCircleIcon className="h-5 w-5 mr-2" />
                 Create Role
@@ -473,14 +473,14 @@ export default function EmployeesPage() {
                         {employees.filter(emp => emp.role === role.name).length} users
                       </span>
                       {role.isDefault && (
-                        <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800">
+                        <span className="text-xs px-2 py-1 rounded-full bg-stripe-background-dark text-stripe-text-secondary">
                           Default
                         </span>
                       )}
                     </div>
                   </div>
-                  <h4 className="font-semibold text-slate-900 mb-1">{role.name}</h4>
-                  <p className="text-sm text-slate-600 mb-3">{role.description}</p>
+                  <h4 className="font-semibold text-stripe-text mb-1">{role.name}</h4>
+                  <p className="text-sm text-stripe-text-secondary mb-3">{role.description}</p>
                   <div className="flex items-center space-x-2">
                     <button 
                       onClick={() => handleManagePermissions(role)}
@@ -509,16 +509,16 @@ export default function EmployeesPage() {
           </div>
 
           {/* Permission Matrix */}
-          <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-900 mb-6">Permission Matrix</h3>
+          <div className="card">
+            <h3 className="text-lg font-semibold text-stripe-text mb-6">Permission Matrix</h3>
             
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left py-3 px-4 font-semibold text-slate-900">Feature</th>
+                  <tr className="border-b border-stripe-border">
+                    <th className="text-left py-3 px-4 font-semibold text-stripe-text">Feature</th>
                     {roles.map((role) => (
-                      <th key={role.id} className="text-center py-3 px-4 font-semibold text-slate-900">
+                      <th key={role.id} className="text-center py-3 px-4 font-semibold text-stripe-text">
                         {role.name}
                       </th>
                     ))}
@@ -529,8 +529,8 @@ export default function EmployeesPage() {
                     <tr key={feature.id}>
                       <td className="py-3 px-4">
                         <div>
-                          <div className="font-medium text-slate-900">{feature.name}</div>
-                          <div className="text-xs text-slate-500">{feature.category}</div>
+                          <div className="font-medium text-stripe-text">{feature.name}</div>
+                          <div className="text-xs text-stripe-text-secondary">{feature.category}</div>
                         </div>
                       </td>
                       {roles.map((role) => {
@@ -540,7 +540,7 @@ export default function EmployeesPage() {
                           <td key={role.id} className="py-3 px-4 text-center">
                             <div className="flex flex-wrap justify-center gap-1">
                               {accessLevel === 'none' ? (
-                                <span className="text-xs text-slate-400">No access</span>
+                                <span className="text-xs text-stripe-text-secondary">No access</span>
                               ) : (
                                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getAccessLevelColor(accessLevel)}`}>
                                   {accessLevel === 'read_only' ? 'READ ONLY' : 'READ & EDIT'}
@@ -561,25 +561,25 @@ export default function EmployeesPage() {
         /* Employee List Tabs */
         <div className="space-y-6">
           {/* Search and Filters */}
-          <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+          <div className="card">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-stripe-text-tertiary" />
                 <input
                   type="text"
                   placeholder="Search employees..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="text-gray-700 w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="form-input w-full pl-10"
                 />
               </div>
               
               <div className="relative">
-                <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-stripe-text-secondary" />
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="text-gray-700 pl-10 pr-8 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="text-stripe-text pl-10 pr-8 py-2 border border-stripe-border rounded-md focus:ring-2 focus:ring-stripe-primary focus:border-stripe-primary"
                 >
                   <option value="all">All Departments</option>
                   {departments.slice(1).map(dept => (
@@ -594,7 +594,7 @@ export default function EmployeesPage() {
           <div className="bg-white shadow-md rounded-lg p-4 border border-slate-200">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-slate-600">
+                <span className="text-sm text-stripe-text-secondary">
                   Showing {filteredEmployees.length} of {employees.length} employees
                 </span>
               </div>
@@ -604,7 +604,7 @@ export default function EmployeesPage() {
                 <div className="relative">
                   <button
                     onClick={() => setShowExportMenu(!showExportMenu)}
-                    className="inline-flex items-center px-4 py-2 border border-slate-300 rounded-md text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                    className="inline-flex items-center px-4 py-2 border border-stripe-border rounded-md text-sm font-medium text-stripe-text bg-white hover:bg-stripe-background-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-stripe-primary"
                   >
                     <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
                     Export
@@ -613,36 +613,36 @@ export default function EmployeesPage() {
                   {showExportMenu && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-slate-200 z-10">
                       <div className="py-1">
-                        <div className="px-4 py-2 text-xs font-medium text-slate-500 uppercase tracking-wide">
+                        <div className="px-4 py-2 text-xs font-medium text-stripe-text-secondary uppercase tracking-wide">
                           Export Current View
                         </div>
                         <button
                           onClick={() => handleExport('csv', false)}
-                          className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                          className="block w-full text-left px-4 py-2 text-sm text-stripe-text hover:bg-stripe-background-light"
                         >
                           Export as CSV
                         </button>
                         <button
                           onClick={() => handleExport('excel', false)}
-                          className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                          className="block w-full text-left px-4 py-2 text-sm text-stripe-text hover:bg-stripe-background-light"
                         >
                           Export as Excel
                         </button>
                         
                         <div className="border-t border-slate-200 my-1"></div>
                         
-                        <div className="px-4 py-2 text-xs font-medium text-slate-500 uppercase tracking-wide">
+                        <div className="px-4 py-2 text-xs font-medium text-stripe-text-secondary uppercase tracking-wide">
                           Export All Employees
                         </div>
                         <button
                           onClick={() => handleExport('csv', true)}
-                          className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                          className="block w-full text-left px-4 py-2 text-sm text-stripe-text hover:bg-stripe-background-light"
                         >
                           Export All as CSV
                         </button>
                         <button
                           onClick={() => handleExport('excel', true)}
-                          className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                          className="block w-full text-left px-4 py-2 text-sm text-stripe-text hover:bg-stripe-background-light"
                         >
                           Export All as Excel
                         </button>
@@ -663,37 +663,37 @@ export default function EmployeesPage() {
           </div>
 
           {/* Employee Table */}
-          <div className="bg-white shadow-lg rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="card p-0 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full">
-                <thead className="bg-slate-50">
+                <thead className="bg-stripe-background">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                       Employee
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                       Position
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                       Department
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                       Role
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                       Last Login
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {filteredEmployees.map((employee) => (
-                    <tr key={employee.id} className="hover:bg-slate-50">
+                    <tr key={employee.id} className="hover:bg-stripe-background-light">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
@@ -704,15 +704,15 @@ export default function EmployeesPage() {
                             </div>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-slate-900">{employee.name}</div>
-                            <div className="text-sm text-slate-500">{employee.email}</div>
+                            <div className="text-sm font-medium text-stripe-text">{employee.name}</div>
+                            <div className="text-sm text-stripe-text-secondary">{employee.email}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-stripe-text">
                         {employee.position}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-stripe-text-secondary">
                         {employee.department}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -735,19 +735,19 @@ export default function EmployeesPage() {
                           {employee.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-stripe-text-secondary">
                         {employee.lastLogin || "Never"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
-                          <button className="text-slate-400 hover:text-slate-600">
+                          <button className="text-stripe-text-secondary hover:text-stripe-text">
                             <EyeIcon className="h-4 w-4" />
                           </button>
-                          <button className="text-slate-400 hover:text-slate-600">
+                          <button className="text-stripe-text-secondary hover:text-stripe-text">
                             <PencilIcon className="h-4 w-4" />
                           </button>
                           <button 
-                            className="text-slate-400 hover:text-red-600"
+                            className="text-stripe-text-secondary hover:text-red-600"
                             onClick={() => handleDeleteEmployee(employee.id)}
                           >
                             <TrashIcon className="h-4 w-4" />
@@ -768,19 +768,19 @@ export default function EmployeesPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-stripe-text">
                 {editingRole.id ? 'Edit Role' : 'Create Role'}
               </h3>
               <button
                 onClick={() => setShowRoleModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role Name</label>
+                <label className="block text-sm font-medium text-stripe-text mb-1">Role Name</label>
                 <input
                   type="text"
                   value={editingRole.name}
@@ -790,7 +790,7 @@ export default function EmployeesPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-stripe-text mb-1">Description</label>
                 <textarea
                   value={editingRole.description}
                   onChange={(e) => setEditingRole({ ...editingRole, description: e.target.value })}
@@ -800,7 +800,7 @@ export default function EmployeesPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                <label className="block text-sm font-medium text-stripe-text mb-1">Color</label>
                 <select
                   value={editingRole.color}
                   onChange={(e) => setEditingRole({ ...editingRole, color: e.target.value })}
@@ -820,7 +820,7 @@ export default function EmployeesPage() {
             <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={() => setShowRoleModal(false)}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 text-stripe-text border border-stripe-border rounded-lg hover:bg-stripe-background-light"
               >
                 Cancel
               </button>
@@ -840,12 +840,12 @@ export default function EmployeesPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900">
+              <h3 className="text-xl font-semibold text-stripe-text">
                 Manage Permissions: {selectedRole.name}
               </h3>
               <button
                 onClick={() => setShowPermissionModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -860,14 +860,14 @@ export default function EmployeesPage() {
                 }, {} as Record<string, Feature[]>)
               ).map(([category, categoryFeatures]) => (
                 <div key={category} className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">{category}</h4>
+                  <h4 className="text-lg font-semibold text-stripe-text mb-4">{category}</h4>
                   <div className="space-y-4">
                     {categoryFeatures.map((feature) => (
                       <div key={feature.id} className="border border-gray-100 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-3">
                           <div>
-                            <h5 className="font-medium text-gray-900">{feature.name}</h5>
-                            <p className="text-sm text-gray-600">{feature.description}</p>
+                            <h5 className="font-medium text-stripe-text">{feature.name}</h5>
+                            <p className="text-sm text-stripe-text-secondary">{feature.description}</p>
                           </div>
                         </div>
                                                  <div className="flex items-center space-x-4">
@@ -880,7 +880,7 @@ export default function EmployeesPage() {
                                onChange={(e) => handleAccessLevelChange(feature.id, e.target.value as AccessLevel)}
                                className="text-purple-600 focus:ring-purple-500"
                              />
-                             <span className="text-sm text-gray-600">No Access</span>
+                             <span className="text-sm text-stripe-text-secondary">No Access</span>
                            </label>
                            <label className="flex items-center space-x-2">
                              <input

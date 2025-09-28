@@ -16,6 +16,8 @@ const eslintConfig = [
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-explicit-any": "off",
       "react/no-unescaped-entities": "off",
+      // Allow console in development files and logger utility
+      "no-console": ["warn", { "allow": ["warn", "error"] }],
     },
   },
 ];

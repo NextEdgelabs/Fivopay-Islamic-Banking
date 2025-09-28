@@ -22,7 +22,7 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const departments = [
-    "Sharia Compliance",
+    "Regulatory Compliance",
     "Customer Service", 
     "Information Technology",
     "Operations",
@@ -82,25 +82,25 @@ export default function SignupPage() {
   const isPasswordValid = formData.password && passwordErrors.length === 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-stripe-background flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-stripe-primary rounded-full mb-4">
             <UserPlusIcon className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Join FivoPay Ethical Banking
+          <h1 className="text-3xl font-bold text-stripe-text mb-2">
+            Join FivoPay Digital Banking
           </h1>
-          <p className="text-slate-600">
-            Create your employee account for the Sharia-compliant banking platform
+          <p className="text-stripe-text-secondary">
+            Create your employee account for the compliant banking platform
           </p>
         </div>
 
         {/* Signup Form */}
-        <div className="bg-white shadow-lg rounded-2xl p-8 border border-slate-200">
+        <div className="card p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <h2 className="text-2xl font-semibold text-slate-900 mb-6 text-center">
+            <h2 className="text-2xl font-semibold text-stripe-text mb-6 text-center">
               Employee Registration
             </h2>
             
@@ -113,7 +113,7 @@ export default function SignupPage() {
             {/* Personal Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="firstName" className="block text-sm font-medium text-stripe-text mb-1">
                   First Name *
                 </label>
                 <input
@@ -121,14 +121,14 @@ export default function SignupPage() {
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="form-input"
                   placeholder="Enter first name"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="lastName" className="block text-sm font-medium text-stripe-text mb-1">
                   Last Name *
                 </label>
                 <input
@@ -136,7 +136,7 @@ export default function SignupPage() {
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="form-input"
                   placeholder="Enter last name"
                   required
                 />
@@ -144,7 +144,7 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-stripe-text mb-1">
                 Work Email Address *
               </label>
               <input
@@ -152,7 +152,7 @@ export default function SignupPage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="form-input"
                 placeholder="Enter work email address"
                 required
               />
@@ -308,7 +308,7 @@ export default function SignupPage() {
                   <Link href="/privacy" className="text-purple-600 hover:text-purple-700 font-medium">
                     Privacy Policy
                   </Link>{" "}
-                  of FivoPay Ethical Banking
+                  of FivoPay Digital Banking
                 </label>
               </div>
             </div>
@@ -346,7 +346,7 @@ export default function SignupPage() {
             <div>
               <p className="text-sm font-medium text-blue-800">Secure Registration</p>
               <p className="text-xs text-blue-600">
-                All employee accounts require administrator approval and undergo Sharia compliance verification
+                All employee accounts require administrator approval and undergo regulatory compliance verification
               </p>
             </div>
           </div>

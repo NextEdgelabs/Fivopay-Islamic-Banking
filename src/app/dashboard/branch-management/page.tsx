@@ -506,14 +506,14 @@ export default function BranchManagementPage() {
   ]);
 
   // Get unique states
-  const states = ['All States', ...Array.from(new Set(branches.map(branch => branch.state)))];
+  const states = ['All States', ...Array.from(new Set((branches || []).map(branch => branch.state)))];
   
   // Get cities based on selected state
   const getAvailableCities = () => {
     if (selectedState === 'All States') {
-      return ['All Cities', ...Array.from(new Set(branches.map(branch => branch.city)))];
+      return ['All Cities', ...Array.from(new Set((branches || []).map(branch => branch.city)))];
     } else {
-      const stateCities = branches
+      const stateCities = (branches || [])
         .filter(branch => branch.state === selectedState)
         .map(branch => branch.city);
       return ['All Cities', ...Array.from(new Set(stateCities))];
@@ -523,7 +523,7 @@ export default function BranchManagementPage() {
   const cities = getAvailableCities();
 
   // Filter branches based on selected filters and search term
-  const filteredBranches = branches.filter(branch => {
+  const filteredBranches = (branches || []).filter(branch => {
     const matchesCity = selectedCity === 'All Cities' || branch.city === selectedCity;
     const matchesState = selectedState === 'All States' || branch.state === selectedState;
     const matchesSearch = searchTerm === '' || 
@@ -583,12 +583,12 @@ export default function BranchManagementPage() {
 
   // Generate unique branch code
   const generateBranchCode = () => {
-    const existingCodes = branches.map(branch => branch.branchCode);
-    let newCode = `FP${String(branches.length + 1).padStart(3, '0')}`;
+    const existingCodes = (branches || []).map(branch => branch.branchCode);
+    let newCode = `FP${String((branches || []).length + 1).padStart(3, '0')}`;
     let counter = 1;
     
     while (existingCodes.includes(newCode)) {
-      newCode = `FP${String(branches.length + 1 + counter).padStart(3, '0')}`;
+      newCode = `FP${String((branches || []).length + 1 + counter).padStart(3, '0')}`;
       counter++;
     }
     
@@ -675,7 +675,7 @@ export default function BranchManagementPage() {
       setSelectedCity('All Cities');
     } else {
       // Check if current city exists in the new state
-      const stateCities = branches
+      const stateCities = (branches || [])
         .filter(branch => branch.state === state)
         .map(branch => branch.city);
       if (!stateCities.includes(selectedCity) && selectedCity !== 'All Cities') {

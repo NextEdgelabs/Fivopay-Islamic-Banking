@@ -35,7 +35,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-stripe-background">
       <div className="flex flex-1 flex-col justify-center py-12 px-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
         <div className="mx-auto w-full max-w-sm lg:w-96">
           <div>
@@ -44,12 +44,12 @@ export default function LoginPage() {
               alt="FivoPay Logo" 
               width={56} 
               height={56} 
-              className="h-14 w-auto rounded-xl"
+              className="h-14 w-auto rounded-stripe"
             />
-            <h2 className="mt-8 text-4xl font-bold text-dark">
+            <h2 className="mt-8 text-4xl font-bold text-stripe-text">
               Welcome Back
             </h2>
-            <p className="mt-3 text-lg text-dark-light">
+            <p className="mt-3 text-lg text-stripe-text-secondary">
               Sign in to continue to FivoPay Ethical Banking.
             </p>
           </div>
@@ -59,7 +59,7 @@ export default function LoginPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-md font-semibold text-dark"
+                  className="block text-md font-semibold text-stripe-text"
                 >
                   Email address
                 </label>
@@ -72,7 +72,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none block w-full px-4 py-3 border border-secondary-dark rounded-xl shadow-sm placeholder-dark-light focus:outline-none focus:ring-primary focus:border-primary sm:text-md"
+                    className="form-input"
                   />
                 </div>
               </div>
@@ -80,7 +80,7 @@ export default function LoginPage() {
               <div className="space-y-1">
                 <label
                   htmlFor="password"
-                  className="block text-md font-semibold text-dark"
+                  className="block text-md font-semibold text-stripe-text"
                 >
                   Password
                 </label>
@@ -93,7 +93,7 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="appearance-none block w-full px-4 py-3 border border-secondary-dark rounded-xl shadow-sm placeholder-dark-light focus:outline-none focus:ring-primary focus:border-primary sm:text-md"
+                    className="form-input"
                   />
                 </div>
               </div>
@@ -116,12 +116,12 @@ export default function LoginPage() {
 
               <div className="flex items-center justify-between">
                 <div className="text-md">
-                  <Link href="/signup" className="font-semibold text-accent hover:text-accent-dark">
+                  <Link href="/signup" className="font-semibold text-stripe-primary hover:text-stripe-primary-dark">
                     Create an account
                   </Link>
                 </div>
                 <div className="text-md">
-                  <a href="#" className="font-semibold text-accent hover:text-accent-dark">
+                  <a href="#" className="font-semibold text-stripe-primary hover:text-stripe-primary-dark">
                     Forgot your password?
                   </a>
                 </div>
@@ -131,7 +131,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+                  className="btn btn-primary w-full flex justify-center items-center text-lg font-bold disabled:opacity-50"
                 >
                   {loading ? 'Signing in...' : 'Sign in'}
                   {!loading && <ArrowRightIcon className="ml-3 h-6 w-6" />}

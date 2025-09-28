@@ -34,7 +34,7 @@ export interface DepositTransaction {
 
 export interface NewAccountFormData {
   customerName: string;
-  accountType: 'Mudarabah Fixed Deposit' | 'Mudarabah Recurring Deposit' | 'Wadiah Savings';
+  accountType: 'Fixed Deposit' | 'Recurring Deposit' | 'Savings Account';
   initialDeposit: number;
   profitRate: number;
   tenure: {
@@ -119,7 +119,7 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
       id: '1',
       accountNumber: 'FD001234',
       customerName: 'Ahmed Hassan',
-      depositType: 'Mudarabah Fixed Deposit',
+      depositType: 'Fixed Deposit',
       principalAmount: 500000,
       currentBalance: 536000,
       profitRate: 7.2,
@@ -133,7 +133,7 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
       id: '2',
       accountNumber: 'RD002345',
       customerName: 'Fatima Al-Zahra',
-      depositType: 'Mudarabah Recurring Deposit',
+      depositType: 'Recurring Deposit',
       principalAmount: 120000,
       currentBalance: 126400,
       profitRate: 6.8,
@@ -148,7 +148,7 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
       id: '3',
       accountNumber: 'WD003456',
       customerName: 'Omar Abdullah',
-      depositType: 'Wadiah Savings',
+      depositType: 'Savings Account',
       principalAmount: 75000,
       currentBalance: 75000,
       profitRate: 0,
@@ -162,7 +162,7 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
       id: '4',
       accountNumber: 'FD004567',
       customerName: 'Aisha Malik',
-      depositType: 'Mudarabah Fixed Deposit',
+      depositType: 'Fixed Deposit',
       principalAmount: 1000000,
       currentBalance: 1072000,
       profitRate: 7.2,
@@ -220,17 +220,17 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
   const [fdProducts, setFdProducts] = useState<FDProduct[]>([
     {
       id: '1',
-      name: 'Ethical Fixed Deposit - 1 Year',
+      name: 'Standard Fixed Deposit - 1 Year',
       minAmount: 10000,
       maxAmount: 10000000,
       profitRate: 7.2,
       tenure: { years: 1, months: 0 },
       status: 'Active',
-      description: 'Sharia-compliant fixed deposit with profit sharing'
+      description: 'Standard fixed deposit with competitive interest rates'
     },
     {
       id: '2',
-      name: 'Ethical Fixed Deposit - 2 Years',
+      name: 'Standard Fixed Deposit - 2 Years',
       minAmount: 25000,
       maxAmount: 10000000,
       profitRate: 7.5,
@@ -240,30 +240,30 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
     },
     {
       id: '3',
-      name: 'Ethical Fixed Deposit - 3 Years',
+      name: 'Standard Fixed Deposit - 3 Years',
       minAmount: 50000,
       maxAmount: 10000000,
       profitRate: 7.8,
       tenure: { years: 3, months: 0 },
       status: 'Active',
-      description: 'Extended term deposit with maximum profit sharing'
+      description: 'Extended term deposit with competitive interest rates'
     }
   ]);
 
   const [rdProducts, setRdProducts] = useState<RDProduct[]>([
     {
       id: '1',
-      name: 'Ethical Recurring Deposit - 1 Year',
+      name: 'Standard Recurring Deposit - 1 Year',
       minMonthlyDeposit: 1000,
       maxMonthlyDeposit: 100000,
       profitRate: 6.8,
       tenure: { years: 1, months: 0 },
       status: 'Active',
-      description: 'Monthly recurring deposit with profit sharing'
+      description: 'Monthly recurring deposit with competitive returns'
     },
     {
       id: '2',
-      name: 'Ethical Recurring Deposit - 2 Years',
+      name: 'Standard Recurring Deposit - 2 Years',
       minMonthlyDeposit: 2000,
       maxMonthlyDeposit: 100000,
       profitRate: 7.0,
@@ -273,7 +273,7 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
     },
     {
       id: '3',
-      name: 'Ethical Recurring Deposit - 3 Years',
+      name: 'Standard Recurring Deposit - 3 Years',
       minMonthlyDeposit: 5000,
       maxMonthlyDeposit: 100000,
       profitRate: 7.2,
@@ -285,8 +285,8 @@ export const DepositProvider: React.FC<DepositProviderProps> = ({ children }) =>
 
   // Generate unique account number
   const generateAccountNumber = (type: string) => {
-    const prefix = type === 'Mudarabah Fixed Deposit' ? 'FD' : 
-                  type === 'Mudarabah Recurring Deposit' ? 'RD' : 'WD';
+    const prefix = type === 'Fixed Deposit' ? 'FD' : 
+                  type === 'Recurring Deposit' ? 'RD' : 'SA';
     const existingNumbers = depositAccounts.map(acc => acc.accountNumber);
     let newNumber = `${prefix}${String(depositAccounts.length + 1).padStart(6, '0')}`;
     let counter = 1;

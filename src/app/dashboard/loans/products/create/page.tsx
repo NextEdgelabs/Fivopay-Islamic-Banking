@@ -21,7 +21,7 @@ const productSchema = z.object({
   profitRate: z.string().optional(),
   tenure: z.string().min(1, "Tenure is required"),
   description: z.string().min(1, "Description is required"),
-  shariaStructure: z.enum(['Murabaha', 'Musharakah', 'Ijara', 'Istisna', 'Salam']),
+  loanStructure: z.enum(['Term Loan', 'Credit Line', 'Installment Loan', 'Secured Loan', 'Unsecured Loan']),
   profitSharingRatio: z.string().optional(),
   minAge: z.string().optional(),
   maxAge: z.string().optional(),
@@ -77,12 +77,12 @@ export default function CreateProductPage() {
     { value: 'Education', label: 'Education Financing', description: 'Educational expenses and fees' }
   ];
 
-  const shariaStructures = [
-    { value: 'Murabaha', label: 'Murabaha', description: 'Cost-plus profit arrangement' },
-    { value: 'Musharakah', label: 'Musharakah', description: 'Profit and loss sharing partnership' },
-    { value: 'Ijara', label: 'Ijara', description: 'Lease-to-own arrangement' },
-    { value: 'Istisna', label: 'Istisna', description: 'Manufacturing/construction contract' },
-    { value: 'Salam', label: 'Salam', description: 'Forward purchase contract' }
+  const loanStructures = [
+    { value: 'Term Loan', label: 'Term Loan', description: 'Fixed-term installment loan' },
+    { value: 'Credit Line', label: 'Credit Line', description: 'Revolving credit facility' },
+    { value: 'Installment Loan', label: 'Installment Loan', description: 'Equal monthly installments' },
+    { value: 'Secured Loan', label: 'Secured Loan', description: 'Collateral-backed financing' },
+    { value: 'Unsecured Loan', label: 'Unsecured Loan', description: 'Credit-based financing' }
   ];
 
   const employmentTypes = [
@@ -130,7 +130,7 @@ export default function CreateProductPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-dark">Create New Product</h1>
-          <p className="text-dark-light">Create a new Ethical banking loan product</p>
+          <p className="text-dark-light">Create a new loan product</p>
         </div>
       </div>
 
@@ -236,28 +236,28 @@ export default function CreateProductPage() {
           </div>
         </div>
 
-        {/* Islamic Banking Configuration */}
+        {/* Banking Configuration */}
         <div className="bg-light shadow-md rounded-lg p-6 border border-secondary-dark">
           <div className="flex items-center space-x-2 mb-6">
             <DocumentTextIcon className="h-5 w-5 text-accent" />
-            <h2 className="text-lg font-semibold text-dark">Ethical Banking Configuration</h2>
+            <h2 className="text-lg font-semibold text-dark">Banking Configuration</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-dark-light mb-2">Sharia Structure *</label>
+              <label className="block text-sm font-medium text-dark-light mb-2">Loan Structure *</label>
               <select
-                {...register("shariaStructure")}
+                {...register("loanStructure")}
                 className={`w-full px-4 py-2 border rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent ${
-                  errors.shariaStructure ? 'border-danger' : 'border-secondary-dark'
+                  errors.loanStructure ? 'border-danger' : 'border-secondary-dark'
                 }`}
               >
-                <option value="">Select Sharia structure</option>
-                {shariaStructures.map((structure) => (
+                <option value="">Select loan structure</option>
+                {loanStructures.map((structure) => (
                   <option key={structure.value} value={structure.value}>{structure.label}</option>
                 ))}
               </select>
-              {errors.shariaStructure && <p className="text-danger text-xs mt-1">{errors.shariaStructure.message}</p>}
+              {errors.loanStructure && <p className="text-danger text-xs mt-1">{errors.loanStructure.message}</p>}
             </div>
 
             <div>
@@ -280,7 +280,7 @@ export default function CreateProductPage() {
                 className="w-full px-4 py-2 border border-secondary-dark rounded-md text-dark focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="60"
               />
-              <p className="text-xs text-dark-light mt-1">For Musharakah products</p>
+              <p className="text-xs text-dark-light mt-1">For partnership-based products</p>
             </div>
           </div>
 
@@ -288,10 +288,10 @@ export default function CreateProductPage() {
             <div className="flex items-start space-x-3">
               <InformationCircleIcon className="h-5 w-5 text-accent mt-0.5" />
               <div>
-                <h4 className="text-sm font-medium text-accent">Sharia Compliance</h4>
+                <h4 className="text-sm font-medium text-accent">Regulatory Compliance</h4>
                 <p className="text-sm text-accent/80 mt-1">
-                  This product will be reviewed by our Sharia Advisory Board to ensure full compliance 
-                  with Ethical banking principles before activation.
+                  This product will be reviewed by our Compliance Board to ensure full regulatory 
+                  compliance before activation.
                 </p>
               </div>
             </div>

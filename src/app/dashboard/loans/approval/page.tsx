@@ -116,7 +116,7 @@ export default function ApprovalProcessJourneyPage() {
   const approvalStagesTemplate = [
     { id: '1', name: 'Document Verification', status: 'pending' as const },
     { id: '2', name: 'Credit Assessment', status: 'pending' as const },
-    { id: '3', name: 'Sharia Compliance Review', status: 'pending' as const },
+    { id: '3', name: 'Regulatory Compliance Review', status: 'pending' as const },
     { id: '4', name: 'Risk Assessment', status: 'pending' as const },
     { id: '5', name: 'Final Approval', status: 'pending' as const }
   ];
@@ -317,7 +317,7 @@ export default function ApprovalProcessJourneyPage() {
               <option value="All">All Stages</option>
               <option value="1">Document Verification</option>
               <option value="2">Credit Assessment</option>
-              <option value="3">Sharia Compliance</option>
+              <option value="3">Regulatory Compliance</option>
               <option value="4">Risk Assessment</option>
               <option value="5">Final Approval</option>
             </select>

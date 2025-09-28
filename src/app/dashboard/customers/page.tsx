@@ -45,7 +45,7 @@ const recentIntakes = [
     id: "INT-002", 
     customerName: "Fatima Al-Zahra",
     channel: "Mobile App",
-    requestType: "Islamic Loan Query",
+    requestType: "Loan Query",
     priority: "High",
     status: "In Progress",
     timestamp: "4 hours ago",
@@ -666,14 +666,14 @@ export default function CustomersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Customer Management</h1>
-          <p className="text-slate-600">
+          <h1 className="text-2xl font-bold text-stripe-text">Customer Management</h1>
+          <p className="text-stripe-text-secondary">
             Manage customer relationships and requests across all channels
           </p>
         </div>
         <Link 
           href="/dashboard/customers/create"
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+          className="btn btn-primary inline-flex items-center"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           Add Customer
@@ -681,7 +681,7 @@ export default function CustomersPage() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="border-b border-slate-200">
+      <div className="border-b border-stripe-border">
         <nav className="-mb-px flex space-x-8">
           {tabs.map((tab) => (
             <button
@@ -689,8 +689,8 @@ export default function CustomersPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                  ? "border-stripe-primary text-stripe-primary"
+                  : "border-transparent text-stripe-text-secondary hover:text-stripe-text hover:border-stripe-border"
               }`}
             >
               <tab.icon className="h-5 w-5 mr-2" />
@@ -706,7 +706,7 @@ export default function CustomersPage() {
           {/* Channel Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {channelStats.map((channel) => (
-              <div key={channel.name} className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+              <div key={channel.name} className="card">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className={`p-3 rounded-lg ${
@@ -724,7 +724,7 @@ export default function CustomersPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-slate-900">{channel.requests}</p>
+                    <p className="text-2xl font-bold text-stripe-text">{channel.requests}</p>
                     <p className={`text-sm ${
                       channel.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
                     }`}>
@@ -732,17 +732,17 @@ export default function CustomersPage() {
                     </p>
                   </div>
                 </div>
-                <p className="mt-3 text-sm font-medium text-slate-600">{channel.name}</p>
+                <p className="mt-3 text-sm font-medium text-stripe-text-secondary">{channel.name}</p>
               </div>
             ))}
           </div>
 
           {/* Recent Intake Requests */}
-          <div className="bg-white shadow-lg rounded-2xl border border-slate-200">
-            <div className="p-6 border-b border-slate-200">
+          <div className="card p-0 overflow-hidden">
+            <div className="p-6 border-b border-stripe-border">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-900">Recent Intake Requests</h3>
-                <Link href="/dashboard/customers/intake" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                <h3 className="text-lg font-semibold text-stripe-text">Recent Intake Requests</h3>
+                <Link href="/dashboard/customers/intake" className="text-stripe-primary hover:text-stripe-primary-dark text-sm font-medium">
                   View All Intakes
                 </Link>
               </div>

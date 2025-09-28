@@ -268,7 +268,7 @@ const ApprovalWorkflowComponent = ({
 
 export default function InterbranchReportsPage() {
   const {
-    interbranchTransfers,
+    interbranchTransfers = [],
     addInterbranchTransfer,
     updateTransferStatus,
     deleteTransfer,
@@ -297,7 +297,7 @@ export default function InterbranchReportsPage() {
   // Mock approval workflow data
   const [approvalWorkflows, setApprovalWorkflows] = useState<ApprovalWorkflow[]>([]);
 
-  const filteredTransfers = interbranchTransfers.filter((transfer) => {
+  const filteredTransfers = (interbranchTransfers || []).filter((transfer) => {
     const matchesSearch = 
       transfer.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       transfer.fromBranch.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -307,12 +307,12 @@ export default function InterbranchReportsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const totalTransfers = interbranchTransfers.length;
-  const completedTransfers = interbranchTransfers.filter(t => t.status === "Completed").length;
-  const pendingTransfers = interbranchTransfers.filter(t => 
+  const totalTransfers = (interbranchTransfers || []).length;
+  const completedTransfers = (interbranchTransfers || []).filter(t => t.status === "Completed").length;
+  const pendingTransfers = (interbranchTransfers || []).filter(t => 
     t.status === "Pending" || t.status === "Level1_Approved" || t.status === "Level2_Approved"
   ).length;
-  const totalAmount = interbranchTransfers
+  const totalAmount = (interbranchTransfers || [])
     .filter(t => t.status === "Completed")
     .reduce((sum, t) => sum + t.amount, 0);
 
@@ -746,7 +746,7 @@ export default function InterbranchReportsPage() {
               <BuildingOfficeIcon className="h-8 w-8 text-blue-500 mx-auto mb-2" />
               <h3 className="font-medium text-gray-900">{branch}</h3>
               <p className="text-sm text-gray-600 mt-1">
-                {interbranchTransfers.filter(t => t.fromBranch === branch || t.toBranch === branch).length} transfers
+                {(interbranchTransfers || []).filter(t => t.fromBranch === branch || t.toBranch === branch).length} transfers
               </p>
             </div>
           ))}

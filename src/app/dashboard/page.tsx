@@ -18,9 +18,11 @@ import {
   XCircleIcon
 } from "@heroicons/react/24/outline";
 import { useAppContext } from "@/app/context/AppContext";
+import { useBankingMode } from "@/context/BankingModeContext";
 
 export default function DashboardPage() {
   const { customers, employees, dashboardData } = useAppContext();
+  const { currentMode, config } = useBankingMode();
   
   // Date range state
   const [dateRange, setDateRange] = useState({
@@ -36,7 +38,7 @@ export default function DashboardPage() {
   const kycPending = customers.filter(c => c.kycStatus === "Pending" || c.kycStatus === "Under Review").length;
   
   const activeEmployees = employees.filter(e => e.status === "Active").length;
-  const shariaCompliant = employees.filter(e => e.shariaCompliant).length;
+  const shariaCompliant = employees.filter(e => e.regulatoryCompliant).length;
   const compliancePercentage = employees.length > 0 ? Math.round((shariaCompliant / employees.length) * 100) : 0;
 
   // Recent customers
@@ -68,38 +70,38 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-slate-900">Ethical Banking Dashboard</h1>
+      <h1 className="text-2xl font-bold text-stripe-text">Ethical Banking Dashboard</h1>
       
       {/* Date Range Selector */}
-      <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+      <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Date Range</h2>
-            <p className="text-slate-600">Select the period for dashboard metrics</p>
+            <h2 className="text-lg font-semibold text-stripe-text">Date Range</h2>
+            <p className="text-stripe-text-secondary">Select the period for dashboard metrics</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex items-center space-x-2">
-              <CalendarIcon className="h-5 w-5 text-slate-500" />
+              <CalendarIcon className="h-5 w-5 text-stripe-text-muted" />
               <input
                 type="date"
                 value={dateRange.startDate}
                 onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                className="text-gray-700 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="form-input"
               />
             </div>
             <div className="flex items-center space-x-2">
-              <CalendarIcon className="h-5 w-5 text-slate-500" />
+              <CalendarIcon className="h-5 w-5 text-stripe-text-muted" />
               <input
                 type="date"
                 value={dateRange.endDate}
                 onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                className="text-gray-700 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="form-input"
               />
             </div>
             <select
               value={dateRange.periodType}
               onChange={(e) => setDateRange(prev => ({ ...prev, periodType: e.target.value }))}
-              className="text-gray-700 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="form-input"
             >
               <option value="Daily">Daily</option>
               <option value="Weekly">Weekly</option>
@@ -112,8 +114,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Portfolio Metrics Section */}
-      <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-        <h2 className="text-lg font-semibold text-slate-900 mb-6">Portfolio Metrics</h2>
+      <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
+        <h2 className="text-lg font-semibold text-stripe-text mb-6">Portfolio Metrics</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl">
             <div className="flex items-center justify-between">
@@ -178,54 +180,54 @@ export default function DashboardPage() {
       </div>
 
       {/* Performance Indicators */}
-      <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-        <h2 className="text-lg font-semibold text-slate-900 mb-6">Performance Indicators</h2>
+      <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
+        <h2 className="text-lg font-semibold text-stripe-text mb-6">Performance Indicators</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <div className="text-center p-4 bg-slate-50 rounded-xl">
+          <div className="card text-center p-4">
             <div className="flex items-center justify-center mb-2">
               <CheckCircleIcon className="h-6 w-6 text-green-600" />
             </div>
-            <p className="text-sm font-medium text-slate-700">Loan Approval Rate</p>
-            <p className="text-xl font-bold text-slate-900">{formatPercentage(dashboardData.performanceIndicators.loanApprovalRate)}</p>
+            <p className="text-sm font-medium text-stripe-text-secondary">Loan Approval Rate</p>
+            <p className="text-xl font-bold text-stripe-text">{formatPercentage(dashboardData.performanceIndicators.loanApprovalRate)}</p>
           </div>
 
-          <div className="text-center p-4 bg-slate-50 rounded-xl">
+                    <div className="card text-center p-4">
             <div className="flex items-center justify-center mb-2">
               <ChartBarIcon className="h-6 w-6 text-blue-600" />
             </div>
-            <p className="text-sm font-medium text-slate-700">Collection Efficiency</p>
-            <p className="text-xl font-bold text-slate-900">{formatPercentage(dashboardData.performanceIndicators.collectionEfficiency)}</p>
+            <p className="text-sm font-medium text-stripe-text-secondary">Collection Efficiency</p>
+            <p className="text-xl font-bold text-stripe-text">{formatPercentage(dashboardData.performanceIndicators.collectionEfficiency)}</p>
           </div>
 
-          <div className="text-center p-4 bg-slate-50 rounded-xl">
+          <div className="card text-center p-4">
             <div className="flex items-center justify-center mb-2">
               <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
             </div>
-            <p className="text-sm font-medium text-slate-700">NPA Percentage</p>
-            <p className="text-xl font-bold text-slate-900">{formatPercentage(dashboardData.performanceIndicators.npaPercentage)}</p>
+            <p className="text-sm font-medium text-stripe-text-secondary">NPA Percentage</p>
+            <p className="text-xl font-bold text-stripe-text">{formatPercentage(dashboardData.performanceIndicators.npaPercentage)}</p>
           </div>
 
-          <div className="text-center p-4 bg-slate-50 rounded-xl">
+          <div className="card text-center p-4">
             <div className="flex items-center justify-center mb-2">
               <CurrencyDollarIcon className="h-6 w-6 text-green-600" />
             </div>
-            <p className="text-sm font-medium text-slate-700">Profit Margin</p>
-            <p className="text-xl font-bold text-slate-900">{formatPercentage(dashboardData.performanceIndicators.profitMargin)}</p>
+            <p className="text-sm font-medium text-stripe-text-secondary">Profit Margin</p>
+            <p className="text-xl font-bold text-stripe-text">{formatPercentage(dashboardData.performanceIndicators.profitMargin)}</p>
           </div>
 
-          <div className="text-center p-4 bg-slate-50 rounded-xl">
+          <div className="card text-center p-4">
             <div className="flex items-center justify-center mb-2">
-              <StarIcon className="h-6 w-6 text-yellow-600" />
+              <StarIcon className="h-6 w-6 text-yellow-500" />
             </div>
-            <p className="text-sm font-medium text-slate-700">Customer Satisfaction</p>
-            <p className="text-xl font-bold text-slate-900">{dashboardData.performanceIndicators.customerSatisfactionScore}/5</p>
+            <p className="text-sm font-medium text-stripe-text-secondary">Customer Satisfaction</p>
+            <p className="text-xl font-bold text-stripe-text">{dashboardData.performanceIndicators.customerSatisfactionScore}/5</p>
           </div>
         </div>
       </div>
 
       {/* Branch Network Overview */}
-      <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-        <h2 className="text-lg font-semibold text-slate-900 mb-6">Branch Network Overview</h2>
+      <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
+        <h2 className="text-lg font-semibold text-stripe-text mb-6">Branch Network Overview</h2>
         
         {/* Branch Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -263,7 +265,7 @@ export default function DashboardPage() {
         {/* Top Performing and Underperforming Branches */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <h3 className="text-md font-semibold text-slate-900 mb-4 flex items-center">
+            <h3 className="text-md font-semibold text-stripe-text mb-4 flex items-center">
               <CheckCircleIcon className="h-5 w-5 text-green-600 mr-2" />
               Top Performing Branches
             </h3>
@@ -271,12 +273,12 @@ export default function DashboardPage() {
               {topPerformingBranches.map((branch) => (
                 <div key={branch.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                   <div>
-                    <p className="text-sm font-medium text-slate-900">{branch.name}</p>
-                    <p className="text-xs text-slate-500">{branch.location}</p>
+                    <p className="text-sm font-medium text-stripe-text">{branch.name}</p>
+                    <p className="text-xs text-stripe-text-secondary">{branch.location}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-green-600">{formatPercentage(branch.performance)}</p>
-                    <p className="text-xs text-slate-500">{branch.totalCustomers} customers</p>
+                    <p className="text-xs text-stripe-text-secondary">{branch.totalCustomers} customers</p>
                   </div>
                 </div>
               ))}
@@ -284,7 +286,7 @@ export default function DashboardPage() {
           </div>
 
           <div>
-            <h3 className="text-md font-semibold text-slate-900 mb-4 flex items-center">
+            <h3 className="text-md font-semibold text-stripe-text mb-4 flex items-center">
               <XCircleIcon className="h-5 w-5 text-red-600 mr-2" />
               Underperforming Branches
             </h3>
@@ -292,12 +294,12 @@ export default function DashboardPage() {
               {underperformingBranches.map((branch) => (
                 <div key={branch.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                   <div>
-                    <p className="text-sm font-medium text-slate-900">{branch.name}</p>
-                    <p className="text-xs text-slate-500">{branch.location}</p>
+                    <p className="text-sm font-medium text-stripe-text">{branch.name}</p>
+                    <p className="text-xs text-stripe-text-secondary">{branch.location}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-red-600">{formatPercentage(branch.performance)}</p>
-                    <p className="text-xs text-slate-500">{branch.totalCustomers} customers</p>
+                    <p className="text-xs text-stripe-text-secondary">{branch.totalCustomers} customers</p>
                   </div>
                 </div>
               ))}
@@ -307,11 +309,11 @@ export default function DashboardPage() {
       </div>
 
       {/* Sharia Compliance Status */}
-      <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+      <div className="card">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Sharia Compliance Status</h2>
-            <p className="text-slate-600">Overall system compliance with Ethical banking principles</p>
+            <h2 className="text-lg font-semibold text-stripe-text">Sharia Compliance Status</h2>
+            <p className="text-stripe-text-secondary">Overall system compliance with Ethical banking principles</p>
           </div>
           <div className="flex items-center space-x-2">
             {compliancePercentage >= 90 ? (
@@ -334,7 +336,7 @@ export default function DashboardPage() {
         </div>
         
         <div className="mt-6">
-          <div className="w-full bg-slate-200 rounded-full h-2.5">
+          <div className="w-full bg-stripe-background-dark rounded-full h-2.5">
             <div 
               className={`h-2.5 rounded-full ${
                 compliancePercentage >= 90 ? 'bg-green-600' : 
@@ -345,13 +347,13 @@ export default function DashboardPage() {
             ></div>
           </div>
           <div className="flex justify-between mt-2">
-            <span className="text-xs text-slate-500">0%</span>
-            <span className="text-xs font-medium text-slate-700">{compliancePercentage}% Sharia Compliant</span>
-            <span className="text-xs text-slate-500">100%</span>
+            <span className="text-xs text-stripe-text-secondary">0%</span>
+            <span className="text-xs font-medium text-stripe-text">{compliancePercentage}% Sharia Compliant</span>
+            <span className="text-xs text-stripe-text-secondary">100%</span>
           </div>
         </div>
         
-        <div className="mt-4 text-sm text-slate-600">
+        <div className="mt-4 text-sm text-stripe-text-secondary">
           <p>
             {compliancePercentage >= 90 
               ? "All banking operations are currently in compliance with Sharia principles." 
@@ -365,9 +367,9 @@ export default function DashboardPage() {
       {/* Recent Customers and Ethical Banking Principles */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Customers */}
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+        <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-slate-900">Recent Customers</h2>
+            <h2 className="text-lg font-semibold text-stripe-text">Recent Customers</h2>
             <Link 
               href="/dashboard/customers"
               className="text-sm text-blue-600 hover:underline"
@@ -378,34 +380,36 @@ export default function DashboardPage() {
           
           <div className="space-y-4">
             {recentCustomers.map((customer) => (
-              <div key={customer.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+              <div key={customer.id} className="flex items-center justify-between p-4 card">
                 <div className="flex items-center">
                   <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-blue-700 font-medium">{customer.name.charAt(0)}</span>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-slate-900">{customer.name}</p>
-                    <p className="text-xs text-slate-500">{customer.accountType}</p>
+                    <p className="text-sm font-medium text-stripe-text">{customer.name}</p>
+                    <p className="text-xs text-stripe-text-secondary">{customer.accountType}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-slate-900">{customer.accountBalance}</p>
-                  <p className="text-xs text-slate-500">Joined {customer.joinDate}</p>
+                  <p className="text-sm font-medium text-stripe-text">{customer.accountBalance}</p>
+                  <p className="text-xs text-stripe-text-secondary">Joined {customer.joinDate}</p>
                 </div>
               </div>
             ))}
             
             {recentCustomers.length === 0 && (
               <div className="text-center py-6">
-                <p className="text-slate-500">No customers yet</p>
+                <p className="text-stripe-text-secondary">No customers yet</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Ethical Banking Principles */}
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900 mb-6">Ethical Banking Principles</h2>
+        {/* Banking Principles */}
+        <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
+          <h2 className="text-lg font-semibold text-stripe-text mb-6">
+            {currentMode === 'ethical' ? 'Islamic Banking Principles' : 'Banking Principles'}
+          </h2>
           
           <div className="space-y-4">
             <div className="flex items-start">
@@ -413,8 +417,8 @@ export default function DashboardPage() {
                 <CurrencyDollarIcon className="h-5 w-5 text-green-600" />
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-slate-900">No Interest (Riba)</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm font-medium text-stripe-text">No Interest (Riba)</p>
+                <p className="text-xs text-stripe-text-secondary">
                   All financial products avoid interest-based transactions, complying with Ethical law
                 </p>
               </div>
@@ -425,8 +429,8 @@ export default function DashboardPage() {
                 <DocumentTextIcon className="h-5 w-5 text-blue-600" />
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-slate-900">Profit-Loss Sharing</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm font-medium text-stripe-text">Profit-Loss Sharing</p>
+                <p className="text-xs text-stripe-text-secondary">
                   Financial transactions based on equitable risk and profit sharing between parties
                 </p>
               </div>
@@ -437,8 +441,8 @@ export default function DashboardPage() {
                 <ShieldCheckIcon className="h-5 w-5 text-purple-600" />
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-slate-900">Ethical Investments</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm font-medium text-stripe-text">Ethical Investments</p>
+                <p className="text-xs text-stripe-text-secondary">
                   All investments screened to ensure they are halal and socially responsible
                 </p>
               </div>
@@ -449,8 +453,8 @@ export default function DashboardPage() {
                 <ClockIcon className="h-5 w-5 text-orange-600" />
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-slate-900">Regular Sharia Audits</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm font-medium text-stripe-text">Regular Sharia Audits</p>
+                <p className="text-xs text-stripe-text-secondary">
                   System undergoes regular compliance reviews by qualified Sharia scholars
                 </p>
               </div>

@@ -24,14 +24,14 @@ export default function CreateEmployeePage() {
     role: "",
     status: "Active" as Employee["status"],
     notes: "",
-    shariaCompliant: false
+    regulatoryCompliant: false
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [newEmployeeId, setNewEmployeeId] = useState<string | null>(null);
 
   const departments = [
-    "Sharia Compliance",
+    "Regulatory Compliance",
     "Customer Service", 
     "Information Technology",
     "Operations",
@@ -45,7 +45,7 @@ export default function CreateEmployeePage() {
     { id: "Admin", name: "Admin", description: "Full system access" },
     { id: "Manager", name: "Manager", description: "Customer and account management" },
     { id: "Support", name: "Support", description: "Customer service tools" },
-    { id: "Compliance", name: "Compliance", description: "Sharia compliance features" },
+    { id: "Compliance", name: "Compliance", description: "regulatory compliance features" },
     { id: "IT Admin", name: "IT Admin", description: "System configuration" },
   ];
 
@@ -71,7 +71,7 @@ export default function CreateEmployeePage() {
         role: formData.role,
         status: formData.status,
         lastLogin: "Never",
-        shariaCompliant: formData.shariaCompliant,
+        regulatoryCompliant: formData.regulatoryCompliant,
         joinDate: new Date().toISOString().split('T')[0]
       };
       
@@ -103,7 +103,7 @@ export default function CreateEmployeePage() {
           </div>
           <h2 className="text-2xl font-bold text-green-900 mb-2">Employee Created Successfully</h2>
           <p className="text-green-700 mb-4">
-            The new employee account has been created and is pending Sharia compliance verification.
+            The new employee account has been created and is pending regulatory compliance verification.
           </p>
           <p className="text-sm text-green-600">
             Employee ID: {newEmployeeId}
@@ -118,14 +118,14 @@ export default function CreateEmployeePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Create New Employee</h1>
-          <p className="text-slate-600">
-            Add a new staff member to the Ethical banking platform
+          <h1 className="text-2xl font-bold text-stripe-text">Create New Employee</h1>
+          <p className="text-stripe-text-secondary">
+            Add a new staff member to the digital banking platform
           </p>
         </div>
         <Link 
           href="/dashboard/employees"
-          className="inline-flex items-center px-4 py-2 bg-slate-100 text-slate-700 rounded-md hover:bg-slate-200 transition-colors duration-200"
+          className="btn-secondary"
         >
           <ArrowLeftIcon className="h-5 w-5 mr-2" />
           Back to Employees
@@ -135,11 +135,11 @@ export default function CreateEmployeePage() {
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Personal Information */}
         <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Personal Information</h3>
+          <h3 className="text-lg font-semibold text-stripe-text mb-4">Personal Information</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="firstName" className="block text-sm font-medium text-stripe-text mb-1">
                 First Name *
               </label>
               <input
@@ -147,7 +147,7 @@ export default function CreateEmployeePage() {
                 type="text"
                 value={formData.firstName}
                 onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-md focus:ring-2 focus:ring-stripe-primary focus:border-stripe-primary"
                 required
               />
             </div>
@@ -197,7 +197,7 @@ export default function CreateEmployeePage() {
 
         {/* Employment Information */}
         <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Employment Information</h3>
+          <h3 className="text-lg font-semibold text-stripe-text mb-4">Employment Information</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -210,7 +210,7 @@ export default function CreateEmployeePage() {
                 value={formData.position}
                 onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
                 className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="e.g., Senior Ethical Banking Specialist"
+                placeholder="e.g., Senior Banking Specialist"
                 required
               />
             </div>
@@ -274,36 +274,36 @@ export default function CreateEmployeePage() {
           </div>
         </div>
 
-        {/* Sharia Compliance */}
+        {/* Regulatory Compliance */}
         <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Sharia Compliance</h3>
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">Regulatory Compliance</h3>
           
           <div className="flex items-start mb-6">
             <div className="flex items-center h-5">
               <input
-                id="shariaCompliant"
+                id="regulatoryCompliant"
                 type="checkbox"
-                checked={formData.shariaCompliant}
-                onChange={(e) => setFormData(prev => ({ ...prev, shariaCompliant: e.target.checked }))}
+                checked={formData.regulatoryCompliant}
+                onChange={(e) => setFormData(prev => ({ ...prev, regulatoryCompliant: e.target.checked }))}
                 className=" h-4 w-4 text-purple-600 focus:ring-purple-500 border-slate-300 rounded"
               />
             </div>
             <div className="ml-3 text-sm">
-              <label htmlFor="shariaCompliant" className="font-medium text-slate-700">
-                Verified Sharia Compliance
+              <label htmlFor="regulatoryCompliant" className="font-medium text-slate-700">
+                Verified Regulatory Compliance
               </label>
               <p className="text-slate-500">
-                Employee has completed Sharia compliance training and understands Ethical banking principles
+                Employee has completed regulatory compliance training and understands banking principles
               </p>
             </div>
           </div>
 
-          {!formData.shariaCompliant && (
+          {!formData.regulatoryCompliant && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <div className="flex items-center">
                 <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 mr-2" />
                 <p className="text-sm text-yellow-700">
-                  Employee will have limited access until Sharia compliance verification is complete
+                  Employee will have limited access until regulatory compliance verification is complete
                 </p>
               </div>
             </div>

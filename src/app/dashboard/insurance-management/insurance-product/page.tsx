@@ -44,9 +44,9 @@ export default function InsuranceProductPage() {
   const [products, setProducts] = useState<InsuranceProduct[]>([
     {
       id: "1",
-      name: "Takaful Health Plus",
+      name: "Health Insurance Plus",
       category: "health",
-      description: "Comprehensive health insurance with Sharia-compliant coverage",
+      description: "Comprehensive health insurance with regulatory-compliant coverage",
       premium: 250,
       coverage: 50000,
       status: "active",
@@ -57,7 +57,7 @@ export default function InsuranceProductPage() {
     },
     {
       id: "2",
-      name: "Takaful Life Protection",
+      name: "Life Insurance Protection",
       category: "life",
       description: "Life insurance with family protection benefits",
       premium: 180,
@@ -70,7 +70,7 @@ export default function InsuranceProductPage() {
     },
     {
       id: "3",
-      name: "Takaful Motor Shield",
+      name: "Motor Insurance Shield",
       category: "motor",
       description: "Comprehensive motor vehicle insurance",
       premium: 320,
@@ -83,7 +83,7 @@ export default function InsuranceProductPage() {
     },
     {
       id: "4",
-      name: "Takaful Property Guard",
+      name: "Property Insurance Guard",
       category: "property",
       description: "Home and property insurance coverage",
       premium: 150,
@@ -96,7 +96,7 @@ export default function InsuranceProductPage() {
     },
     {
       id: "5",
-      name: "Takaful Travel Safe",
+      name: "Travel Insurance Safe",
       category: "travel",
       description: "International travel insurance",
       premium: 45,
@@ -109,7 +109,7 @@ export default function InsuranceProductPage() {
     },
     {
       id: "6",
-      name: "Takaful Business Protect",
+      name: "Business Insurance Protect",
       category: "business",
       description: "Business liability and property insurance",
       premium: 450,
@@ -259,7 +259,7 @@ export default function InsuranceProductPage() {
             Insurance Products
           </h1>
           <p className="text-slate-600">
-            Manage Takaful insurance products and offerings
+            Manage insurance products and offerings
           </p>
         </div>
         <button

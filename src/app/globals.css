@@ -2,12 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Inter font import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* CSS Custom Properties for Stripe theme */
+:root {
+  --stripe-primary: #635BFF;
+  --stripe-background: #FAFBFC;
+  --stripe-surface: #FFFFFF;
+  --stripe-border: #E3E8EE;
+  --stripe-text: #0A2540;
+  --stripe-text-secondary: #425A72;
+  --stripe-success: #00D924;
+  --stripe-warning: #FF9500;
+  --stripe-error: #FA755A;
+}
+
 body {
-  @apply bg-background text-dark font-sans;
+  @apply bg-stripe-background text-stripe-text font-sans antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  @apply font-semibold text-dark;
+  @apply font-semibold text-stripe-text;
 }
 
 h1 { @apply text-3xl; }
@@ -16,19 +32,42 @@ h3 { @apply text-xl; }
 h4 { @apply text-lg; }
 
 a {
-  @apply text-accent hover:text-accent-dark;
+  @apply text-stripe-primary hover:text-stripe-primary-dark transition-colors;
 }
 
+/* Stripe-style buttons */
 .btn {
-  @apply px-4 py-2 rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2;
+  @apply px-4 py-2 rounded-stripe font-medium text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200;
 }
 
 .btn-primary {
-  @apply bg-primary text-white hover:bg-primary-dark focus:ring-primary;
+  @apply bg-stripe-primary text-white hover:bg-stripe-primary-dark focus:ring-stripe-primary shadow-stripe-sm;
 }
 
 .btn-secondary {
-  @apply bg-secondary text-dark hover:bg-secondary-dark focus:ring-secondary;
+  @apply bg-white text-stripe-text border border-stripe-border hover:bg-gray-50 focus:ring-stripe-primary shadow-stripe-sm;
+}
+
+/* Stripe-style cards */
+.card {
+  @apply bg-stripe-surface border border-stripe-border rounded-stripe shadow-stripe-sm;
+}
+
+.card-header {
+  @apply p-6 border-b border-stripe-border;
+}
+
+.card-content {
+  @apply p-6;
+}
+
+/* Stripe-style form elements */
+.form-input {
+  @apply w-full px-3 py-2 border border-stripe-border rounded-stripe-sm text-stripe-text placeholder-stripe-text-muted focus:outline-none focus:ring-2 focus:ring-stripe-primary focus:border-stripe-primary transition-colors;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-stripe-text mb-1;
 }
 
 /* Custom scrollbar styles */

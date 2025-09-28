@@ -32,14 +32,14 @@ export default function CustomerIntakePage() {
   const [newCustomerId, setNewCustomerId] = useState<string | null>(null);
 
   const accountTypes = [
-    "Ethical Savings",
-    "Ethical Current",
-    "Mudarabah Investment",
-    "Ijara Financing",
-    "Halal Investment",
-    "Takaful Insurance",
-    "Sukuk Bond",
-    "Waqf Endowment"
+    "Savings Account",
+    "Current Account",
+    "Investment Account",
+    "Lease Financing",
+    "Fixed Deposit",
+    "Insurance Account",
+    "Investment Bond",
+    "Deposit Account"
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -97,7 +97,7 @@ export default function CustomerIntakePage() {
           </div>
           <h2 className="text-2xl font-bold text-green-900 mb-2">Customer Account Created</h2>
           <p className="text-green-700 mb-4">
-            The new Ethical banking account has been created and is pending KYC verification.
+            The new banking account has been created and is pending KYC verification.
           </p>
           <p className="text-sm text-green-600">
             Customer ID: {newCustomerId}
@@ -122,7 +122,7 @@ export default function CustomerIntakePage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">New Customer Intake</h1>
           <p className="text-slate-600">
-            Register a new customer for Ethical banking services
+            Register a new customer for banking services
           </p>
         </div>
         <Link 
@@ -199,7 +199,7 @@ export default function CustomerIntakePage() {
 
         {/* Account Information */}
         <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-                      <h3 className="text-lg font-semibold text-slate-900 mb-4">Ethical Banking Account Information</h3>
+                      <h3 className="text-lg font-semibold text-slate-900 mb-4">Banking Account Information</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -274,7 +274,7 @@ export default function CustomerIntakePage() {
               <div className="flex items-center">
                 <DocumentTextIcon className="h-5 w-5 text-blue-600 mr-2" />
                 <p className="text-sm text-blue-700">
-                  All accounts are created in compliance with Sharia principles. No interest (riba) will be charged or paid.
+                  All accounts are created in compliance with regulatory principles. No interest will be charged or paid.
                 </p>
               </div>
             </div>

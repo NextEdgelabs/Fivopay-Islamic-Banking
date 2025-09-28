@@ -162,38 +162,38 @@ export default function LoanApplicationsPage() {
     { 
       value: 'personal', 
       label: 'Personal Financing', 
-      description: 'Sharia-compliant personal financing for individual needs',
+      description: 'Personal financing for individual needs',
       icon: UserIcon,
       minAmount: 50000,
       maxAmount: 1000000,
-      structure: 'Murabaha'
+      structure: 'Term Loan'
     },
     { 
       value: 'home', 
       label: 'Home Financing', 
-              description: 'Ethical home purchase financing through Ijara structure',
+              description: 'Home purchase financing with flexible terms',
       icon: HomeIcon,
       minAmount: 1000000,
       maxAmount: 50000000,
-      structure: 'Ijara'
+      structure: 'Secured Loan'
     },
     { 
       value: 'vehicle', 
       label: 'Vehicle Financing', 
-      description: 'Sharia-compliant vehicle financing with flexible terms',
+      description: 'Vehicle financing with flexible terms',
       icon: TruckIcon,
       minAmount: 200000,
       maxAmount: 5000000,
-      structure: 'Murabaha'
+      structure: 'Installment Loan'
     },
     { 
       value: 'business', 
       label: 'Business Financing', 
-              description: 'Ethical business financing through Musharakah principles',
+              description: 'Business financing with competitive rates',
       icon: BuildingOfficeIcon,
       minAmount: 500000,
       maxAmount: 10000000,
-      structure: 'Musharakah'
+      structure: 'Credit Line'
     },
     { 
       value: 'education', 
@@ -202,7 +202,7 @@ export default function LoanApplicationsPage() {
       icon: AcademicCapIcon,
       minAmount: 100000,
       maxAmount: 2000000,
-      structure: 'Murabaha'
+      structure: 'Unsecured Loan'
     }
   ];
 
@@ -689,10 +689,10 @@ export default function LoanApplicationsPage() {
             </div>
             
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Ethical Banking Compliance</h4>
+              <h4 className="text-sm font-medium text-blue-900 mb-2">Banking Compliance</h4>
               <p className="text-sm text-blue-800">
-                This application will be processed according to Sharia-compliant banking principles. 
-                No interest will be charged, and the financing structure will follow Ethical banking guidelines.
+                This application will be processed according to standard banking principles 
+                and regulatory guidelines.
               </p>
             </div>
           </div>
@@ -808,7 +808,7 @@ export default function LoanApplicationsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Loan Applications</h1>
-          <p className="text-slate-600">Manage and track Ethical banking loan applications</p>
+          <p className="text-slate-600">Manage and track loan applications</p>
         </div>
         <button
           onClick={() => setViewMode('form')}
