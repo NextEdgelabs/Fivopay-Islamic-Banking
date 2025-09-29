@@ -200,7 +200,7 @@ export default function InsuranceManagementPage() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-stripe-border">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-stripe-text-secondary">
@@ -214,7 +214,7 @@ export default function InsuranceManagementPage() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-stripe-border">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-stripe-text-secondary">

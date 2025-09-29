@@ -79,11 +79,11 @@ export default function AppearanceSettings() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+        <h2 className="text-2xl font-bold text-stripe-text flex items-center space-x-2">
           <PaintBrushIcon className="h-6 w-6 text-blue-600" />
           <span>Appearance</span>
         </h2>
-        <p className="text-gray-600 mt-2">
+        <p className="text-stripe-text-secondary mt-2">
           Customize the look and feel of your application
         </p>
       </div>
@@ -91,8 +91,8 @@ export default function AppearanceSettings() {
       <div className="space-y-8">
         {/* Theme Mode */}
         <div>
-          <label className="flex items-center space-x-2 text-lg font-semibold text-gray-900 mb-4">
-            <SunIcon className="h-5 w-5 text-gray-600" />
+          <label className="flex items-center space-x-2 text-lg font-semibold text-stripe-text mb-4">
+            <SunIcon className="h-5 w-5 text-stripe-text-secondary" />
             <span>Theme Mode</span>
           </label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -113,15 +113,15 @@ export default function AppearanceSettings() {
                   />
                   <div className={`border-2 rounded-lg p-4 transition-colors ${
                     tempSettings.mode === theme.value
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-stripe-primary bg-stripe-background-light'
+                      : 'border-stripe-border hover:border-stripe-text-secondary'
                   }`}>
                     <div className={`w-full h-20 rounded-md mb-3 border ${theme.preview}`}></div>
                     <div className="flex items-center space-x-2 mb-2">
-                      <Icon className="h-5 w-5 text-gray-600" />
-                      <span className="font-medium text-gray-900">{theme.label}</span>
+                      <Icon className="h-5 w-5 text-stripe-text-secondary" />
+                      <span className="font-medium text-stripe-text">{theme.label}</span>
                     </div>
-                    <p className="text-sm text-gray-500">{theme.description}</p>
+                    <p className="text-sm text-stripe-text-secondary">{theme.description}</p>
                   </div>
                 </label>
               );
@@ -131,8 +131,8 @@ export default function AppearanceSettings() {
 
         {/* Primary Color */}
         <div>
-          <label className="flex items-center space-x-2 text-lg font-semibold text-gray-900 mb-4">
-            <SwatchIcon className="h-5 w-5 text-gray-600" />
+          <label className="flex items-center space-x-2 text-lg font-semibold text-stripe-text mb-4">
+            <SwatchIcon className="h-5 w-5 text-stripe-text-secondary" />
             <span>Primary Color</span>
           </label>
           <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
@@ -158,7 +158,7 @@ export default function AppearanceSettings() {
                     </div>
                   )}
                 </div>
-                <p className="text-xs text-gray-600 mt-1 text-center">{color.name}</p>
+                <p className="text-xs text-stripe-text-secondary mt-1 text-center">{color.name}</p>
               </label>
             ))}
           </div>
@@ -166,8 +166,8 @@ export default function AppearanceSettings() {
 
         {/* Font Size */}
         <div>
-          <label className="flex items-center space-x-2 text-lg font-semibold text-gray-900 mb-4">
-            <AdjustmentsHorizontalIcon className="h-5 w-5 text-gray-600" />
+          <label className="flex items-center space-x-2 text-lg font-semibold text-stripe-text mb-4">
+            <AdjustmentsHorizontalIcon className="h-5 w-5 text-stripe-text-secondary" />
             <span>Font Size</span>
           </label>
           <div className="space-y-3">
@@ -176,8 +176,8 @@ export default function AppearanceSettings() {
                 key={option.value}
                 className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                   tempSettings.fontSize === option.value
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-stripe-primary bg-stripe-background-light'
+                    : 'border-stripe-border hover:border-stripe-text-secondary'
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -190,11 +190,11 @@ export default function AppearanceSettings() {
                     className="text-blue-600 focus:ring-blue-500"
                   />
                   <div>
-                    <div className="font-medium text-gray-900">{option.label}</div>
-                    <div className="text-sm text-gray-500">{option.description}</div>
+                    <div className="font-medium text-stripe-text">{option.label}</div>
+                    <div className="text-sm text-stripe-text-secondary">{option.description}</div>
                   </div>
                 </div>
-                <div className={`${option.size} text-gray-700`}>
+                <div className={`${option.size} text-stripe-text`}>
                   Sample Text (Aa)
                 </div>
               </label>
@@ -203,8 +203,8 @@ export default function AppearanceSettings() {
         </div>
 
         {/* Preview */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Preview</h3>
+        <div className="bg-stripe-background-light border border-stripe-border rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-stripe-text mb-4">Preview</h3>
           <div 
             className="border-2 rounded-lg p-4 bg-white"
             style={{ 

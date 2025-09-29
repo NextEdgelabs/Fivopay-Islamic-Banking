@@ -201,7 +201,7 @@ export default function SettingsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Settings Navigation */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
             <h2 className="text-lg font-semibold text-stripe-text mb-4">Categories</h2>
             <nav className="space-y-2">
               {SETTINGS_CATEGORIES.map((category) => {
@@ -258,7 +258,7 @@ export default function SettingsPage() {
 
         {/* Settings Content */}
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm border border-stripe-border">
             {renderActiveCategory()}
           </div>
         </div>

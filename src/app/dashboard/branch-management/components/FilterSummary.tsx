@@ -21,8 +21,8 @@ export default function FilterSummary({
   
   if (!hasFilters) {
     return (
-      <div className="bg-gray-50 px-4 py-3 rounded-lg">
-        <p className="text-sm text-gray-600">
+      <div className="bg-stripe-background-light px-4 py-3 rounded-lg">
+        <p className="text-sm text-stripe-text-secondary">
           Showing all <span className="font-semibold">{branches.length}</span> branches
         </p>
       </div>

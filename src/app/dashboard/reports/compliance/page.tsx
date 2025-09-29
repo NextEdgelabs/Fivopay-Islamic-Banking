@@ -87,8 +87,8 @@ export default function ComplianceReportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Compliance Reports</h1>
-          <p className="text-gray-600">Monitor regulatory compliance and audit status</p>
+          <h1 className="text-2xl font-bold text-stripe-text">Compliance Reports</h1>
+          <p className="text-stripe-text-secondary">Monitor regulatory compliance and audit status</p>
         </div>
         <div className="flex items-center space-x-3">
           <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
@@ -103,14 +103,14 @@ export default function ComplianceReportsPage() {
         {complianceMetrics.map((metric, index) => {
           const Icon = metric.icon;
           return (
-            <div key={index} className="bg-white p-6 rounded-lg shadow-sm border">
+            <div key={index} className="bg-white p-6 rounded-lg shadow-sm border border-stripe-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{metric.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
+                  <p className="text-sm font-medium text-stripe-text-secondary">{metric.title}</p>
+                  <p className="text-2xl font-bold text-stripe-text">{metric.value}</p>
                   <p className={`text-sm font-medium ${
                     metric.trend === "up" ? "text-green-600" : 
-                    metric.trend === "down" ? "text-red-600" : "text-gray-600"
+                    metric.trend === "down" ? "text-red-600" : "text-stripe-text-secondary"
                   }`}>
                     {metric.change} from last period
                   </p>
@@ -125,15 +125,15 @@ export default function ComplianceReportsPage() {
       </div>
 
       {/* Report Generation */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Generate Compliance Report</h3>
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-stripe-border">
+        <h3 className="text-lg font-semibold text-stripe-text mb-4">Generate Compliance Report</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+            <label className="block text-sm font-medium text-stripe-text mb-2">Report Type</label>
             <select
               value={selectedReport}
               onChange={(e) => setSelectedReport(e.target.value)}
-              className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-stripe-primary focus:border-transparent"
             >
               <option value="">Select Report Type</option>
               <option value="regulatory-compliance">Regulatory Compliance Report</option>
@@ -145,11 +145,11 @@ export default function ComplianceReportsPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Period</label>
+            <label className="block text-sm font-medium text-stripe-text mb-2">Period</label>
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-stripe-primary focus:border-transparent"
             >
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
@@ -168,24 +168,24 @@ export default function ComplianceReportsPage() {
       </div>
 
       {/* Available Reports */}
-      <div className="bg-white rounded-lg shadow-sm border">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Available Reports</h3>
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border">
+        <div className="px-6 py-4 border-b border-stripe-border">
+          <h3 className="text-lg font-semibold text-stripe-text">Available Reports</h3>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {complianceReports.map((report) => (
-              <div key={report.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div key={report.id} className="border border-stripe-border rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h4 className="font-semibold text-gray-900">{report.title}</h4>
-                    <p className="text-sm text-gray-600">{report.description}</p>
+                    <h4 className="font-semibold text-stripe-text">{report.title}</h4>
+                    <p className="text-sm text-stripe-text-secondary">{report.description}</p>
                   </div>
                   <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
                     {report.status}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                <div className="flex items-center justify-between text-sm text-stripe-text-secondary mb-3">
                   <span>Period: {report.period}</span>
                   <span>Last generated: {report.lastGenerated}</span>
                 </div>
@@ -210,8 +210,8 @@ export default function ComplianceReportsPage() {
       </div>
 
       {/* Compliance Status */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Compliance Status Overview</h3>
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
+        <h3 className="text-lg font-semibold text-stripe-text mb-4">Compliance Status Overview</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="border border-green-200 bg-green-50 rounded-lg p-4">
             <div className="flex items-center space-x-3">
@@ -244,10 +244,10 @@ export default function ComplianceReportsPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
+        <h3 className="text-lg font-semibold text-stripe-text mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <button className="flex items-center space-x-3 p-4 border border-stripe-border rounded-lg hover:bg-stripe-background-light transition-colors">
             <ShieldCheckIcon className="h-6 w-6 text-blue-600" />
             <div className="text-left">
               <div className="font-medium text-gray-900">Compliance Dashboard</div>

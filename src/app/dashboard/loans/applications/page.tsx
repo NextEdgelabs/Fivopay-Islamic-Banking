@@ -33,7 +33,7 @@ const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => vo
   return (
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
       <span>{toast.message}</span>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-stripe-text-secondary">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
@@ -59,12 +59,12 @@ const ConfirmDialog = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold text-stripe-text mb-2">{title}</h3>
+        <p className="text-stripe-text-secondary mb-6">{message}</p>
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-stripe-border text-stripe-text rounded-lg hover:bg-stripe-background-light"
           >
             Cancel
           </button>
@@ -312,7 +312,7 @@ export default function LoanApplicationsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Draft':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-stripe-background-light text-stripe-text';
       case 'Submitted':
         return 'bg-blue-100 text-blue-800';
       case 'Under Review':
@@ -322,7 +322,7 @@ export default function LoanApplicationsPage() {
       case 'Rejected':
         return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-stripe-background-light text-stripe-text';
     }
   };
 
@@ -339,53 +339,53 @@ export default function LoanApplicationsPage() {
       case 1:
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+            <h3 className="text-lg font-semibold text-stripe-text mb-4">Personal Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-stripe-text mb-2">
                   First Name *
                 </label>
                 <input
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
+                  className="w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-stripe-text"
                   placeholder="Enter your first name"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-stripe-text mb-2">
                   Last Name *
                 </label>
                 <input
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
+                  className="w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-stripe-text"
                   placeholder="Enter your last name"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-stripe-text mb-2">
                   Email Address *
                 </label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter your email"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-stripe-text mb-2">
                   Phone Number *
                 </label>
                 <input
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="+91 9876543210"
                 />
               </div>

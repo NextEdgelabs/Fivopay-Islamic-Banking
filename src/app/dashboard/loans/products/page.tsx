@@ -29,7 +29,7 @@ const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => vo
   return (
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
       <span>{toast.message}</span>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-stripe-text-secondary">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
@@ -55,12 +55,12 @@ const ConfirmDialog = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold text-stripe-text mb-2">{title}</h3>
+        <p className="text-stripe-text-secondary mb-6">{message}</p>
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-stripe-border text-stripe-text rounded-lg hover:bg-stripe-background-light"
           >
             Cancel
           </button>
@@ -173,9 +173,9 @@ export default function ProductManagementPage() {
       case 'Inactive':
         return 'bg-red-100 text-red-800';
       case 'Draft':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-stripe-background-light text-stripe-text';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-stripe-background-light text-stripe-text';
     }
   };
 
@@ -186,9 +186,9 @@ export default function ProductManagementPage() {
       case 'Inactive':
         return <XCircleIcon className="h-4 w-4 text-red-500" />;
       case 'Draft':
-        return <ClockIcon className="h-4 w-4 text-gray-500" />;
+        return <ClockIcon className="h-4 w-4 text-stripe-text-secondary" />;
       default:
-        return <ClockIcon className="h-4 w-4 text-gray-500" />;
+        return <ClockIcon className="h-4 w-4 text-stripe-text-secondary" />;
     }
   };
 
@@ -203,8 +203,8 @@ export default function ProductManagementPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Product Management</h1>
-          <p className="text-slate-600">Manage loan products and financing options</p>
+          <h1 className="text-2xl font-bold text-stripe-text">Product Management</h1>
+          <p className="text-stripe-text-secondary">Manage loan products and financing options</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -217,57 +217,57 @@ export default function ProductManagementPage() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+        <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
           <div className="flex items-center">
             <div className="p-3 bg-blue-50 rounded-lg">
               <BanknotesIcon className="h-6 w-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-slate-900">{totalProducts}</p>
-              <p className="text-sm font-medium text-slate-600">Total Products</p>
+              <p className="text-2xl font-bold text-stripe-text">{totalProducts}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Products</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+        <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
           <div className="flex items-center">
             <div className="p-3 bg-green-50 rounded-lg">
               <CheckCircleIcon className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-slate-900">{activeProducts}</p>
-              <p className="text-sm font-medium text-slate-600">Active Products</p>
+              <p className="text-2xl font-bold text-stripe-text">{activeProducts}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Active Products</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+        <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
           <div className="flex items-center">
             <div className="p-3 bg-purple-50 rounded-lg">
               <ChartBarIcon className="h-6 w-6 text-purple-600" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-slate-900">{totalApplications.toLocaleString()}</p>
-              <p className="text-sm font-medium text-slate-600">Applications</p>
+              <p className="text-2xl font-bold text-stripe-text">{totalApplications.toLocaleString()}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Applications</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+        <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
           <div className="flex items-center">
             <div className="p-3 bg-orange-50 rounded-lg">
               <BanknotesIcon className="h-6 w-6 text-orange-600" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-slate-900">{totalDisbursed.toLocaleString()}</p>
-              <p className="text-sm font-medium text-slate-600">Disbursed</p>
+              <p className="text-2xl font-bold text-stripe-text">{totalDisbursed.toLocaleString()}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Disbursed</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+      <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <input

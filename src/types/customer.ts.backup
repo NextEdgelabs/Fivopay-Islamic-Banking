@@ -1,0 +1,308 @@
+import { BankingMode } from './banking-mode';
+
+// === CORE CUSTOMER TYPES ===
+
+export type CustomerStatus = 'Active' | 'Inactive' | 'Pending' | 'Suspended' | 'Dormant' | 'Closed';
+export type KYCStatus = 'Pending' | 'Under Review' | 'Verified' | 'Rejected' | 'Expired';
+export type AMLStatus = 'Clear' | 'Under Review' | 'Flagged' | 'Blacklisted';
+export type RiskLevel = 'Low' | 'Medium' | 'High' | 'Critical';
+export type CustomerType = 'Individual' | 'Business' | 'SME' | 'Corporate';
+export type AccountType = 'Savings' | 'Current' | 'Investment' | 'Fixed Deposit' | 'Islamic Savings' | 'Mudarabah' | 'Musharakah';
+
+// === PERSONAL INFORMATION ===
+
+export interface PersonalDetails {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  dateOfBirth: string;
+  gender: 'Male' | 'Female' | 'Other';
+  nationality: string;
+  countryOfBirth: string;
+  maritalStatus: 'Single' | 'Married' | 'Divorced' | 'Widowed';
+  dependents?: number;
+  motherMaidenName?: string;
+
+}
+
+export interface IdentificationDetails {
+  idType: 'National ID' | 'Passport' | 'Driving License' | 'Voter ID';
+  idNumber: string;
+  issueDate: string;
+  expiryDate: string;
+  issuingAuthority: string;
+  placeOfIssue: string;
+
+export interface ContactDetails {
+  primaryPhone: string;
+  secondaryPhone?: string;
+  primaryEmail: string;
+  secondaryEmail?: string;
+  preferredContactMethod: 'Phone' | 'Email' | 'SMS' | 'WhatsApp';
+  preferredLanguage: string;
+
+export interface Address {
+  type: 'Permanent' | 'Temporary' | 'Office' | 'Mailing';
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  landmark?: string;
+  residenceSince?: string;
+  ownershipType?: 'Owned' | 'Rented' | 'Family Owned';
+
+// === EMPLOYMENT & FINANCIAL ===
+
+export interface EmploymentDetails {
+  employmentStatus: 'Employed' | 'Self Employed' | 'Unemployed' | 'Retired' | 'Student';
+  employerName?: string;
+  jobTitle?: string;
+  industry?: string;
+  workExperience?: number;
+  monthlyIncome?: number;
+  employerAddress?: Address;
+  employmentStartDate?: string;
+
+export interface FinancialProfile {
+  monthlyIncome: number;
+  otherIncome?: number;
+  monthlyExpenses?: number;
+  existingLoans?: number;
+  creditScore?: number;
+  netWorth?: number;
+  sourceOfFunds: string[];
+  sourceOfWealth?: string;
+  expectedTransactionVolume: 'Low' | 'Medium' | 'High';
+
+// === BANKING RELATIONSHIPS ===
+
+export interface BankAccount {
+  accountNumber: string;
+  accountType: AccountType;
+  accountStatus: CustomerStatus;
+  openingDate: string;
+  closingDate?: string;
+  currentBalance: number;
+  availableBalance: number;
+  minimumBalance: number;
+  branchId: string;
+  branchName: string;
+  relationshipManager?: string;
+  isJointAccount: boolean;
+  jointHolders?: string[];
+
+export interface BankingProduct {
+  productId: string;
+  productName: string;
+  productType: 'Loan' | 'Deposit' | 'Investment' | 'Insurance' | 'Card';
+  status: 'Active' | 'Inactive' | 'Matured' | 'Closed';
+  openingDate: string;
+  maturityDate?: string;
+  principal?: number;
+  currentValue?: number;
+  interestRate?: number;
+  profitRate?: number; // For Islamic products
+
+// === COMPLIANCE & RISK ===
+
+export interface ComplianceDetails {
+  kycStatus: KYCStatus;
+  kycLevel: 'Basic' | 'Intermediate' | 'Enhanced';
+  kycOfficer?: string;
+  kycDate?: string;
+  nextReviewDate?: string;
+  amlStatus: AMLStatus;
+  riskLevel: RiskLevel;
+  riskAssessmentDate?: string;
+  sanctionScreening: 'Clear' | 'Hit' | 'Pending';
+  pepStatus: boolean; // Politically Exposed Person
+  fatcaStatus?: 'Exempt' | 'Participating' | 'Non-Participating';
+  crsStatus?: 'Reportable' | 'Non-Reportable';
+  taxResidency: string[];
+  tinNumber?: string;
+
+export interface DocumentRecord {
+  id: string;
+  documentType: string;
+  fileName: string;
+  fileUrl: string;
+  uploadDate: string;
+  expiryDate?: string;
+  verificationStatus: 'Pending' | 'Verified' | 'Rejected';
+  verifiedBy?: string;
+  verifiedDate?: string;
+  rejectionReason?: string;
+
+// === BANKING MODE SPECIFIC ===
+
+export interface IslamicBankingPreferences {
+  shariaCompliantOnly: boolean;
+  zakatCalculation: boolean;
+  zakatPercentage?: number;
+  islamicCalendarEvents: boolean;
+  halalInvestmentOnly: boolean;
+  profitSharingPreference: 'Mudarabah' | 'Musharakah' | 'Both';
+  preferredIslamicProducts: string[];
+
+export interface ConventionalBankingPreferences {
+  creditCardEligible: boolean;
+  investmentRiskTolerance: 'Conservative' | 'Moderate' | 'Aggressive';
+  interestRatePreference: 'Fixed' | 'Variable' | 'Both';
+  investmentProducts: string[];
+  loanEligibility: boolean;
+
+// === CUSTOMER INTERACTIONS ===
+
+export interface CustomerNote {
+  id: string;
+  type: 'General' | 'Service' | 'Complaint' | 'Follow-up' | 'Internal';
+  title: string;
+  content: string;
+  createdBy: string;
+  createdDate: string;
+  priority: 'Low' | 'Medium' | 'High';
+  isPrivate: boolean;
+  attachments?: string[];
+
+export interface CustomerInteraction {
+  id: string;
+  type: 'Call' | 'Email' | 'SMS' | 'Branch Visit' | 'Online Chat' | 'Video Call';
+  direction: 'Inbound' | 'Outbound';
+  subject: string;
+  summary: string;
+  duration?: number;
+  handledBy: string;
+  date: string;
+  outcome: string;
+  followUpRequired: boolean;
+  followUpDate?: string;
+
+export interface CustomerTransaction {
+  id: string;
+  accountNumber: string;
+  type: 'Debit' | 'Credit';
+  amount: number;
+  currency: string;
+  description: string;
+  date: string;
+  channel: 'Branch' | 'ATM' | 'Online' | 'Mobile' | 'POS';
+  status: 'Completed' | 'Pending' | 'Failed' | 'Cancelled';
+  referenceNumber: string;
+  balanceAfter: number;
+
+// === MAIN CUSTOMER INTERFACE ===
+
+export interface Customer {
+  // Core Identity
+  id: string;
+  customerNumber: string;
+  customerType: CustomerType;
+  status: CustomerStatus;
+  
+  // Personal Information
+  personalDetails: PersonalDetails;
+  identificationDetails: IdentificationDetails[];
+  contactDetails: ContactDetails;
+  addresses: Address[];
+  
+  // Employment & Financial
+  employmentDetails?: EmploymentDetails;
+  financialProfile?: FinancialProfile;
+  
+  // Banking Relationship
+  accounts: BankAccount[];
+  products: BankingProduct[];
+  
+  // Compliance & Risk
+  compliance: ComplianceDetails;
+  documents: DocumentRecord[];
+  
+  // Banking Mode Specific
+  bankingMode: BankingMode;
+  islamicPreferences?: IslamicBankingPreferences;
+  conventionalPreferences?: ConventionalBankingPreferences;
+  
+  // Customer Service
+  notes: CustomerNote[];
+  interactions: CustomerInteraction[];
+  transactions: CustomerTransaction[];
+  
+  // Metadata
+  createdBy: string;
+  createdDate: string;
+  lastModifiedBy?: string;
+  lastModifiedDate?: string;
+  assignedBranch: string;
+  relationshipManager?: string;
+  
+  // Analytics
+  lastLoginDate?: string;
+  digitalAdoption: {
+    mobileAppUser: boolean;
+    onlineBankingUser: boolean;
+    cardUser: boolean;
+    digitalPaymentUser: boolean;
+  };
+  
+  // Preferences
+  communicationPreferences: {
+    smsNotifications: boolean;
+    emailNotifications: boolean;
+    pushNotifications: boolean;
+    marketingCommunications: boolean;
+  };
+
+// === CUSTOMER MANAGEMENT INTERFACES ===
+
+export interface CustomerFilters {
+  status?: CustomerStatus[];
+  kycStatus?: KYCStatus[];
+  customerType?: CustomerType[];
+  bankingMode?: BankingMode[];
+  riskLevel?: RiskLevel[];
+  branchId?: string[];
+  relationshipManager?: string[];
+  dateRange?: {
+    field: 'createdDate' | 'lastModifiedDate' | 'lastLoginDate';
+    start: string;
+    end: string;
+  };
+  searchQuery?: string;
+
+export interface CustomerSortOptions {
+  field: 'customerNumber' | 'name' | 'createdDate' | 'lastModifiedDate' | 'totalBalance';
+  direction: 'asc' | 'desc';
+
+export interface CustomerListResponse {
+  customers: Customer[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+
+// === CUSTOMER ACTIONS ===
+
+export interface CustomerAction {
+  type: 'view' | 'edit' | 'suspend' | 'activate' | 'delete' | 'message' | 'note' | 'document';
+  customerId: string;
+  payload?: any;
+}export type CustomerFormData = Omit<Customer, 'id' | 'customerNumber' | 'createdDate' | 'createdBy'>;
+
+// === CUSTOMER SERVICE ===
+
+export interface ServiceRequest {
+  id: string;
+  customerId: string;
+  type: 'Account Issue' | 'Transaction Problem' | 'KYC Update' | 'Product Inquiry' | 'Complaint' | 'Document Request';
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  status: 'Open' | 'In Progress' | 'Resolved' | 'Closed' | 'Escalated';
+  subject: string;
+  description: string;
+  assignedTo?: string;
+  createdBy: string;
+  createdDate: string;
+  resolvedDate?: string;
+  resolution?: string;
+  customerSatisfactionScore?: number;

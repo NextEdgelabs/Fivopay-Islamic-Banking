@@ -86,10 +86,10 @@ export default function EditBranchModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-semibold text-gray-900">Edit Branch Details</h3>
+          <h3 className="text-xl font-semibold text-stripe-text">Edit Branch Details</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-stripe-text-secondary hover:text-stripe-text-secondary"
           >
             <XMarkIcon className="w-6 h-6" />
           </button>
@@ -99,15 +99,15 @@ export default function EditBranchModal({
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Branch Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.branchName}
                 onChange={(e) => handleInputChange('branchName', e.target.value)}
-                className={`text-gray-700 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.branchName ? 'border-red-500' : 'border-gray-300'
+                className={`text-stripe-text w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.branchName ? 'border-red-500' : 'border-stripe-border'
                 }`}
                 placeholder="Enter branch name"
               />
@@ -115,32 +115,32 @@ export default function EditBranchModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Branch Code
               </label>
               <input
                 type="text"
                 value={formData.branchCode}
                 onChange={(e) => handleInputChange('branchCode', e.target.value)}
-                className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100"
+                className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 bg-stripe-background-light"
                 placeholder="Branch code"
                 disabled
               />
-              <p className="text-gray-500 text-sm mt-1">Branch code cannot be changed</p>
+              <p className="text-stripe-text-secondary text-sm mt-1">Branch code cannot be changed</p>
             </div>
           </div>
 
           {/* Location Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 State <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.state}
                 onChange={(e) => handleInputChange('state', e.target.value)}
-                className={`text-gray-700 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.state ? 'border-red-500' : 'border-gray-300'
+                className={`text-stripe-text w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.state ? 'border-red-500' : 'border-stripe-border'
                 }`}
               >
                 <option value="">Select State</option>
@@ -164,15 +164,15 @@ export default function EditBranchModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 City <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.city}
                 onChange={(e) => handleInputChange('city', e.target.value)}
-                className={`text-gray-700 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.city ? 'border-red-500' : 'border-gray-300'
+                className={`text-stripe-text w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.city ? 'border-red-500' : 'border-stripe-border'
                 }`}
                 placeholder="Enter city"
               />
@@ -182,15 +182,15 @@ export default function EditBranchModal({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Address <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.address}
                 onChange={(e) => handleInputChange('address', e.target.value)}
-                className={`text-gray-700 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.address ? 'border-red-500' : 'border-gray-300'
+                className={`text-stripe-text w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.address ? 'border-red-500' : 'border-stripe-border'
                 }`}
                 placeholder="Enter full address"
               />
@@ -198,15 +198,15 @@ export default function EditBranchModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Pincode <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.pincode}
                 onChange={(e) => handleInputChange('pincode', e.target.value)}
-                className={`text-gray-700 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.pincode ? 'border-red-500' : 'border-gray-300'
+                className={`text-stripe-text w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.pincode ? 'border-red-500' : 'border-stripe-border'
                 }`}
                 placeholder="Enter pincode"
               />
@@ -217,15 +217,15 @@ export default function EditBranchModal({
           {/* Contact Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Phone <span className="text-red-500">*</span>
               </label>
               <input
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
-                className={`text-gray-700 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.phone ? 'border-red-500' : 'border-gray-300'
+                className={`text-stripe-text w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.phone ? 'border-red-500' : 'border-stripe-border'
                 }`}
                 placeholder="Enter phone number"
               />
@@ -233,15 +233,15 @@ export default function EditBranchModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className={`text-gray-700 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.email ? 'border-red-500' : 'border-gray-300'
+                className={`text-stripe-text w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.email ? 'border-red-500' : 'border-stripe-border'
                 }`}
                 placeholder="Enter email address"
               />
@@ -252,15 +252,15 @@ export default function EditBranchModal({
           {/* Manager Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Manager Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.managerName}
                 onChange={(e) => handleInputChange('managerName', e.target.value)}
-                className={`text-gray-700 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.managerName ? 'border-red-500' : 'border-gray-300'
+                className={`text-stripe-text w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.managerName ? 'border-red-500' : 'border-stripe-border'
                 }`}
                 placeholder="Enter manager name"
               />
@@ -268,15 +268,15 @@ export default function EditBranchModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Manager Phone <span className="text-red-500">*</span>
               </label>
               <input
                 type="tel"
                 value={formData.managerPhone}
                 onChange={(e) => handleInputChange('managerPhone', e.target.value)}
-                className={`text-gray-700 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.managerPhone ? 'border-red-500' : 'border-gray-300'
+                className={`text-stripe-text w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.managerPhone ? 'border-red-500' : 'border-stripe-border'
                 }`}
                 placeholder="Enter manager phone"
               />
@@ -287,41 +287,41 @@ export default function EditBranchModal({
           {/* Operational Information */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Employee Count
               </label>
               <input
                 type="number"
                 value={formData.employeeCount}
                 onChange={(e) => handleInputChange('employeeCount', parseInt(e.target.value) || 0)}
-                className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter employee count"
                 min="0"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Customer Count
               </label>
               <input
                 type="number"
                 value={formData.customerCount}
                 onChange={(e) => handleInputChange('customerCount', parseInt(e.target.value) || 0)}
-                className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter customer count"
                 min="0"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Status
               </label>
               <select
                 value={formData.status}
                 onChange={(e) => handleInputChange('status', e.target.value as Branch['status'])}
-                className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
@@ -333,28 +333,28 @@ export default function EditBranchModal({
           {/* Financial Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Total Deposits (₹)
               </label>
               <input
                 type="number"
                 value={formData.totalDeposits}
                 onChange={(e) => handleInputChange('totalDeposits', parseInt(e.target.value) || 0)}
-                className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter total deposits"
                 min="0"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stripe-text mb-2">
                 Total Loans (₹)
               </label>
               <input
                 type="number"
                 value={formData.totalLoans}
                 onChange={(e) => handleInputChange('totalLoans', parseInt(e.target.value) || 0)}
-                className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter total loans"
                 min="0"
               />
@@ -366,7 +366,7 @@ export default function EditBranchModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-stripe-border rounded-lg text-stripe-text hover:bg-stripe-background-light transition-colors"
             >
               Cancel
             </button>

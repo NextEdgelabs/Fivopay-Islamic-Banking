@@ -57,7 +57,7 @@ export default function BranchTable({
       case 'Under Maintenance':
         return 'text-yellow-600 bg-yellow-100';
       default:
-        return 'text-gray-600 bg-gray-100';
+        return 'text-stripe-text-secondary bg-stripe-background-light';
     }
   };
 
@@ -70,7 +70,7 @@ export default function BranchTable({
       case 'Under Maintenance':
         return <ClockIcon className="w-4 h-4 text-yellow-600" />;
       default:
-        return <CheckCircleIcon className="w-4 h-4 text-gray-600" />;
+        return <CheckCircleIcon className="w-4 h-4 text-stripe-text-secondary" />;
     }
   };
   
@@ -80,8 +80,8 @@ export default function BranchTable({
       header: 'Branch Details',
       render: (branch) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">{branch.branchName}</div>
-          <div className="text-sm text-gray-500">{branch.branchCode}</div>
+          <div className="text-sm font-medium text-stripe-text">{branch.branchName}</div>
+          <div className="text-sm text-stripe-text-secondary">{branch.branchCode}</div>
         </div>
       ),
     },
@@ -90,8 +90,8 @@ export default function BranchTable({
       header: 'Location',
       render: (branch) => (
         <div>
-          <div className="text-sm text-gray-900">{branch.city}, {branch.state}</div>
-          <div className="text-sm text-gray-500">{branch.pincode}</div>
+          <div className="text-sm text-stripe-text">{branch.city}, {branch.state}</div>
+          <div className="text-sm text-stripe-text-secondary">{branch.pincode}</div>
         </div>
       ),
     },
@@ -100,8 +100,8 @@ export default function BranchTable({
       header: 'Manager',
       render: (branch) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">{branch.managerName}</div>
-          <div className="text-sm text-gray-500">{branch.managerPhone}</div>
+          <div className="text-sm font-medium text-stripe-text">{branch.managerName}</div>
+          <div className="text-sm text-stripe-text-secondary">{branch.managerPhone}</div>
         </div>
       ),
     },
@@ -110,8 +110,8 @@ export default function BranchTable({
       header: 'Performance',
       render: (branch) => (
         <div>
-          <div className="text-sm text-gray-900">{branch.customerCount} customers</div>
-          <div className="text-sm text-gray-500">{branch.employeeCount} employees</div>
+          <div className="text-sm text-stripe-text">{branch.customerCount} customers</div>
+          <div className="text-sm text-stripe-text-secondary">{branch.employeeCount} employees</div>
         </div>
       ),
     },

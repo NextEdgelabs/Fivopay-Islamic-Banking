@@ -50,7 +50,7 @@ const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => vo
   return (
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
       <span>{toast.message}</span>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-stripe-text-secondary">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
@@ -76,12 +76,12 @@ const ConfirmDialog = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold text-stripe-text mb-2">{title}</h3>
+        <p className="text-stripe-text-secondary mb-6">{message}</p>
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-stripe-border text-stripe-text rounded-lg hover:bg-stripe-background-light"
           >
             Cancel
           </button>
@@ -143,8 +143,8 @@ const ApprovalWorkflowComponent = ({
 
   return (
     <div className="space-y-4">
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Approval Workflow</h4>
+      <div className="bg-stripe-background-light p-4 rounded-lg">
+        <h4 className="text-sm font-medium text-stripe-text mb-3">Approval Workflow</h4>
         <div className="space-y-3">
           {approvalLevels.map((level) => (
             <div key={level.level} className="flex items-center space-x-3">
@@ -153,7 +153,7 @@ const ApprovalWorkflowComponent = ({
                   ? 'bg-green-100 text-green-800' 
                   : level.level === currentLevel 
                   ? 'bg-blue-100 text-blue-800'
-                  : 'bg-gray-100 text-gray-400'
+                  : 'bg-stripe-background-light text-stripe-text-secondary'
               }`}>
                 {level.level < currentLevel ? (
                   <CheckIcon className="h-4 w-4" />
@@ -164,8 +164,8 @@ const ApprovalWorkflowComponent = ({
                 )}
               </div>
               <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900">{level.title}</div>
-                <div className="text-xs text-gray-500">
+                <div className="text-sm font-medium text-stripe-text">{level.title}</div>
+                <div className="text-xs text-stripe-text-secondary">
                   {level.required ? 'Required' : 'Conditional'} • 
                   {level.level < currentLevel ? ' Approved' : 
                    level.level === currentLevel ? ' Pending' : ' Not Started'}
@@ -226,8 +226,8 @@ const ApprovalWorkflowComponent = ({
       )}
 
       {showApprovalForm && (
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h5 className="text-sm font-medium text-gray-900 mb-3">
+        <div className="bg-white border border-stripe-border rounded-lg p-4">
+          <h5 className="text-sm font-medium text-stripe-text mb-3">
             {approvalAction === 'approve' ? 'Approve' : 
              approvalAction === 'reject' ? 'Reject' : 'Complete'} Transfer
           </h5>
@@ -236,13 +236,13 @@ const ApprovalWorkflowComponent = ({
             onChange={(e) => setComments(e.target.value)}
             placeholder={`Enter comments for ${approvalAction === 'approve' ? 'approval' : 
                         approvalAction === 'reject' ? 'rejection' : 'completion'}...`}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full border border-stripe-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             rows={3}
           />
           <div className="flex space-x-2 mt-3">
             <button
               onClick={() => setShowApprovalForm(false)}
-              className="flex-1 bg-gray-300 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-400"
+              className="flex-1 bg-stripe-background-light text-stripe-text px-3 py-2 rounded text-sm hover:bg-stripe-border"
             >
               Cancel
             </button>
@@ -490,7 +490,7 @@ export default function InterbranchReportsPage() {
       case "Rejected":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-stripe-background-light text-stripe-text";
     }
   };
 
@@ -515,8 +515,8 @@ export default function InterbranchReportsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Interbranch Reports</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-stripe-text">Interbranch Reports</h1>
+          <p className="text-stripe-text-secondary">
             Track cash movements and transfers between branches with approval workflow
           </p>
         </div>
@@ -531,11 +531,11 @@ export default function InterbranchReportsPage() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Transfers</p>
-              <p className="text-2xl font-bold text-gray-900">{totalTransfers}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Transfers</p>
+              <p className="text-2xl font-bold text-stripe-text">{totalTransfers}</p>
             </div>
             <div className="bg-blue-500 p-3 rounded-lg text-white">
               <ArrowPathIcon className="h-6 w-6" />
@@ -543,10 +543,10 @@ export default function InterbranchReportsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Completed</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Completed</p>
               <p className="text-2xl font-bold text-green-600">{completedTransfers}</p>
             </div>
             <div className="bg-green-500 p-3 rounded-lg text-white">
@@ -555,10 +555,10 @@ export default function InterbranchReportsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Pending Approval</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Pending Approval</p>
               <p className="text-2xl font-bold text-yellow-600">{pendingTransfers}</p>
             </div>
             <div className="bg-yellow-500 p-3 rounded-lg text-white">
@@ -567,11 +567,11 @@ export default function InterbranchReportsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Amount</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Amount</p>
+              <p className="text-2xl font-bold text-stripe-text">
                 ₹{(totalAmount / 100000).toFixed(1)}L
               </p>
             </div>
@@ -583,26 +583,26 @@ export default function InterbranchReportsPage() {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-stripe-text-secondary" />
               <input
                 type="text"
                 placeholder="Search by reference, branch, or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="text-gray-700 w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="text-stripe-text w-full pl-10 pr-4 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <FunnelIcon className="h-5 w-5 text-gray-400" />
+            <FunnelIcon className="h-5 w-5 text-stripe-text-secondary" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
@@ -614,7 +614,7 @@ export default function InterbranchReportsPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Types</option>
               <option value="cash_transfer">Cash Transfer</option>
@@ -626,9 +626,9 @@ export default function InterbranchReportsPage() {
       </div>
 
       {/* Transfers Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-900">Transfer History</h2>
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border overflow-hidden">
+        <div className="px-6 py-4 border-b border-stripe-border flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-stripe-text">Transfer History</h2>
           <button className="text-blue-600 hover:text-blue-800 flex items-center space-x-1">
             <DocumentArrowDownIcon className="h-4 w-4" />
             <span>Export Report</span>
@@ -636,53 +636,53 @@ export default function InterbranchReportsPage() {
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-stripe-background-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Transfer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Purpose
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Request Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredTransfers.map((transfer) => (
-                <tr key={transfer.id} className="hover:bg-gray-50">
+                <tr key={transfer.id} className="hover:bg-stripe-background-light">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 font-mono">
+                    <div className="text-sm font-medium text-stripe-text font-mono">
                       {transfer.id}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-900">{transfer.fromBranch}</span>
-                      <ArrowRightIcon className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-900">{transfer.toBranch}</span>
+                      <span className="text-sm text-stripe-text">{transfer.fromBranch}</span>
+                      <ArrowRightIcon className="h-4 w-4 text-stripe-text-secondary" />
+                      <span className="text-sm text-stripe-text">{transfer.toBranch}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-semibold text-gray-900">
+                    <div className="text-sm font-semibold text-stripe-text">
                       ₹{transfer.amount.toLocaleString()}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
+                    <div className="text-sm text-stripe-text">
                       {transfer.purpose}
                     </div>
                   </td>
@@ -692,7 +692,7 @@ export default function InterbranchReportsPage() {
                       <span className="ml-1">{transfer.status}</span>
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-stripe-text-secondary">
                     {new Date(transfer.requestDate).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -735,17 +735,17 @@ export default function InterbranchReportsPage() {
       </div>
 
       {/* Branch Network Overview */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Branch Network Overview</h2>
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
+        <h2 className="text-lg font-semibold text-stripe-text mb-4">Branch Network Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {branches.map((branch, index) => (
             <div
               key={index}
-              className="p-4 border border-gray-200 rounded-lg text-center"
+              className="p-4 border border-stripe-border rounded-lg text-center"
             >
               <BuildingOfficeIcon className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-              <h3 className="font-medium text-gray-900">{branch}</h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <h3 className="font-medium text-stripe-text">{branch}</h3>
+              <p className="text-sm text-stripe-text-secondary mt-1">
                 {(interbranchTransfers || []).filter(t => t.fromBranch === branch || t.toBranch === branch).length} transfers
               </p>
             </div>
@@ -758,25 +758,25 @@ export default function InterbranchReportsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-stripe-text">
                 New Interbranch Transfer
               </h3>
               <button
                 onClick={() => setShowNewTransferModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text-secondary"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
             <form onSubmit={handleCreateTransfer} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   From Branch *
                 </label>
                 <select 
                   value={formData.fromBranch}
                   onChange={(e) => handleFormChange('fromBranch', e.target.value)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 >
                   <option value="">Select from branch</option>
@@ -788,13 +788,13 @@ export default function InterbranchReportsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   To Branch *
                 </label>
                 <select 
                   value={formData.toBranch}
                   onChange={(e) => handleFormChange('toBranch', e.target.value)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 >
                   <option value="">Select to branch</option>
@@ -806,14 +806,14 @@ export default function InterbranchReportsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   Amount *
                 </label>
                 <input
                   type="number"
                   value={formData.amount}
                   onChange={(e) => handleFormChange('amount', parseFloat(e.target.value) || 0)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter amount"
                   min="0"
                   step="0.01"
@@ -821,26 +821,26 @@ export default function InterbranchReportsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   Purpose *
                 </label>
                 <input
                   type="text"
                   value={formData.purpose}
                   onChange={(e) => handleFormChange('purpose', e.target.value)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter transfer purpose"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   Notes
                 </label>
                 <textarea
                   value={formData.notes}
                   onChange={(e) => handleFormChange('notes', e.target.value)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter additional notes (optional)"
                   rows={3}
                 />
@@ -858,7 +858,7 @@ export default function InterbranchReportsPage() {
                       notes: ''
                     });
                   }}
-                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
+                  className="flex-1 bg-stripe-background-light text-stripe-text px-4 py-2 rounded-lg hover:bg-stripe-border"
                 >
                   Cancel
                 </button>
@@ -879,12 +879,12 @@ export default function InterbranchReportsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900">
+              <h3 className="text-xl font-semibold text-stripe-text">
                 Transfer Details
               </h3>
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text-secondary"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -896,22 +896,22 @@ export default function InterbranchReportsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-2">Transfer Information</h4>
-                      <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                      <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Transfer Information</h4>
+                      <div className="bg-stripe-background-light p-4 rounded-lg space-y-3">
                         <div className="flex justify-between">
-                          <span className="text-gray-500">ID:</span>
-                          <span className="font-mono text-gray-900">{selectedTransfer.id}</span>
+                          <span className="text-stripe-text-secondary">ID:</span>
+                          <span className="font-mono text-stripe-text">{selectedTransfer.id}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-500">Purpose:</span>
-                          <span className="text-gray-900">{selectedTransfer.purpose}</span>
+                          <span className="text-stripe-text-secondary">Purpose:</span>
+                          <span className="text-stripe-text">{selectedTransfer.purpose}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-500">Amount:</span>
-                          <span className="font-semibold text-gray-900">₹{selectedTransfer.amount.toLocaleString()}</span>
+                          <span className="text-stripe-text-secondary">Amount:</span>
+                          <span className="font-semibold text-stripe-text">₹{selectedTransfer.amount.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-500">Status:</span>
+                          <span className="text-stripe-text-secondary">Status:</span>
                           <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedTransfer.status)}`}>
                             {getStatusIcon(selectedTransfer.status)}
                             <span className="ml-1">{selectedTransfer.status}</span>
@@ -921,20 +921,20 @@ export default function InterbranchReportsPage() {
                     </div>
 
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-2">Branch Details</h4>
-                      <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                      <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Branch Details</h4>
+                      <div className="bg-stripe-background-light p-4 rounded-lg space-y-3">
                         <div className="flex items-center space-x-3">
-                          <BuildingOfficeIcon className="h-4 w-4 text-gray-400" />
+                          <BuildingOfficeIcon className="h-4 w-4 text-stripe-text-secondary" />
                           <div>
-                            <div className="text-sm text-gray-500">From Branch</div>
-                            <div className="font-medium text-gray-900">{selectedTransfer.fromBranch}</div>
+                            <div className="text-sm text-stripe-text-secondary">From Branch</div>
+                            <div className="font-medium text-stripe-text">{selectedTransfer.fromBranch}</div>
                           </div>
                         </div>
                         <div className="flex items-center space-x-3">
-                          <ArrowRightIcon className="h-4 w-4 text-gray-400" />
+                          <ArrowRightIcon className="h-4 w-4 text-stripe-text-secondary" />
                           <div>
-                            <div className="text-sm text-gray-500">To Branch</div>
-                            <div className="font-medium text-gray-900">{selectedTransfer.toBranch}</div>
+                            <div className="text-sm text-stripe-text-secondary">To Branch</div>
+                            <div className="font-medium text-stripe-text">{selectedTransfer.toBranch}</div>
                           </div>
                         </div>
                       </div>
@@ -943,21 +943,21 @@ export default function InterbranchReportsPage() {
 
                   <div className="space-y-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-2">User Information</h4>
-                      <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                      <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">User Information</h4>
+                      <div className="bg-stripe-background-light p-4 rounded-lg space-y-3">
                         <div className="flex items-center space-x-3">
-                          <UserIcon className="h-4 w-4 text-gray-400" />
+                          <UserIcon className="h-4 w-4 text-stripe-text-secondary" />
                           <div>
-                            <div className="text-sm text-gray-500">Requested By</div>
-                            <div className="font-medium text-gray-900">{selectedTransfer.requestedBy}</div>
+                            <div className="text-sm text-stripe-text-secondary">Requested By</div>
+                            <div className="font-medium text-stripe-text">{selectedTransfer.requestedBy}</div>
                           </div>
                         </div>
                         {selectedTransfer.approvedBy && (
                           <div className="flex items-center space-x-3">
-                            <UserIcon className="h-4 w-4 text-gray-400" />
+                            <UserIcon className="h-4 w-4 text-stripe-text-secondary" />
                             <div>
-                              <div className="text-sm text-gray-500">Approved By</div>
-                              <div className="font-medium text-gray-900">{selectedTransfer.approvedBy}</div>
+                              <div className="text-sm text-stripe-text-secondary">Approved By</div>
+                              <div className="font-medium text-stripe-text">{selectedTransfer.approvedBy}</div>
                             </div>
                           </div>
                         )}
@@ -965,13 +965,13 @@ export default function InterbranchReportsPage() {
                     </div>
 
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-2">Timeline</h4>
-                      <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                      <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Timeline</h4>
+                      <div className="bg-stripe-background-light p-4 rounded-lg space-y-3">
                         <div className="flex items-center space-x-3">
-                          <CalendarIcon className="h-4 w-4 text-gray-400" />
+                          <CalendarIcon className="h-4 w-4 text-stripe-text-secondary" />
                           <div>
-                            <div className="text-sm font-medium text-gray-900">Request Date</div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-sm font-medium text-stripe-text">Request Date</div>
+                            <div className="text-xs text-stripe-text-secondary">
                               {new Date(selectedTransfer.requestDate).toLocaleString()}
                             </div>
                           </div>
@@ -980,9 +980,9 @@ export default function InterbranchReportsPage() {
                     </div>
 
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-2">Notes</h4>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-900">{selectedTransfer.notes || 'No notes available'}</p>
+                      <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Notes</h4>
+                      <div className="bg-stripe-background-light p-4 rounded-lg">
+                        <p className="text-sm text-stripe-text">{selectedTransfer.notes || 'No notes available'}</p>
                       </div>
                     </div>
                   </div>

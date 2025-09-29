@@ -29,7 +29,7 @@ const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => vo
   return (
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
       <span>{toast.message}</span>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-stripe-text-secondary">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
@@ -55,12 +55,12 @@ const ConfirmDialog = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold text-stripe-text mb-2">{title}</h3>
+        <p className="text-stripe-text-secondary mb-6">{message}</p>
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-stripe-border text-stripe-text rounded-lg hover:bg-stripe-background-light"
           >
             Cancel
           </button>
@@ -208,8 +208,8 @@ export default function BranchDashboardPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Branch Cash Dashboard</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-stripe-text">Branch Cash Dashboard</h1>
+          <p className="text-stripe-text-secondary">
             Real-time cash management overview across all branches
           </p>
         </div>
@@ -217,7 +217,7 @@ export default function BranchDashboardPage() {
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
-            className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="today">Today</option>
             <option value="week">This Week</option>
@@ -226,7 +226,7 @@ export default function BranchDashboardPage() {
           <select
             value={selectedBranch}
             onChange={(e) => setSelectedBranch(e.target.value)}
-            className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="all">All Branches</option>
             {branches.map((branch) => (
@@ -240,11 +240,11 @@ export default function BranchDashboardPage() {
 
       {/* Overall Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Cash Balance</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Cash Balance</p>
+              <p className="text-2xl font-bold text-stripe-text">
                 ₹{(totalCashBalance / 1000000).toFixed(1)}M
               </p>
             </div>
@@ -254,10 +254,10 @@ export default function BranchDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Daily Deposits</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Daily Deposits</p>
               <p className="text-2xl font-bold text-green-600">
                 ₹{(totalDailyDeposits / 1000).toFixed(0)}K
               </p>
@@ -268,10 +268,10 @@ export default function BranchDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Daily Withdrawals</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Daily Withdrawals</p>
               <p className="text-2xl font-bold text-red-600">
                 ₹{(totalDailyWithdrawals / 1000).toFixed(0)}K
               </p>
@@ -282,10 +282,10 @@ export default function BranchDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Pending Transactions</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Pending Transactions</p>
               <p className="text-2xl font-bold text-yellow-600">
                 {totalPendingTransactions}
               </p>
@@ -319,12 +319,12 @@ export default function BranchDashboardPage() {
         {filteredBranches.map((branch) => (
           <div
             key={branch.id}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+            className="bg-white rounded-lg shadow-sm border border-stripe-border p-6"
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">{branch.name}</h3>
-                <p className="text-sm text-gray-600">Branch Code: {branch.code}</p>
+                <h3 className="text-lg font-semibold text-stripe-text">{branch.name}</h3>
+                <p className="text-sm text-stripe-text-secondary">Branch Code: {branch.code}</p>
               </div>
               <span
                 className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -342,39 +342,39 @@ export default function BranchDashboardPage() {
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Cash Balance</p>
-                <p className="text-lg font-bold text-gray-900">
+                <p className="text-sm font-medium text-stripe-text-secondary">Cash Balance</p>
+                <p className="text-lg font-bold text-stripe-text">
                   ₹{(branch.cashBalance / 100000).toFixed(1)}L
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Manager</p>
-                <p className="text-sm text-gray-900">{branch.manager}</p>
+                <p className="text-sm font-medium text-stripe-text-secondary">Manager</p>
+                <p className="text-sm text-stripe-text">{branch.manager}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Daily Deposits</p>
+                <p className="text-sm font-medium text-stripe-text-secondary">Daily Deposits</p>
                 <p className="text-sm font-semibold text-green-600">
                   ₹{branch.dailyDeposits.toLocaleString()}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Daily Withdrawals</p>
+                <p className="text-sm font-medium text-stripe-text-secondary">Daily Withdrawals</p>
                 <p className="text-sm font-semibold text-red-600">
                   ₹{branch.dailyWithdrawals.toLocaleString()}
                 </p>
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-4">
+            <div className="border-t border-stripe-border pt-4">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-1">
-                    <UserGroupIcon className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-600">{branch.employeeCount} employees</span>
+                    <UserGroupIcon className="h-4 w-4 text-stripe-text-secondary" />
+                    <span className="text-stripe-text-secondary">{branch.employeeCount} employees</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <ClockIcon className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-600">
+                    <ClockIcon className="h-4 w-4 text-stripe-text-secondary" />
+                    <span className="text-stripe-text-secondary">
                       {branch.pendingTransactions} pending
                     </span>
                   </div>
@@ -392,8 +392,8 @@ export default function BranchDashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
+        <h2 className="text-lg font-semibold text-stripe-text mb-4">Recent Activity</h2>
         <div className="space-y-4">
           {[
             {
@@ -427,7 +427,7 @@ export default function BranchDashboardPage() {
           ].map((activity, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              className="flex items-center justify-between p-3 bg-stripe-background-light rounded-lg"
             >
               <div className="flex items-center space-x-3">
                 <div
@@ -442,13 +442,13 @@ export default function BranchDashboardPage() {
                   }`}
                 />
                 <div>
-                  <p className="font-medium text-gray-900">{activity.branch}</p>
-                  <p className="text-sm text-gray-600">{activity.action}</p>
+                  <p className="font-medium text-stripe-text">{activity.branch}</p>
+                  <p className="text-sm text-stripe-text-secondary">{activity.action}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-semibold text-gray-900">{activity.amount}</p>
-                <p className="text-sm text-gray-500">{activity.time}</p>
+                <p className="font-semibold text-stripe-text">{activity.amount}</p>
+                <p className="text-sm text-stripe-text-secondary">{activity.time}</p>
               </div>
             </div>
           ))}
@@ -460,12 +460,12 @@ export default function BranchDashboardPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900">
+              <h3 className="text-xl font-semibold text-stripe-text">
                 Branch Details - {selectedBranchDetails.name}
               </h3>
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text-secondary"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -474,55 +474,55 @@ export default function BranchDashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Branch Information</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Branch Information</h4>
+                  <div className="bg-stripe-background-light p-4 rounded-lg space-y-3">
                     <div className="flex items-center space-x-3">
-                      <BuildingOfficeIcon className="h-5 w-5 text-gray-400" />
+                      <BuildingOfficeIcon className="h-5 w-5 text-stripe-text-secondary" />
                       <div>
-                        <div className="font-medium text-gray-900">{selectedBranchDetails.name}</div>
-                        <div className="text-sm text-gray-600">Code: {selectedBranchDetails.code}</div>
+                        <div className="font-medium text-stripe-text">{selectedBranchDetails.name}</div>
+                        <div className="text-sm text-stripe-text-secondary">Code: {selectedBranchDetails.code}</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <UserGroupIcon className="h-4 w-4 text-gray-400" />
+                      <UserGroupIcon className="h-4 w-4 text-stripe-text-secondary" />
                       <div>
-                        <div className="text-sm text-gray-500">Manager</div>
-                        <div className="font-medium text-gray-900">{selectedBranchDetails.manager}</div>
+                        <div className="text-sm text-stripe-text-secondary">Manager</div>
+                        <div className="font-medium text-stripe-text">{selectedBranchDetails.manager}</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <UserGroupIcon className="h-4 w-4 text-gray-400" />
+                      <UserGroupIcon className="h-4 w-4 text-stripe-text-secondary" />
                       <div>
-                        <div className="text-sm text-gray-500">Employees</div>
-                        <div className="font-medium text-gray-900">{selectedBranchDetails.employeeCount}</div>
+                        <div className="text-sm text-stripe-text-secondary">Employees</div>
+                        <div className="font-medium text-stripe-text">{selectedBranchDetails.employeeCount}</div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Cash Information</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Cash Information</h4>
+                  <div className="bg-stripe-background-light p-4 rounded-lg space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Current Balance:</span>
-                      <span className="font-semibold text-gray-900">
+                      <span className="text-stripe-text-secondary">Current Balance:</span>
+                      <span className="font-semibold text-stripe-text">
                         ₹{(selectedBranchDetails.cashBalance / 100000).toFixed(1)}L
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Daily Deposits:</span>
+                      <span className="text-stripe-text-secondary">Daily Deposits:</span>
                       <span className="font-semibold text-green-600">
                         ₹{selectedBranchDetails.dailyDeposits.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Daily Withdrawals:</span>
+                      <span className="text-stripe-text-secondary">Daily Withdrawals:</span>
                       <span className="font-semibold text-red-600">
                         ₹{selectedBranchDetails.dailyWithdrawals.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Pending Transactions:</span>
+                      <span className="text-stripe-text-secondary">Pending Transactions:</span>
                       <span className="font-semibold text-yellow-600">
                         {selectedBranchDetails.pendingTransactions}
                       </span>
@@ -533,44 +533,44 @@ export default function BranchDashboardPage() {
 
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Contact Information</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Contact Information</h4>
+                  <div className="bg-stripe-background-light p-4 rounded-lg space-y-3">
                     <div className="flex items-center space-x-3">
-                      <MapPinIcon className="h-4 w-4 text-gray-400" />
+                      <MapPinIcon className="h-4 w-4 text-stripe-text-secondary" />
                       <div>
-                        <div className="text-sm text-gray-500">Address</div>
-                        <div className="text-sm text-gray-900">{branchDetails.address}</div>
+                        <div className="text-sm text-stripe-text-secondary">Address</div>
+                        <div className="text-sm text-stripe-text">{branchDetails.address}</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <PhoneIcon className="h-4 w-4 text-gray-400" />
+                      <PhoneIcon className="h-4 w-4 text-stripe-text-secondary" />
                       <div>
-                        <div className="text-sm text-gray-500">Phone</div>
-                        <div className="text-sm text-gray-900">{branchDetails.phone}</div>
+                        <div className="text-sm text-stripe-text-secondary">Phone</div>
+                        <div className="text-sm text-stripe-text">{branchDetails.phone}</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <EnvelopeIcon className="h-4 w-4 text-gray-400" />
+                      <EnvelopeIcon className="h-4 w-4 text-stripe-text-secondary" />
                       <div>
-                        <div className="text-sm text-gray-500">Email</div>
-                        <div className="text-sm text-gray-900">{branchDetails.email}</div>
+                        <div className="text-sm text-stripe-text-secondary">Email</div>
+                        <div className="text-sm text-stripe-text">{branchDetails.email}</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <ClockIcon className="h-4 w-4 text-gray-400" />
+                      <ClockIcon className="h-4 w-4 text-stripe-text-secondary" />
                       <div>
-                        <div className="text-sm text-gray-500">Operating Hours</div>
-                        <div className="text-sm text-gray-900">{branchDetails.operatingHours}</div>
+                        <div className="text-sm text-stripe-text-secondary">Operating Hours</div>
+                        <div className="text-sm text-stripe-text">{branchDetails.operatingHours}</div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Services & Facilities</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Services & Facilities</h4>
+                  <div className="bg-stripe-background-light p-4 rounded-lg">
                     <div className="mb-3">
-                      <div className="text-sm font-medium text-gray-700 mb-2">Services</div>
+                      <div className="text-sm font-medium text-stripe-text mb-2">Services</div>
                       <div className="flex flex-wrap gap-1">
                         {branchDetails.services.map((service, index) => (
                           <span key={index} className="inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
@@ -580,7 +580,7 @@ export default function BranchDashboardPage() {
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-700 mb-2">Facilities</div>
+                      <div className="text-sm font-medium text-stripe-text mb-2">Facilities</div>
                       <div className="flex flex-wrap gap-1">
                         {branchDetails.facilities.map((facility, index) => (
                           <span key={index} className="inline-flex px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
@@ -594,7 +594,7 @@ export default function BranchDashboardPage() {
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-4">
+            <div className="border-t border-stripe-border pt-4">
               <div className="flex space-x-3">
                 <button className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                   View Transactions

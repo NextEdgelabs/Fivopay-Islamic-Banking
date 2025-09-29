@@ -53,7 +53,7 @@ export default function BranchDetailsModal({
       case 'Under Maintenance':
         return 'text-yellow-600 bg-yellow-100';
       default:
-        return 'text-gray-600 bg-gray-100';
+        return 'text-stripe-text-secondary bg-stripe-background-light';
     }
   };
 
@@ -70,10 +70,10 @@ export default function BranchDetailsModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-semibold text-gray-900">Branch Details</h3>
+          <h3 className="text-xl font-semibold text-stripe-text">Branch Details</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-stripe-text-secondary hover:text-stripe-text-secondary"
           >
             <XMarkIcon className="w-6 h-6" />
           </button>
@@ -82,33 +82,33 @@ export default function BranchDetailsModal({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Branch Name</label>
-              <p className="mt-1 text-sm text-gray-900">{branch.branchName}</p>
+              <label className="block text-sm font-medium text-stripe-text">Branch Name</label>
+              <p className="mt-1 text-sm text-stripe-text">{branch.branchName}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Branch Code</label>
-              <p className="mt-1 text-sm text-gray-900">{branch.branchCode}</p>
+              <label className="block text-sm font-medium text-stripe-text">Branch Code</label>
+              <p className="mt-1 text-sm text-stripe-text">{branch.branchCode}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Address</label>
-              <p className="mt-1 text-sm text-gray-900">{branch.address}</p>
+              <label className="block text-sm font-medium text-stripe-text">Address</label>
+              <p className="mt-1 text-sm text-stripe-text">{branch.address}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">City & State</label>
-              <p className="mt-1 text-sm text-gray-900">{branch.city}, {branch.state}</p>
+              <label className="block text-sm font-medium text-stripe-text">City & State</label>
+              <p className="mt-1 text-sm text-stripe-text">{branch.city}, {branch.state}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Pincode</label>
-              <p className="mt-1 text-sm text-gray-900">{branch.pincode}</p>
+              <label className="block text-sm font-medium text-stripe-text">Pincode</label>
+              <p className="mt-1 text-sm text-stripe-text">{branch.pincode}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Contact</label>
+              <label className="block text-sm font-medium text-stripe-text">Contact</label>
               <div className="mt-1 space-y-1">
-                <p className="text-sm text-gray-900 flex items-center">
+                <p className="text-sm text-stripe-text flex items-center">
                   <PhoneIcon className="w-4 h-4 mr-2" />
                   {branch.phone}
                 </p>
-                <p className="text-sm text-gray-900 flex items-center">
+                <p className="text-sm text-stripe-text flex items-center">
                   <EnvelopeIcon className="w-4 h-4 mr-2" />
                   {branch.email}
                 </p>
@@ -118,12 +118,12 @@ export default function BranchDetailsModal({
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Branch Manager</label>
-              <p className="mt-1 text-sm text-gray-900">{branch.managerName}</p>
-              <p className="text-sm text-gray-600">{branch.managerPhone}</p>
+              <label className="block text-sm font-medium text-stripe-text">Branch Manager</label>
+              <p className="mt-1 text-sm text-stripe-text">{branch.managerName}</p>
+              <p className="text-sm text-stripe-text-secondary">{branch.managerPhone}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Status</label>
+              <label className="block text-sm font-medium text-stripe-text">Status</label>
               <p className="mt-1">
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(branch.status)}`}>
                   {branch.status}
@@ -131,33 +131,33 @@ export default function BranchDetailsModal({
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Established Date</label>
-              <p className="mt-1 text-sm text-gray-900">{branch.establishedDate}</p>
+              <label className="block text-sm font-medium text-stripe-text">Established Date</label>
+              <p className="mt-1 text-sm text-stripe-text">{branch.establishedDate}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Last Inspection</label>
-              <p className="mt-1 text-sm text-gray-900">{branch.lastInspection}</p>
+              <label className="block text-sm font-medium text-stripe-text">Last Inspection</label>
+              <p className="mt-1 text-sm text-stripe-text">{branch.lastInspection}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Employee Count</label>
-              <p className="mt-1 text-sm text-gray-900">{branch.employeeCount} employees</p>
+              <label className="block text-sm font-medium text-stripe-text">Employee Count</label>
+              <p className="mt-1 text-sm text-stripe-text">{branch.employeeCount} employees</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Customer Count</label>
-              <p className="mt-1 text-sm text-gray-900">{branch.customerCount.toLocaleString()} customers</p>
+              <label className="block text-sm font-medium text-stripe-text">Customer Count</label>
+              <p className="mt-1 text-sm text-stripe-text">{branch.customerCount.toLocaleString()} customers</p>
             </div>
           </div>
         </div>
         
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4">Financial Performance</h4>
+        <div className="mt-6 pt-6 border-t border-stripe-border">
+          <h4 className="text-lg font-semibold text-stripe-text mb-4">Financial Performance</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-green-50 p-4 rounded-lg">
-              <p className="text-sm font-medium text-gray-700">Total Deposits</p>
+              <p className="text-sm font-medium text-stripe-text">Total Deposits</p>
               <p className="text-2xl font-bold text-green-600">{formatCurrency(branch.totalDeposits)}</p>
             </div>
             <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm font-medium text-gray-700">Total Loans</p>
+              <p className="text-sm font-medium text-stripe-text">Total Loans</p>
               <p className="text-2xl font-bold text-blue-600">{formatCurrency(branch.totalLoans)}</p>
             </div>
           </div>
@@ -166,7 +166,7 @@ export default function BranchDetailsModal({
         <div className="mt-6 flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 border border-stripe-border rounded-lg text-stripe-text hover:bg-stripe-background-light transition-colors"
           >
             Close
           </button>

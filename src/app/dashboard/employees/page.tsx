@@ -465,7 +465,7 @@ export default function EmployeesPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {roles.map((role) => (
-                <div key={role.id} className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div key={role.id} className="border border-stripe-border rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <div className={`w-3 h-3 rounded-full bg-${role.color}-500`}></div>
                     <div className="flex items-center space-x-2">
@@ -591,7 +591,7 @@ export default function EmployeesPage() {
           </div>
 
           {/* Export and Actions Bar */}
-          <div className="bg-white shadow-md rounded-lg p-4 border border-slate-200">
+          <div className="bg-white shadow-md rounded-lg p-4 border border-stripe-border">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-stripe-text-secondary">
@@ -611,7 +611,7 @@ export default function EmployeesPage() {
                   </button>
                   
                   {showExportMenu && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-slate-200 z-10">
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-stripe-border z-10">
                       <div className="py-1">
                         <div className="px-4 py-2 text-xs font-medium text-stripe-text-secondary uppercase tracking-wide">
                           Export Current View
@@ -629,7 +629,7 @@ export default function EmployeesPage() {
                           Export as Excel
                         </button>
                         
-                        <div className="border-t border-slate-200 my-1"></div>
+                        <div className="border-t border-stripe-border my-1"></div>
                         
                         <div className="px-4 py-2 text-xs font-medium text-stripe-text-secondary uppercase tracking-wide">
                           Export All Employees
@@ -785,7 +785,7 @@ export default function EmployeesPage() {
                   type="text"
                   value={editingRole.name}
                   onChange={(e) => setEditingRole({ ...editingRole, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-stripe-primary focus:border-transparent"
                   placeholder="Enter role name"
                 />
               </div>
@@ -794,7 +794,7 @@ export default function EmployeesPage() {
                 <textarea
                   value={editingRole.description}
                   onChange={(e) => setEditingRole({ ...editingRole, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-stripe-primary focus:border-transparent"
                   rows={3}
                   placeholder="Enter role description"
                 />
@@ -804,7 +804,7 @@ export default function EmployeesPage() {
                 <select
                   value={editingRole.color}
                   onChange={(e) => setEditingRole({ ...editingRole, color: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-stripe-primary focus:border-transparent"
                 >
                   <option value="purple">Purple</option>
                   <option value="blue">Blue</option>
@@ -859,11 +859,11 @@ export default function EmployeesPage() {
                   return acc;
                 }, {} as Record<string, Feature[]>)
               ).map(([category, categoryFeatures]) => (
-                <div key={category} className="border border-gray-200 rounded-lg p-4">
+                <div key={category} className="border border-stripe-border rounded-lg p-4">
                   <h4 className="text-lg font-semibold text-stripe-text mb-4">{category}</h4>
                   <div className="space-y-4">
                     {categoryFeatures.map((feature) => (
-                      <div key={feature.id} className="border border-gray-100 rounded-lg p-4">
+                      <div key={feature.id} className="border border-stripe-background-light rounded-lg p-4">
                         <div className="flex items-center justify-between mb-3">
                           <div>
                             <h5 className="font-medium text-stripe-text">{feature.name}</h5>

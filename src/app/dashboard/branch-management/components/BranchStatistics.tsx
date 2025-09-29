@@ -41,8 +41,8 @@ export default function BranchStatistics({ branches, filteredBranches }: BranchS
       <div className="bg-white p-6 rounded-lg shadow-md">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">Total Branches</p>
-            <p className="text-3xl font-bold text-gray-900">{displayBranches.length}</p>
+            <p className="text-sm font-medium text-stripe-text-secondary">Total Branches</p>
+            <p className="text-3xl font-bold text-stripe-text">{displayBranches.length}</p>
             <p className="text-sm text-green-600 mt-1">Across {uniqueStates} states</p>
           </div>
           <BuildingOfficeIcon className="w-12 h-12 text-blue-600" />
@@ -52,8 +52,8 @@ export default function BranchStatistics({ branches, filteredBranches }: BranchS
       <div className="bg-white p-6 rounded-lg shadow-md">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">Total Employees</p>
-            <p className="text-3xl font-bold text-gray-900">
+            <p className="text-sm font-medium text-stripe-text-secondary">Total Employees</p>
+            <p className="text-3xl font-bold text-stripe-text">
               {displayBranches.reduce((sum, branch) => sum + branch.employeeCount, 0)}
             </p>
             <p className="text-sm text-blue-600 mt-1">Active workforce</p>
@@ -65,8 +65,8 @@ export default function BranchStatistics({ branches, filteredBranches }: BranchS
       <div className="bg-white p-6 rounded-lg shadow-md">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">Total Customers</p>
-            <p className="text-3xl font-bold text-gray-900">
+            <p className="text-sm font-medium text-stripe-text-secondary">Total Customers</p>
+            <p className="text-3xl font-bold text-stripe-text">
               {displayBranches.reduce((sum, branch) => sum + branch.customerCount, 0).toLocaleString()}
             </p>
             <p className="text-sm text-green-600 mt-1">+5.2% this month</p>
@@ -78,8 +78,8 @@ export default function BranchStatistics({ branches, filteredBranches }: BranchS
       <div className="bg-white p-6 rounded-lg shadow-md">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">Active Branches</p>
-            <p className="text-3xl font-bold text-gray-900">
+            <p className="text-sm font-medium text-stripe-text-secondary">Active Branches</p>
+            <p className="text-3xl font-bold text-stripe-text">
               {displayBranches.filter(b => b.status === 'Active').length}
             </p>
             <p className="text-sm text-green-600 mt-1">Operational</p>

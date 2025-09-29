@@ -9,11 +9,11 @@ import {
   PlusIcon,
   EyeIcon,
   PencilIcon,
-  TrashIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
   ClockIcon,
   XMarkIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 
 interface BillingItem {
@@ -179,9 +179,9 @@ export default function BillingPage() {
       case "overdue":
         return "bg-red-100 text-red-800";
       case "draft":
-        return "bg-gray-100 text-gray-800";
+        return "bg-stripe-background-light text-stripe-text-secondary";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-stripe-background-light text-stripe-text-secondary";
     }
   };
 
@@ -209,7 +209,7 @@ export default function BillingPage() {
       case "subscription":
         return "bg-orange-100 text-orange-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-stripe-background-light text-stripe-text-secondary";
     }
   };
 
@@ -223,8 +223,8 @@ export default function BillingPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Billing Engine</h1>
-          <p className="text-gray-600">Manage invoices, payments, and billing configurations</p>
+          <h1 className="text-2xl font-bold text-stripe-text">Billing Engine</h1>
+          <p className="text-stripe-text-secondary">Manage invoices, payments, and billing configurations</p>
         </div>
         <div className="flex items-center space-x-3">
           <button 
@@ -242,8 +242,8 @@ export default function BillingPage() {
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">₹{totalRevenue.toLocaleString()}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Revenue</p>
+              <p className="text-2xl font-bold text-stripe-text">₹{totalRevenue.toLocaleString()}</p>
             </div>
             <div className="p-3 bg-green-100 rounded-lg">
               <BanknotesIcon className="h-6 w-6 text-green-600" />
@@ -254,7 +254,7 @@ export default function BillingPage() {
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Paid Amount</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Paid Amount</p>
               <p className="text-2xl font-bold text-green-600">₹{paidAmount.toLocaleString()}</p>
             </div>
             <div className="p-3 bg-green-100 rounded-lg">
@@ -266,7 +266,7 @@ export default function BillingPage() {
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Pending Amount</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Pending Amount</p>
               <p className="text-2xl font-bold text-yellow-600">₹{pendingAmount.toLocaleString()}</p>
             </div>
             <div className="p-3 bg-yellow-100 rounded-lg">
@@ -278,7 +278,7 @@ export default function BillingPage() {
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Overdue Amount</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Overdue Amount</p>
               <p className="text-2xl font-bold text-red-600">₹{overdueAmount.toLocaleString()}</p>
             </div>
             <div className="p-3 bg-red-100 rounded-lg">
@@ -297,15 +297,15 @@ export default function BillingPage() {
               placeholder="Search by customer name or invoice number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="text-gray-700 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="text-stripe-text w-full px-4 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700">Status:</span>
+            <span className="text-sm font-medium text-stripe-text">Status:</span>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="text-gray-700 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="text-stripe-text px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="paid">Paid</option>
@@ -319,51 +319,51 @@ export default function BillingPage() {
 
       {/* Billing Items Table */}
       <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Billing Items</h3>
+        <div className="px-6 py-4 border-b border-stripe-border">
+          <h3 className="text-lg font-semibold text-stripe-text">Billing Items</h3>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-stripe-border">
+            <thead className="bg-stripe-background-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Invoice
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Due Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Type
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-stripe-border">
               {filteredItems.map((item) => {
                 const StatusIcon = getStatusIcon(item.status);
                 return (
-                  <tr key={item.id} className="hover:bg-gray-50">
+                  <tr key={item.id} className="hover:bg-stripe-background-light">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{item.customerName}</div>
-                        <div className="text-sm text-gray-500">{item.description}</div>
+                        <div className="text-sm font-medium text-stripe-text">{item.customerName}</div>
+                        <div className="text-sm text-stripe-text-secondary">{item.description}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-stripe-text">
                       {item.invoiceNumber}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-stripe-text">
                       ₹{item.amount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -372,7 +372,7 @@ export default function BillingPage() {
                         {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-stripe-text">
                       {item.dueDate}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -391,7 +391,7 @@ export default function BillingPage() {
                         </button>
                         <button 
                           onClick={() => handleEditItem(item)}
-                          className="text-gray-600 hover:text-gray-900"
+                          className="text-stripe-text-secondary hover:text-stripe-text"
                           title="Edit"
                         >
                           <PencilIcon className="h-4 w-4" />
@@ -415,27 +415,27 @@ export default function BillingPage() {
 
       {/* Quick Actions */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <h3 className="text-lg font-semibold text-stripe-text mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <button className="flex items-center space-x-3 p-4 border border-stripe-border rounded-lg hover:bg-stripe-background-light transition-colors">
             <CalculatorIcon className="h-6 w-6 text-blue-600" />
             <div className="text-left">
-              <div className="font-medium text-gray-900">Configure Billing</div>
-              <div className="text-sm text-gray-600">Set up billing rules and rates</div>
+              <div className="font-medium text-stripe-text">Configure Billing</div>
+              <div className="text-sm text-stripe-text-secondary">Set up billing rules and rates</div>
             </div>
           </button>
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <button className="flex items-center space-x-3 p-4 border border-stripe-border rounded-lg hover:bg-stripe-background-light transition-colors">
             <DocumentTextIcon className="h-6 w-6 text-green-600" />
             <div className="text-left">
-              <div className="font-medium text-gray-900">Generate Invoices</div>
-              <div className="text-sm text-gray-600">Create and send invoices</div>
+              <div className="font-medium text-stripe-text">Generate Invoices</div>
+              <div className="text-sm text-stripe-text-secondary">Create and send invoices</div>
             </div>
           </button>
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <button className="flex items-center space-x-3 p-4 border border-stripe-border rounded-lg hover:bg-stripe-background-light transition-colors">
             <BanknotesIcon className="h-6 w-6 text-purple-600" />
             <div className="text-left">
-              <div className="font-medium text-gray-900">Process Payments</div>
-              <div className="text-sm text-gray-600">Handle payment processing</div>
+              <div className="font-medium text-stripe-text">Process Payments</div>
+              <div className="text-sm text-stripe-text-secondary">Handle payment processing</div>
             </div>
           </button>
         </div>
@@ -446,50 +446,50 @@ export default function BillingPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Create New Invoice</h3>
+              <h3 className="text-lg font-semibold text-stripe-text">Create New Invoice</h3>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                <label className="block text-sm font-medium text-stripe-text mb-2">Customer Name</label>
                 <input
                   type="text"
                   value={formData.customerName}
                   onChange={(e) => setFormData({...formData, customerName: e.target.value})}
-                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter customer name"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                <label className="block text-sm font-medium text-stripe-text mb-2">Amount</label>
                 <input
                   type="number"
                   value={formData.amount}
                   onChange={(e) => setFormData({...formData, amount: parseFloat(e.target.value) || 0})}
-                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter amount"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                <label className="block text-sm font-medium text-stripe-text mb-2">Due Date</label>
                 <input
                   type="date"
                   value={formData.dueDate}
                   onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
-                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <label className="block text-sm font-medium text-stripe-text mb-2">Type</label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({...formData, type: e.target.value as any})}
-                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="service">Service</option>
                   <option value="product">Product</option>
@@ -497,11 +497,11 @@ export default function BillingPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <label className="block text-sm font-medium text-stripe-text mb-2">Description</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={3}
                   placeholder="Enter description"
                 />
@@ -510,7 +510,7 @@ export default function BillingPage() {
             <div className="flex items-center justify-end space-x-3 mt-6">
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-stripe-text bg-stripe-background-light rounded-lg hover:bg-stripe-border transition-colors"
               >
                 Cancel
               </button>
@@ -530,52 +530,52 @@ export default function BillingPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Invoice Details</h3>
+              <h3 className="text-lg font-semibold text-stripe-text">Invoice Details</h3>
               <button
                 onClick={() => setShowViewModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Customer Name</label>
-                <p className="text-gray-900">{selectedItem.customerName}</p>
+                <label className="block text-sm font-medium text-stripe-text">Customer Name</label>
+                <p className="text-stripe-text">{selectedItem.customerName}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Invoice Number</label>
-                <p className="text-gray-900">{selectedItem.invoiceNumber}</p>
+                <label className="block text-sm font-medium text-stripe-text">Invoice Number</label>
+                <p className="text-stripe-text">{selectedItem.invoiceNumber}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Amount</label>
-                <p className="text-gray-900">₹{selectedItem.amount.toLocaleString()}</p>
+                <label className="block text-sm font-medium text-stripe-text">Amount</label>
+                <p className="text-stripe-text">₹{selectedItem.amount.toLocaleString()}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <label className="block text-sm font-medium text-stripe-text">Status</label>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedItem.status)}`}>
                   {selectedItem.status.charAt(0).toUpperCase() + selectedItem.status.slice(1)}
                 </span>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Due Date</label>
-                <p className="text-gray-900">{selectedItem.dueDate}</p>
+                <label className="block text-sm font-medium text-stripe-text">Due Date</label>
+                <p className="text-stripe-text">{selectedItem.dueDate}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Type</label>
+                <label className="block text-sm font-medium text-stripe-text">Type</label>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(selectedItem.type)}`}>
                   {selectedItem.type.charAt(0).toUpperCase() + selectedItem.type.slice(1)}
                 </span>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
-                <p className="text-gray-900">{selectedItem.description}</p>
+                <label className="block text-sm font-medium text-stripe-text">Description</label>
+                <p className="text-stripe-text">{selectedItem.description}</p>
               </div>
             </div>
             <div className="flex items-center justify-end space-x-3 mt-6">
               <button
                 onClick={() => setShowViewModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-stripe-text bg-stripe-background-light rounded-lg hover:bg-stripe-border transition-colors"
               >
                 Close
               </button>
@@ -589,48 +589,48 @@ export default function BillingPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Edit Invoice</h3>
+              <h3 className="text-lg font-semibold text-stripe-text">Edit Invoice</h3>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                <label className="block text-sm font-medium text-stripe-text mb-2">Customer Name</label>
                 <input
                   type="text"
                   value={formData.customerName}
                   onChange={(e) => setFormData({...formData, customerName: e.target.value})}
-                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                <label className="block text-sm font-medium text-stripe-text mb-2">Amount</label>
                 <input
                   type="number"
                   value={formData.amount}
                   onChange={(e) => setFormData({...formData, amount: parseFloat(e.target.value) || 0})}
-                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                <label className="block text-sm font-medium text-stripe-text mb-2">Due Date</label>
                 <input
                   type="date"
                   value={formData.dueDate}
                   onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
-                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <label className="block text-sm font-medium text-stripe-text mb-2">Type</label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({...formData, type: e.target.value as any})}
-                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="service">Service</option>
                   <option value="product">Product</option>
@@ -638,11 +638,11 @@ export default function BillingPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <label className="block text-sm font-medium text-stripe-text mb-2">Description</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={3}
                 />
               </div>
@@ -650,7 +650,7 @@ export default function BillingPage() {
             <div className="flex items-center justify-end space-x-3 mt-6">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-stripe-text bg-stripe-background-light rounded-lg hover:bg-stripe-border transition-colors"
               >
                 Cancel
               </button>

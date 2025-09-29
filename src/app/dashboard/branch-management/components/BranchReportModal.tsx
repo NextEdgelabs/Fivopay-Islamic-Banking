@@ -43,7 +43,6 @@ export default function BranchReportModal({
 
   const downloadReport = (format: 'pdf' | 'excel') => {
     // In a real application, this would generate and download the actual report
-    console.log(`Downloading ${reportType} report for ${branch.branchName} in ${format} format`);
     
     // Simulate download
     const reportData = {
@@ -174,8 +173,8 @@ export default function BranchReportModal({
                 <div className="flex items-center">
                   <UserGroupIcon className="w-8 h-8 text-blue-600" />
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-600">Total Customers</p>
-                    <p className="text-2xl font-bold text-gray-900">{branch.customerCount}</p>
+                    <p className="text-sm font-medium text-stripe-text-secondary">Total Customers</p>
+                    <p className="text-2xl font-bold text-stripe-text">{branch.customerCount}</p>
                     <p className="text-sm text-green-600">+8.3% this month</p>
                   </div>
                 </div>
@@ -185,8 +184,8 @@ export default function BranchReportModal({
                 <div className="flex items-center">
                   <CurrencyRupeeIcon className="w-8 h-8 text-green-600" />
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-600">Total Deposits</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(branch.totalDeposits)}</p>
+                    <p className="text-sm font-medium text-stripe-text-secondary">Total Deposits</p>
+                    <p className="text-2xl font-bold text-stripe-text">{formatCurrency(branch.totalDeposits)}</p>
                     <p className="text-sm text-green-600">+12.5% this month</p>
                   </div>
                 </div>
@@ -196,8 +195,8 @@ export default function BranchReportModal({
                 <div className="flex items-center">
                   <ChartBarIcon className="w-8 h-8 text-yellow-600" />
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-600">Total Loans</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(branch.totalLoans)}</p>
+                    <p className="text-sm font-medium text-stripe-text-secondary">Total Loans</p>
+                    <p className="text-2xl font-bold text-stripe-text">{formatCurrency(branch.totalLoans)}</p>
                     <p className="text-sm text-blue-600">+6.7% this month</p>
                   </div>
                 </div>
@@ -207,27 +206,27 @@ export default function BranchReportModal({
                 <div className="flex items-center">
                   <UserGroupIcon className="w-8 h-8 text-purple-600" />
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-600">Employees</p>
-                    <p className="text-2xl font-bold text-gray-900">{branch.employeeCount}</p>
-                    <p className="text-sm text-gray-600">Active staff</p>
+                    <p className="text-sm font-medium text-stripe-text-secondary">Employees</p>
+                    <p className="text-2xl font-bold text-stripe-text">{branch.employeeCount}</p>
+                    <p className="text-sm text-stripe-text-secondary">Active staff</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">Performance Trends</h4>
+            <div className="bg-stripe-background-light p-4 rounded-lg">
+              <h4 className="text-lg font-semibold text-stripe-text mb-3">Performance Trends</h4>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">Customer Acquisition Rate</span>
+                  <span className="text-sm font-medium text-stripe-text-secondary">Customer Acquisition Rate</span>
                   <span className="text-sm font-bold text-green-600">+5.2% this month</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">Deposit Growth Rate</span>
+                  <span className="text-sm font-medium text-stripe-text-secondary">Deposit Growth Rate</span>
                   <span className="text-sm font-bold text-green-600">+8.7% this month</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">Loan Disbursement</span>
+                  <span className="text-sm font-medium text-stripe-text-secondary">Loan Disbursement</span>
                   <span className="text-sm font-bold text-blue-600">+6.7% this month</span>
                 </div>
               </div>
@@ -240,37 +239,37 @@ export default function BranchReportModal({
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-600">Revenue</h4>
+                <h4 className="text-sm font-medium text-stripe-text-secondary">Revenue</h4>
                 <p className="text-2xl font-bold text-green-600">{formatCurrency(branch.totalDeposits * 0.05)}</p>
-                <p className="text-sm text-gray-600">Monthly average</p>
+                <p className="text-sm text-stripe-text-secondary">Monthly average</p>
               </div>
               
               <div className="bg-red-50 p-4 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-600">Expenses</h4>
+                <h4 className="text-sm font-medium text-stripe-text-secondary">Expenses</h4>
                 <p className="text-2xl font-bold text-red-600">{formatCurrency(branch.totalDeposits * 0.03)}</p>
-                <p className="text-sm text-gray-600">Monthly average</p>
+                <p className="text-sm text-stripe-text-secondary">Monthly average</p>
               </div>
               
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-600">Net Profit</h4>
+                <h4 className="text-sm font-medium text-stripe-text-secondary">Net Profit</h4>
                 <p className="text-2xl font-bold text-blue-600">{formatCurrency(branch.totalDeposits * 0.02)}</p>
-                <p className="text-sm text-gray-600">Monthly average</p>
+                <p className="text-sm text-stripe-text-secondary">Monthly average</p>
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">Financial Health</h4>
+            <div className="bg-stripe-background-light p-4 rounded-lg">
+              <h4 className="text-lg font-semibold text-stripe-text mb-3">Financial Health</h4>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">Loan Portfolio</span>
-                  <span className="text-sm font-bold text-gray-900">{formatCurrency(branch.totalLoans)}</span>
+                  <span className="text-sm font-medium text-stripe-text-secondary">Loan Portfolio</span>
+                  <span className="text-sm font-bold text-stripe-text">{formatCurrency(branch.totalLoans)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">Non-Performing Assets (NPA)</span>
+                  <span className="text-sm font-medium text-stripe-text-secondary">Non-Performing Assets (NPA)</span>
                   <span className="text-sm font-bold text-red-600">{formatCurrency(branch.totalLoans * 0.02)} (2%)</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">Deposit-to-Loan Ratio</span>
+                  <span className="text-sm font-medium text-stripe-text-secondary">Deposit-to-Loan Ratio</span>
                   <span className="text-sm font-bold text-blue-600">{((branch.totalLoans / branch.totalDeposits) * 100).toFixed(1)}%</span>
                 </div>
               </div>
@@ -283,43 +282,43 @@ export default function BranchReportModal({
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg text-center">
-                <p className="text-sm font-medium text-gray-600">Employee Utilization</p>
+                <p className="text-sm font-medium text-stripe-text-secondary">Employee Utilization</p>
                 <p className="text-3xl font-bold text-blue-600">85%</p>
               </div>
               
               <div className="bg-green-50 p-4 rounded-lg text-center">
-                <p className="text-sm font-medium text-gray-600">Customer Satisfaction</p>
+                <p className="text-sm font-medium text-stripe-text-secondary">Customer Satisfaction</p>
                 <p className="text-3xl font-bold text-green-600">4.2/5</p>
               </div>
               
               <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                <p className="text-sm font-medium text-gray-600">Daily Transactions</p>
+                <p className="text-sm font-medium text-stripe-text-secondary">Daily Transactions</p>
                 <p className="text-3xl font-bold text-yellow-600">1,542</p>
               </div>
               
               <div className="bg-purple-50 p-4 rounded-lg text-center">
-                <p className="text-sm font-medium text-gray-600">Branch Efficiency</p>
+                <p className="text-sm font-medium text-stripe-text-secondary">Branch Efficiency</p>
                 <p className="text-3xl font-bold text-purple-600">92%</p>
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">Operational Metrics</h4>
+            <div className="bg-stripe-background-light p-4 rounded-lg">
+              <h4 className="text-lg font-semibold text-stripe-text mb-3">Operational Metrics</h4>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">Average Service Time</span>
-                  <span className="text-sm font-bold text-gray-900">3.2 minutes</span>
+                  <span className="text-sm font-medium text-stripe-text-secondary">Average Service Time</span>
+                  <span className="text-sm font-bold text-stripe-text">3.2 minutes</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">Queue Length (Peak Hours)</span>
-                  <span className="text-sm font-bold text-gray-900">8 customers</span>
+                  <span className="text-sm font-medium text-stripe-text-secondary">Queue Length (Peak Hours)</span>
+                  <span className="text-sm font-bold text-stripe-text">8 customers</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">System Uptime</span>
+                  <span className="text-sm font-medium text-stripe-text-secondary">System Uptime</span>
                   <span className="text-sm font-bold text-green-600">99.8%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">Customer Complaints</span>
+                  <span className="text-sm font-medium text-stripe-text-secondary">Customer Complaints</span>
                   <span className="text-sm font-bold text-red-600">3 this month</span>
                 </div>
               </div>
@@ -337,26 +336,26 @@ export default function BranchReportModal({
       <div className="bg-white rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h3 className="text-xl font-semibold text-gray-900">Branch Report</h3>
-            <p className="text-gray-600">{branch.branchName} ({branch.branchCode})</p>
+            <h3 className="text-xl font-semibold text-stripe-text">Branch Report</h3>
+            <p className="text-stripe-text-secondary">{branch.branchName} ({branch.branchCode})</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-stripe-text-secondary hover:text-stripe-text-secondary"
           >
             <XMarkIcon className="w-6 h-6" />
           </button>
         </div>
 
         {/* Report Controls */}
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <div className="mb-6 p-4 bg-stripe-background-light rounded-lg">
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Report Type:</label>
+              <label className="text-sm font-medium text-stripe-text">Report Type:</label>
               <select
                 value={reportType}
                 onChange={(e) => setReportType(e.target.value as typeof reportType)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border border-stripe-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="performance">Performance Report</option>
                 <option value="financial">Financial Report</option>
@@ -365,19 +364,19 @@ export default function BranchReportModal({
             </div>
             
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Period:</label>
+              <label className="text-sm font-medium text-stripe-text">Period:</label>
               <input
                 type="date"
                 value={dateRange.startDate}
                 onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border border-stripe-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-              <span className="text-gray-500">to</span>
+              <span className="text-stripe-text-secondary">to</span>
               <input
                 type="date"
                 value={dateRange.endDate}
                 onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border border-stripe-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             
@@ -398,7 +397,7 @@ export default function BranchReportModal({
               </button>
               <button
                 onClick={printReport}
-                className="bg-gray-600 text-white px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2 text-sm"
+                className="bg-stripe-primary text-white px-3 py-2 rounded-lg hover:bg-blue-800 transition-colors flex items-center space-x-2 text-sm"
               >
                 <PrinterIcon className="w-4 h-4" />
                 <span>Print</span>
@@ -410,10 +409,10 @@ export default function BranchReportModal({
         {/* Report Content */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold text-gray-900 capitalize">
+            <h4 className="text-lg font-semibold text-stripe-text capitalize">
               {reportType} Report - {new Date(dateRange.startDate).toLocaleDateString()} to {new Date(dateRange.endDate).toLocaleDateString()}
             </h4>
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <div className="flex items-center space-x-2 text-sm text-stripe-text-secondary">
               <CalendarIcon className="w-4 h-4" />
               <span>Generated on {new Date().toLocaleDateString()}</span>
             </div>
@@ -423,24 +422,24 @@ export default function BranchReportModal({
         </div>
 
         {/* Branch Details Summary */}
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-md font-semibold text-gray-900 mb-3">Branch Information</h4>
+        <div className="mb-6 p-4 bg-stripe-background-light rounded-lg">
+          <h4 className="text-md font-semibold text-stripe-text mb-3">Branch Information</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <p className="font-medium text-gray-600">Manager</p>
-              <p className="text-gray-900">{branch.managerName}</p>
+              <p className="font-medium text-stripe-text-secondary">Manager</p>
+              <p className="text-stripe-text">{branch.managerName}</p>
             </div>
             <div>
-              <p className="font-medium text-gray-600">Location</p>
-              <p className="text-gray-900">{branch.city}, {branch.state}</p>
+              <p className="font-medium text-stripe-text-secondary">Location</p>
+              <p className="text-stripe-text">{branch.city}, {branch.state}</p>
             </div>
             <div>
-              <p className="font-medium text-gray-600">Status</p>
-              <p className="text-gray-900">{branch.status}</p>
+              <p className="font-medium text-stripe-text-secondary">Status</p>
+              <p className="text-stripe-text">{branch.status}</p>
             </div>
             <div>
-              <p className="font-medium text-gray-600">Last Inspection</p>
-              <p className="text-gray-900">{branch.lastInspection}</p>
+              <p className="font-medium text-stripe-text-secondary">Last Inspection</p>
+              <p className="text-stripe-text">{branch.lastInspection}</p>
             </div>
           </div>
         </div>
@@ -449,7 +448,7 @@ export default function BranchReportModal({
         <div className="flex justify-end space-x-3 pt-4 border-t">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 border border-stripe-border rounded-lg text-stripe-text hover:bg-stripe-background-light transition-colors"
           >
             Close
           </button>

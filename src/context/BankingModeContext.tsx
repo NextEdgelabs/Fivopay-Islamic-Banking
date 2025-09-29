@@ -30,7 +30,6 @@ export function BankingModeProvider({ children }: BankingModeProviderProps) {
   const switchMode = (mode: BankingMode) => {
     setCurrentMode(mode);
     // You can add analytics tracking here
-    console.log(`Banking mode switched to: ${mode}`);
   };
 
   const isFeatureEnabled = (feature: keyof BankingModeConfig['features']): boolean => {

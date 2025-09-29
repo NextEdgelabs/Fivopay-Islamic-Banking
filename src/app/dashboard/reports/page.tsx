@@ -106,7 +106,7 @@ export default function ReportsPage() {
       case "error":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-stripe-background-light text-stripe-text";
     }
   };
 
@@ -128,8 +128,8 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
-          <p className="text-gray-600">Generate and manage comprehensive banking reports</p>
+          <h1 className="text-2xl font-bold text-stripe-text">Reports & Analytics</h1>
+          <p className="text-stripe-text-secondary">Generate and manage comprehensive banking reports</p>
         </div>
         <div className="flex items-center space-x-3">
           <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
@@ -148,15 +148,15 @@ export default function ReportsPage() {
               placeholder="Search reports..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="text-gray-700  w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="text-stripe-text w-full px-4 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700">Category:</span>
+            <span className="text-sm font-medium text-stripe-text">Category:</span>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="text-gray-700 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="text-stripe-text px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               {reportCategories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -178,16 +178,16 @@ export default function ReportsPage() {
                   <report.icon className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">{report.title}</h3>
-                  <p className="text-sm text-gray-600">{report.description}</p>
+                  <h3 className="font-semibold text-stripe-text">{report.title}</h3>
+                  <p className="text-sm text-stripe-text-secondary">{report.description}</p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Last Updated:</span>
-                <span className="text-gray-900">{report.lastUpdated}</span>
+                <span className="text-stripe-text-secondary">Last Updated:</span>
+                <span className="text-stripe-text">{report.lastUpdated}</span>
               </div>
 
               <div className="flex items-center justify-between">
@@ -195,10 +195,10 @@ export default function ReportsPage() {
                   {getStatusText(report.status)}
                 </span>
                 <div className="flex items-center space-x-2">
-                  <button className="p-1 text-gray-400 hover:text-gray-600">
+                  <button className="p-1 text-stripe-text-secondary hover:text-stripe-text">
                     <EyeIcon className="h-4 w-4" />
                   </button>
-                  <button className="p-1 text-gray-400 hover:text-gray-600">
+                  <button className="p-1 text-stripe-text-secondary hover:text-stripe-text">
                     <ArrowDownTrayIcon className="h-4 w-4" />
                   </button>
                 </div>
@@ -210,27 +210,27 @@ export default function ReportsPage() {
 
       {/* Quick Actions */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <h3 className="text-lg font-semibold text-stripe-text mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <button className="flex items-center space-x-3 p-4 border border-stripe-border rounded-lg hover:bg-stripe-background-light transition-colors">
             <CalendarIcon className="h-6 w-6 text-blue-600" />
             <div className="text-left">
-              <div className="font-medium text-gray-900">Schedule Report</div>
-              <div className="text-sm text-gray-600">Set up automated report generation</div>
+              <div className="font-medium text-stripe-text">Schedule Report</div>
+              <div className="text-sm text-stripe-text-secondary">Set up automated report generation</div>
             </div>
           </button>
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <button className="flex items-center space-x-3 p-4 border border-stripe-border rounded-lg hover:bg-stripe-background-light transition-colors">
             <DocumentTextIcon className="h-6 w-6 text-green-600" />
             <div className="text-left">
-              <div className="font-medium text-gray-900">Export Data</div>
-              <div className="text-sm text-gray-600">Export report data in various formats</div>
+              <div className="font-medium text-stripe-text">Export Data</div>
+              <div className="text-sm text-stripe-text-secondary">Export report data in various formats</div>
             </div>
           </button>
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <button className="flex items-center space-x-3 p-4 border border-stripe-border rounded-lg hover:bg-stripe-background-light transition-colors">
             <ChartBarIcon className="h-6 w-6 text-purple-600" />
             <div className="text-left">
-              <div className="font-medium text-gray-900">Custom Analytics</div>
-              <div className="text-sm text-gray-600">Create custom analytical reports</div>
+              <div className="font-medium text-stripe-text">Custom Analytics</div>
+              <div className="text-sm text-stripe-text-secondary">Create custom analytical reports</div>
             </div>
           </button>
         </div>

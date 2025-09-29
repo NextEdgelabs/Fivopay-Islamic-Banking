@@ -32,7 +32,7 @@ const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => vo
   return (
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
       <span>{toast.message}</span>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-stripe-text-secondary">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
@@ -58,12 +58,12 @@ const ConfirmDialog = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold text-stripe-text mb-2">{title}</h3>
+        <p className="text-stripe-text-secondary mb-6">{message}</p>
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-stripe-border text-stripe-text rounded-lg hover:bg-stripe-background-light"
           >
             Cancel
           </button>
@@ -244,8 +244,8 @@ export default function LiquidityReportPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Liquidity Report</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-stripe-text">Liquidity Report</h1>
+          <p className="text-stripe-text-secondary">
             Comprehensive cash liquidity analysis and forecasting
           </p>
         </div>
@@ -269,16 +269,16 @@ export default function LiquidityReportPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
         <div className="space-y-4">
           {/* Basic Filters */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex items-center space-x-2">
-              <CalendarIcon className="h-5 w-5 text-gray-400" />
+              <CalendarIcon className="h-5 w-5 text-stripe-text-secondary" />
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="7d">Last 7 Days</option>
                 <option value="30d">Last 30 Days</option>
@@ -287,11 +287,11 @@ export default function LiquidityReportPage() {
               </select>
             </div>
             <div className="flex items-center space-x-2">
-              <ChartBarIcon className="h-5 w-5 text-gray-400" />
+              <ChartBarIcon className="h-5 w-5 text-stripe-text-secondary" />
               <select
                 value={selectedBranch}
                 onChange={(e) => setSelectedBranch(e.target.value)}
-                className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">All Branches</option>
                 <option value="mumbai">Mumbai Central</option>
@@ -305,32 +305,32 @@ export default function LiquidityReportPage() {
           {/* Date Range Filters */}
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="flex items-center space-x-2">
-              <CalendarIcon className="h-5 w-5 text-gray-400" />
-              <span className="text-sm font-medium text-gray-700">Custom Date Range:</span>
+              <CalendarIcon className="h-5 w-5 text-stripe-text-secondary" />
+              <span className="text-sm font-medium text-stripe-text">Custom Date Range:</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="flex items-center space-x-2">
-                <label className="text-sm text-gray-600">From:</label>
+                <label className="text-sm text-stripe-text-secondary">From:</label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <label className="text-sm text-gray-600">To:</label>
+                <label className="text-sm text-stripe-text-secondary">To:</label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
             <button
               onClick={clearFilters}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-3 py-2 border border-stripe-border rounded-lg text-sm font-medium text-stripe-text bg-white hover:bg-stripe-background-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <ArrowPathIcon className="h-4 w-4 mr-1" />
               Clear Filters
@@ -377,11 +377,11 @@ export default function LiquidityReportPage() {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Current Cash Balance</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-stripe-text-secondary">Current Cash Balance</p>
+              <p className="text-2xl font-bold text-stripe-text">
                 ₹{(currentLiquidity.cashBalance / 1000000).toFixed(1)}M
               </p>
             </div>
@@ -391,11 +391,11 @@ export default function LiquidityReportPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Liquidity Ratio</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-stripe-text-secondary">Liquidity Ratio</p>
+              <p className="text-2xl font-bold text-stripe-text">
                 {(currentLiquidity.liquidityRatio * 100).toFixed(1)}%
               </p>
             </div>
@@ -405,10 +405,10 @@ export default function LiquidityReportPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Net Cash Flow</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Net Cash Flow</p>
               <p className={`text-2xl font-bold ${
                 currentLiquidity.netFlow >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>
@@ -427,11 +427,11 @@ export default function LiquidityReportPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Avg Liquidity Ratio</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-stripe-text-secondary">Avg Liquidity Ratio</p>
+              <p className="text-2xl font-bold text-stripe-text">
                 {(averageLiquidityRatio * 100).toFixed(1)}%
               </p>
             </div>
@@ -443,8 +443,8 @@ export default function LiquidityReportPage() {
       </div>
 
       {/* Liquidity Alerts */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Liquidity Alerts</h2>
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
+        <h2 className="text-lg font-semibold text-stripe-text mb-4">Liquidity Alerts</h2>
         <div className="space-y-4">
           {branchLiquidity
             .filter(branch => branch.status !== "excellent")
@@ -463,8 +463,8 @@ export default function LiquidityReportPage() {
                       branch.status === "critical" ? "text-red-400" : "text-yellow-400"
                     }`} />
                     <div>
-                      <h3 className="font-medium text-gray-900">{branch.branch}</h3>
-                      <p className="text-sm text-gray-600">
+                      <h3 className="font-medium text-stripe-text">{branch.branch}</h3>
+                      <p className="text-sm text-stripe-text-secondary">
                         Liquidity ratio: {(branch.liquidityRatio * 100).toFixed(1)}%
                       </p>
                     </div>
@@ -482,7 +482,7 @@ export default function LiquidityReportPage() {
               </div>
             ))}
           {branchLiquidity.filter(branch => branch.status !== "excellent").length === 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-stripe-text-secondary">
               <ChartBarIcon className="h-12 w-12 mx-auto mb-2 text-green-400" />
               <p>All branches have excellent liquidity ratios</p>
             </div>
@@ -491,54 +491,54 @@ export default function LiquidityReportPage() {
       </div>
 
       {/* Branch-wise Liquidity */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Branch-wise Liquidity</h2>
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
+        <h2 className="text-lg font-semibold text-stripe-text mb-4">Branch-wise Liquidity</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-stripe-background-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Branch
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Cash Balance
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Daily Average
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Liquidity Ratio
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {branchLiquidity.map((branch, index) => (
-                <tr key={index} className="hover:bg-gray-50">
+                <tr key={index} className="hover:bg-stripe-background-light">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{branch.branch}</div>
+                    <div className="text-sm font-medium text-stripe-text">{branch.branch}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
+                    <div className="text-sm text-stripe-text">
                       ₹{(branch.cashBalance / 100000).toFixed(1)}L
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
+                    <div className="text-sm text-stripe-text">
                       ₹{branch.dailyAverage.toLocaleString()}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="text-sm font-semibold text-gray-900">
+                      <div className="text-sm font-semibold text-stripe-text">
                         {(branch.liquidityRatio * 100).toFixed(1)}%
                       </div>
-                      <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                      <div className="ml-2 w-16 bg-stripe-background-light rounded-full h-2">
                         <div
                           className={`h-2 rounded-full ${
                             branch.liquidityRatio >= 0.8
@@ -579,39 +579,39 @@ export default function LiquidityReportPage() {
 
       {/* Detailed View */}
       {showDetailedView && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Detailed Liquidity History</h2>
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
+          <h2 className="text-lg font-semibold text-stripe-text mb-4">Detailed Liquidity History</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-stripe-background-light">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                     Cash Balance
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                     Deposits
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                     Withdrawals
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                     Net Flow
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                     Liquidity Ratio
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredLiquidityData.map((data, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <tr key={index} className="hover:bg-stripe-background-light">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-stripe-text">
                       {new Date(data.date).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-stripe-text">
                       ₹{(data.cashBalance / 1000000).toFixed(1)}M
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">
@@ -627,7 +627,7 @@ export default function LiquidityReportPage() {
                         ₹{(data.netFlow / 1000).toFixed(0)}K
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-stripe-text">
                       {(data.liquidityRatio * 100).toFixed(1)}%
                     </td>
                   </tr>

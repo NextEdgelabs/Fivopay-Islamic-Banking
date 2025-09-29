@@ -35,22 +35,22 @@ export default function BranchFilters({
     <div className="bg-white p-4 rounded-lg shadow-sm border">
       <div className="flex flex-wrap gap-4 items-center">
         <div className="relative">
-          <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-stripe-text-secondary" />
           <input
             type="text"
             placeholder="Search branches..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="text-gray-700 border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-64 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="text-stripe-text border border-stripe-border rounded-lg pl-10 pr-4 py-2 w-64 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
         
         <div className="flex items-center space-x-2">
-          <label className="text-sm font-medium text-gray-700">State:</label>
+          <label className="text-sm font-medium text-stripe-text">State:</label>
           <select
             value={selectedState}
             onChange={(e) => onStateChange(e.target.value)}
-            className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             {states.map(state => (
               <option key={state} value={state}>{state}</option>
@@ -59,11 +59,11 @@ export default function BranchFilters({
         </div>
         
         <div className="flex items-center space-x-2">
-          <label className="text-sm font-medium text-gray-700">City:</label>
+          <label className="text-sm font-medium text-stripe-text">City:</label>
           <select
             value={selectedCity}
             onChange={(e) => onCityChange(e.target.value)}
-            className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={selectedState === 'All States'}
           >
             {cities.map(city => (
@@ -76,7 +76,7 @@ export default function BranchFilters({
           {showClearFilters && hasActiveFilters && onClearFilters && (
             <button 
               onClick={onClearFilters}
-              className="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm font-medium"
+              className="text-stripe-text-secondary hover:text-stripe-text px-3 py-2 text-sm font-medium"
             >
               Clear Filters
             </button>
@@ -97,7 +97,7 @@ export default function BranchFilters({
       </div>
       
       {hasActiveFilters && (
-        <div className="mt-3 flex items-center space-x-2 text-sm text-gray-600">
+        <div className="mt-3 flex items-center space-x-2 text-sm text-stripe-text-secondary">
           <span>Active filters:</span>
           {searchTerm && (
             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">

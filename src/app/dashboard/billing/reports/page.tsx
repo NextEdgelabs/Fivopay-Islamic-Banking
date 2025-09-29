@@ -119,7 +119,6 @@ export default function BillingReportsPage() {
 
   const handleDownloadReport = (report: BillingReport) => {
     // Simulate download functionality
-    console.log(`Downloading ${report.title}`);
     alert(`${report.title} download started`);
   };
 

@@ -36,7 +36,7 @@ const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => vo
   return (
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
       <span>{toast.message}</span>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-stripe-text-secondary">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
@@ -62,12 +62,12 @@ const ConfirmDialog = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold text-stripe-text mb-2">{title}</h3>
+        <p className="text-stripe-text-secondary mb-6">{message}</p>
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-stripe-border text-stripe-text rounded-lg hover:bg-stripe-background-light"
           >
             Cancel
           </button>
@@ -179,7 +179,6 @@ export default function TransactionsPage() {
   // Helper function to get approval logs for a transaction
   const getApprovalLogsForTransaction = (transactionId: string) => {
     const logs = approvalLogs.filter(log => log.transactionId === transactionId);
-    console.log(`Approval logs for transaction ${transactionId}:`, logs);
     return logs;
   };
 
@@ -352,9 +351,9 @@ export default function TransactionsPage() {
       case 'rejected':
         return 'bg-red-100 text-red-800';
       case 'cancelled':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-stripe-background-light text-stripe-text';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-stripe-background-light text-stripe-text';
     }
   };
 
@@ -363,8 +362,8 @@ export default function TransactionsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Transaction Management</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-stripe-text">Transaction Management</h1>
+          <p className="text-stripe-text-secondary">
             Handle deposits, withdrawals, and transfers with comprehensive tracking
           </p>
         </div>
@@ -379,10 +378,10 @@ export default function TransactionsPage() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Deposits</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Deposits</p>
               <p className="text-2xl font-bold text-green-600">
                 ₹{totalDeposits.toLocaleString()}
               </p>
@@ -393,10 +392,10 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Withdrawals</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Withdrawals</p>
               <p className="text-2xl font-bold text-red-600">
                 ₹{totalWithdrawals.toLocaleString()}
               </p>
@@ -407,10 +406,10 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Pending Transactions</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Pending Transactions</p>
               <p className="text-2xl font-bold text-yellow-600">{pendingTransactions}</p>
             </div>
             <div className="bg-yellow-500 p-3 rounded-lg text-white">
@@ -419,10 +418,10 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Net Flow</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Net Flow</p>
               <p className="text-2xl font-bold text-blue-600">
                 ₹{(totalDeposits - totalWithdrawals).toLocaleString()}
               </p>
@@ -435,28 +434,28 @@ export default function TransactionsPage() {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
         <div className="space-y-4">
           {/* Search and Basic Filters */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-stripe-text-secondary" />
                 <input
                   type="text"
                   placeholder="Search by reference, description, or branch..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="text-gray-700 w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full pl-10 pr-4 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <FunnelIcon className="h-5 w-5 text-gray-400" />
+              <FunnelIcon className="h-5 w-5 text-stripe-text-secondary" />
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">All Types</option>
                 <option value="Deposit">Deposits</option>
@@ -466,7 +465,7 @@ export default function TransactionsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">All Status</option>
                 <option value="Completed">Completed</option>
@@ -479,32 +478,32 @@ export default function TransactionsPage() {
           {/* Date Range Filters */}
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="flex items-center space-x-2">
-              <CalendarIcon className="h-5 w-5 text-gray-400" />
-              <span className="text-sm font-medium text-gray-700">Date Range:</span>
+              <CalendarIcon className="h-5 w-5 text-stripe-text-secondary" />
+              <span className="text-sm font-medium text-stripe-text">Date Range:</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="flex items-center space-x-2">
-                <label className="text-sm text-gray-600">From:</label>
+                <label className="text-sm text-stripe-text-secondary">From:</label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <label className="text-sm text-gray-600">To:</label>
+                <label className="text-sm text-stripe-text-secondary">To:</label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
             <button
               onClick={clearFilters}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-3 py-2 border border-stripe-border rounded-lg text-sm font-medium text-stripe-text bg-white hover:bg-stripe-background-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <ArrowPathIcon className="h-4 w-4 mr-1" />
               Clear Filters
@@ -555,9 +554,9 @@ export default function TransactionsPage() {
       </div>
 
       {/* Transactions Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-900">Transaction History</h2>
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border overflow-hidden">
+        <div className="px-6 py-4 border-b border-stripe-border flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-stripe-text">Transaction History</h2>
           <button className="text-blue-600 hover:text-blue-800 flex items-center space-x-1">
             <DocumentArrowDownIcon className="h-4 w-4" />
             <span>Export</span>
@@ -565,33 +564,33 @@ export default function TransactionsPage() {
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-stripe-background-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Reference
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Customer/Account
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Branch
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Approval
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Timestamp
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -600,9 +599,9 @@ export default function TransactionsPage() {
               {filteredTransactions.map((transaction) => {
                 const latestApproval = getLatestApproval(transaction.id);
                 return (
-                  <tr key={transaction.id} className="hover:bg-gray-50">
+                  <tr key={transaction.id} className="hover:bg-stripe-background-light">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900 font-mono">
+                      <div className="text-sm font-medium text-stripe-text font-mono">
                         {transaction.referenceNumber}
                       </div>
                     </td>
@@ -620,14 +619,14 @@ export default function TransactionsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-gray-900">
+                      <div className="text-sm font-semibold text-stripe-text">
                         ₹{transaction.amount.toLocaleString()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-stripe-text">
                         <div>{transaction.customerName}</div>
-                        <div className="text-gray-500">{transaction.accountNumber}</div>
+                        <div className="text-stripe-text-secondary">{transaction.accountNumber}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -643,7 +642,7 @@ export default function TransactionsPage() {
                         {transaction.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-stripe-text">
                       {transaction.branchId}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -651,18 +650,18 @@ export default function TransactionsPage() {
                         <div className="flex items-center space-x-2 bg-green-50 p-2 rounded-lg border border-green-200">
                           <UserCircleIcon className="h-4 w-4 text-green-600" />
                           <div className="text-sm">
-                            <div className="font-semibold text-gray-900">{latestApproval.approverName}</div>
-                            <div className="text-xs text-gray-600 font-medium">{latestApproval.approverRole}</div>
+                            <div className="font-semibold text-stripe-text">{latestApproval.approverName}</div>
+                            <div className="text-xs text-stripe-text-secondary font-medium">{latestApproval.approverRole}</div>
                           </div>
                         </div>
                       ) : (
                         <div className="flex items-center space-x-2 bg-yellow-50 p-2 rounded-lg border border-yellow-200">
                           <UserCircleIcon className="h-4 w-4 text-yellow-600" />
-                          <span className="text-sm text-gray-700 font-medium">Pending Approval</span>
+                          <span className="text-sm text-stripe-text font-medium">Pending Approval</span>
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-stripe-text-secondary">
                       {new Date(transaction.timestamp).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -709,25 +708,25 @@ export default function TransactionsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-stripe-text">
                 New Transaction
               </h3>
               <button
                 onClick={() => setShowNewTransactionModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text-secondary"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
             <form onSubmit={handleCreateTransaction} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   Transaction Type *
                 </label>
                 <select
                   value={formData.type}
                   onChange={(e) => handleFormChange('type', e.target.value as 'Deposit' | 'Withdrawal' | 'Transfer')}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 >
                   <option value="Deposit">Deposit</option>
@@ -736,14 +735,14 @@ export default function TransactionsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   Amount *
                 </label>
                 <input
                   type="number"
                   value={formData.amount}
                   onChange={(e) => handleFormChange('amount', parseFloat(e.target.value) || 0)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter amount"
                   min="0"
                   step="0.01"
@@ -751,52 +750,52 @@ export default function TransactionsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   Customer Name *
                 </label>
                 <input
                   type="text"
                   value={formData.customerName}
                   onChange={(e) => handleFormChange('customerName', e.target.value)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter customer name"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   Account Number *
                 </label>
                 <input
                   type="text"
                   value={formData.accountNumber}
                   onChange={(e) => handleFormChange('accountNumber', e.target.value)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter account number"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   Branch ID *
                 </label>
                 <input
                   type="text"
                   value={formData.branchId}
                   onChange={(e) => handleFormChange('branchId', e.target.value)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter branch ID"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   Description *
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => handleFormChange('description', e.target.value)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter transaction description"
                   rows={3}
                   required
@@ -816,7 +815,7 @@ export default function TransactionsPage() {
                       branchId: ''
                     });
                   }}
-                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
+                  className="flex-1 bg-stripe-background-light text-stripe-text px-4 py-2 rounded-lg hover:bg-stripe-border"
                 >
                   Cancel
                 </button>
@@ -837,12 +836,12 @@ export default function TransactionsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900">
+              <h3 className="text-xl font-semibold text-stripe-text">
                 Transaction Details
               </h3>
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text-secondary"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -851,14 +850,14 @@ export default function TransactionsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Transaction Information</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Transaction Information</h4>
+                  <div className="bg-stripe-background-light p-4 rounded-lg space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Reference:</span>
-                      <span className="font-mono text-gray-900">{selectedTransaction.referenceNumber}</span>
+                      <span className="text-stripe-text-secondary">Reference:</span>
+                      <span className="font-mono text-stripe-text">{selectedTransaction.referenceNumber}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Type:</span>
+                      <span className="text-stripe-text-secondary">Type:</span>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         selectedTransaction.type === "Deposit"
                           ? "bg-green-100 text-green-800"
@@ -870,11 +869,11 @@ export default function TransactionsPage() {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Amount:</span>
-                      <span className="font-semibold text-gray-900">₹{selectedTransaction.amount.toLocaleString()}</span>
+                      <span className="text-stripe-text-secondary">Amount:</span>
+                      <span className="font-semibold text-stripe-text">₹{selectedTransaction.amount.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Status:</span>
+                      <span className="text-stripe-text-secondary">Status:</span>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         selectedTransaction.status === "Completed"
                           ? "bg-green-100 text-green-800"
@@ -889,37 +888,37 @@ export default function TransactionsPage() {
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Account Details</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Account Details</h4>
+                  <div className="bg-stripe-background-light p-4 rounded-lg space-y-3">
                     <div>
-                      <div className="text-sm text-gray-500">Customer Name</div>
-                      <div className="font-medium text-gray-900">{selectedTransaction.customerName}</div>
+                      <div className="text-sm text-stripe-text-secondary">Customer Name</div>
+                      <div className="font-medium text-stripe-text">{selectedTransaction.customerName}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Account Number</div>
-                      <div className="font-medium text-gray-900">{selectedTransaction.accountNumber}</div>
+                      <div className="text-sm text-stripe-text-secondary">Account Number</div>
+                      <div className="font-medium text-stripe-text">{selectedTransaction.accountNumber}</div>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Branch Information</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Branch Information</h4>
+                  <div className="bg-stripe-background-light p-4 rounded-lg">
                     <div className="flex items-center space-x-3 mb-3">
-                      <BuildingOfficeIcon className="h-5 w-5 text-gray-400" />
-                      <span className="font-medium text-gray-900">{selectedTransaction.branchId}</span>
+                      <BuildingOfficeIcon className="h-5 w-5 text-stripe-text-secondary" />
+                      <span className="font-medium text-stripe-text">{selectedTransaction.branchId}</span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Timeline</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Timeline</h4>
+                  <div className="bg-stripe-background-light p-4 rounded-lg space-y-3">
                     <div className="flex items-center space-x-3">
-                      <ClockIcon className="h-4 w-4 text-gray-400" />
+                      <ClockIcon className="h-4 w-4 text-stripe-text-secondary" />
                       <div>
-                        <div className="text-sm font-medium text-gray-900">Transaction Time</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-sm font-medium text-stripe-text">Transaction Time</div>
+                        <div className="text-xs text-stripe-text-secondary">
                           {new Date(selectedTransaction.timestamp).toLocaleString()}
                         </div>
                       </div>
@@ -928,15 +927,15 @@ export default function TransactionsPage() {
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Description</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-900">{selectedTransaction.description}</p>
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Description</h4>
+                  <div className="bg-stripe-background-light p-4 rounded-lg">
+                    <p className="text-sm text-stripe-text">{selectedTransaction.description}</p>
                   </div>
                 </div>
 
                 {selectedTransaction.status === "Pending" && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Actions</h4>
+                    <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Actions</h4>
                     <div className="space-y-2">
                       <button 
                         onClick={() => openConfirm(selectedTransaction.id, 'approve')}
@@ -958,43 +957,41 @@ export default function TransactionsPage() {
               {/* Approval Log Section */}
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-4 flex items-center bg-blue-50 p-3 rounded-lg">
+                  <h4 className="text-xl font-bold text-stripe-text mb-4 flex items-center bg-blue-50 p-3 rounded-lg">
                     <UserCircleIcon className="h-6 w-6 mr-3 text-blue-600" />
                     Approval Log & History
                   </h4>
-                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="bg-white border border-stripe-border rounded-lg p-4">
                     {(() => {
-                      const logs = getApprovalLogsForTransaction(selectedTransaction.id);
-                      console.log('Transaction ID:', selectedTransaction.id, 'Logs found:', logs);
-                      return logs.length > 0 ? (
+                      const logs = getApprovalLogsForTransaction(selectedTransaction.id);                      return logs.length > 0 ? (
                         <div className="space-y-4">
-                          <div className="text-sm text-gray-600 mb-3">
+                          <div className="text-sm text-stripe-text-secondary mb-3">
                             Found {logs.length} approval record(s) for this transaction
                           </div>
                           {logs.map((log, index) => (
-                            <div key={log.id} className={`border-l-4 pl-4 py-3 bg-gray-50 rounded-r-lg ${
+                            <div key={log.id} className={`border-l-4 pl-4 py-3 bg-stripe-background-light rounded-r-lg ${
                               log.approvalAction === 'approved' ? 'border-green-500 bg-green-50' :
                               log.approvalAction === 'rejected' ? 'border-red-500 bg-red-50' :
-                              'border-gray-500 bg-gray-50'
+                              'border-stripe-border bg-stripe-background-light'
                             }`}>
                               <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center space-x-2">
-                                  <UserCircleIcon className="h-5 w-5 text-gray-600" />
+                                  <UserCircleIcon className="h-5 w-5 text-stripe-text-secondary" />
                                   <div>
-                                    <div className="font-semibold text-gray-900">{log.approverName}</div>
-                                    <div className="text-sm text-gray-600 font-medium">{log.approverRole}</div>
+                                    <div className="font-semibold text-stripe-text">{log.approverName}</div>
+                                    <div className="text-sm text-stripe-text-secondary font-medium">{log.approverRole}</div>
                                   </div>
                                 </div>
                                 <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getApprovalStatusBadge(log.approvalAction)}`}>
                                   {log.approvalAction.charAt(0).toUpperCase() + log.approvalAction.slice(1)}
                                 </span>
                               </div>
-                              <div className="text-sm text-gray-600 mb-2">
+                              <div className="text-sm text-stripe-text-secondary mb-2">
                                 <ClockIcon className="h-4 w-4 inline mr-1" />
                                 {new Date(log.approvalDate).toLocaleString()}
                               </div>
                               {log.comments && (
-                                <div className="text-sm text-gray-700 bg-white p-3 rounded border">
+                                <div className="text-sm text-stripe-text bg-white p-3 rounded border">
                                   <span className="font-medium">Comments:</span> "{log.comments}"
                                 </div>
                               )}
@@ -1002,8 +999,8 @@ export default function TransactionsPage() {
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          <UserCircleIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                        <div className="text-center py-8 text-stripe-text-secondary">
+                          <UserCircleIcon className="h-12 w-12 mx-auto mb-3 text-stripe-text-secondary" />
                           <p className="text-lg font-medium">No approval history available</p>
                           <p className="text-sm">This transaction has not been approved yet.</p>
                         </div>

@@ -1,0 +1,2059 @@
+'use client';'use client';'use client';'use client';
+
+
+
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+import { 
+
+  Customer, import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+  CustomerFilters, 
+
+  CustomerSortOptions,import { 
+
+  CustomerAction,
+
+  ServiceRequest,  Customer, import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+  CustomerStatus,
+
+  KYCStatus   CustomerFilters, 
+
+} from '@/types/customer';
+
+import { BankingMode } from '@/types/banking-mode';  CustomerSortOptions,import { 
+
+
+
+interface CustomerContextType {  CustomerAction,
+
+  customers: Customer[];
+
+  selectedCustomer: Customer | null;  ServiceRequest,  Customer, export interface Customer {
+
+  loading: boolean;
+
+  error: string | null;  CustomerStatus,
+
+  filters: CustomerFilters;
+
+  sortOptions: CustomerSortOptions;  KYCStatus   CustomerFilters,   id: string;
+
+  pagination: {
+
+    currentPage: number;} from '@/types/customer';
+
+    totalPages: number;
+
+    totalCount: number;import { BankingMode } from '@/types/banking-mode';  CustomerSortOptions,   name: string;
+
+    pageSize: number;
+
+  };
+
+  createCustomer: (customer: Omit<Customer, 'id' | 'customerNumber' | 'createdDate' | 'createdBy'>) => Promise<Customer>;
+
+  updateCustomer: (customerId: string, updates: Partial<Customer>) => Promise<Customer>;// === CONTEXT INTERFACES ===  CustomerListResponse,  email: string;
+
+  deleteCustomer: (customerId: string) => Promise<boolean>;
+
+  getCustomer: (customerId: string) => Promise<Customer | null>;
+
+  searchCustomers: (query: string) => void;
+
+  setFilters: (filters: Partial<CustomerFilters>) => void;interface CustomerContextType {  CustomerAction,  phone: string;
+
+  setSortOptions: (sortOptions: CustomerSortOptions) => void;
+
+  setPage: (page: number) => void;  // Customer Data
+
+  setPageSize: (size: number) => void;
+
+  performAction: (action: CustomerAction) => Promise<boolean>;  customers: Customer[];  ServiceRequest,  accountType: string;
+
+  bulkUpdateStatus: (customerIds: string[], status: CustomerStatus) => Promise<boolean>;
+
+  serviceRequests: ServiceRequest[];  selectedCustomer: Customer | null;
+
+  createServiceRequest: (request: Omit<ServiceRequest, 'id' | 'createdDate'>) => Promise<ServiceRequest>;
+
+  updateServiceRequestStatus: (requestId: string, status: ServiceRequest['status']) => Promise<boolean>;  loading: boolean;  CustomerStatus,  kycStatus: 'Pending' | 'Verified' | 'Rejected' | 'Under Review';
+
+  refreshCustomers: () => Promise<void>;
+
+  clearError: () => void;  error: string | null;
+
+  selectCustomer: (customer: Customer | null) => void;
+
+  getCustomerStats: () => {    KYCStatus   verificationLevel: string;
+
+    totalCustomers: number;
+
+    activeCustomers: number;  // List Management
+
+    pendingKYC: number;
+
+    highRiskCustomers: number;  filters: CustomerFilters;} from '@/types/customer';  accountBalance: string;
+
+    averageBalance: number;
+
+  };  sortOptions: CustomerSortOptions;
+
+}
+
+  pagination: {import { BankingMode } from '@/types/banking-mode';  status: 'Active' | 'Inactive' | 'Pending' | 'Suspended';
+
+const CustomerContext = createContext<CustomerContextType | undefined>(undefined);
+
+    currentPage: number;
+
+const generateMockCustomers = (bankingMode: BankingMode): Customer[] => {
+
+  const customers: Customer[] = [];    totalPages: number;  lastActivity: string;
+
+  
+
+  for (let i = 1; i <= 25; i++) {    totalCount: number;
+
+    const customer: Customer = {
+
+      id: `CUST-${bankingMode}-${i.toString().padStart(6, '0')}`,    pageSize: number;// === CONTEXT INTERFACES ===  joinDate: string;
+
+      customerNumber: `${bankingMode === 'ethical' ? 'IB' : 'CB'}${(1000000 + i).toString()}`,
+
+      customerType: Math.random() > 0.8 ? 'Business' : 'Individual',  };
+
+      status: ['Active', 'Active', 'Active', 'Pending', 'Inactive'][Math.floor(Math.random() * 5)] as CustomerStatus,
+
+          branchId?: string;
+
+      personalDetails: {
+
+        firstName: bankingMode === 'ethical'   // CRUD Operations
+
+          ? ['Ahmad', 'Fatima', 'Mohammed', 'Aisha', 'Omar', 'Zainab', 'Ali', 'Khadija'][Math.floor(Math.random() * 8)]
+
+          : ['John', 'Sarah', 'Michael', 'Emma', 'David', 'Lisa', 'Robert', 'Maria'][Math.floor(Math.random() * 8)],  createCustomer: (customer: Omit<Customer, 'id' | 'customerNumber' | 'createdDate' | 'createdBy'>) => Promise<Customer>;interface CustomerContextType {  notes?: string;
+
+        lastName: bankingMode === 'ethical'
+
+          ? ['Al-Rahman', 'Hassan', 'Al-Zahra', 'Khan', 'Ahmed', 'Ali', 'Shah'][Math.floor(Math.random() * 7)]  updateCustomer: (customerId: string, updates: Partial<Customer>) => Promise<Customer>;
+
+          : ['Smith', 'Johnson', 'Brown', 'Davis', 'Wilson', 'Miller', 'Taylor'][Math.floor(Math.random() * 7)],
+
+        dateOfBirth: new Date(1970 + Math.floor(Math.random() * 40), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],  deleteCustomer: (customerId: string) => Promise<boolean>;  // Customer Data}
+
+        gender: Math.random() > 0.5 ? 'Male' : 'Female',
+
+        nationality: 'Pakistani',  getCustomer: (customerId: string) => Promise<Customer | null>;
+
+        countryOfBirth: 'Pakistan',
+
+        maritalStatus: ['Single', 'Married', 'Divorced', 'Widowed'][Math.floor(Math.random() * 4)] as any,    customers: Customer[];
+
+      },
+
+        // List Operations
+
+      identificationDetails: [{
+
+        idType: 'National ID',  searchCustomers: (query: string) => void;  selectedCustomer: Customer | null;export interface IntakeRequest {
+
+        idNumber: `3520${(10000000000 + Math.floor(Math.random() * 90000000000)).toString()}`,
+
+        issueDate: '2020-01-01',  setFilters: (filters: Partial<CustomerFilters>) => void;
+
+        expiryDate: '2030-01-01',
+
+        issuingAuthority: 'NADRA',  setSortOptions: (sortOptions: CustomerSortOptions) => void;  loading: boolean;  id: string;
+
+        placeOfIssue: 'Karachi',
+
+      }],  setPage: (page: number) => void;
+
+      
+
+      contactDetails: {  setPageSize: (size: number) => void;  error: string | null;  customerName: string;
+
+        primaryPhone: `+92-300-${(1000000 + Math.floor(Math.random() * 9000000)).toString()}`,
+
+        primaryEmail: `customer${i}@example.com`,  
+
+        preferredContactMethod: 'Phone',
+
+        preferredLanguage: 'English',  // Customer Actions    channel: 'Web Portal' | 'Mobile App' | 'Call Center' | 'Branch Visit';
+
+      },
+
+        performAction: (action: CustomerAction) => Promise<boolean>;
+
+      addresses: [{
+
+        type: 'Permanent',  bulkUpdateStatus: (customerIds: string[], status: CustomerStatus) => Promise<boolean>;  // List Management  requestType: string;
+
+        street: `House ${i}, Block A, Gulshan-e-Iqbal`,
+
+        city: 'Karachi',  
+
+        state: 'Sindh',
+
+        country: 'Pakistan',  // Service Requests  filters: CustomerFilters;  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+
+        postalCode: '75300',
+
+      }],  serviceRequests: ServiceRequest[];
+
+      
+
+      accounts: [{  createServiceRequest: (request: Omit<ServiceRequest, 'id' | 'createdDate'>) => Promise<ServiceRequest>;  sortOptions: CustomerSortOptions;  status: 'Pending' | 'In Progress' | 'Resolved' | 'Cancelled';
+
+        accountNumber: `${bankingMode === 'ethical' ? '0101' : '0201'}${(100000000 + i).toString()}`,
+
+        accountType: bankingMode === 'ethical' ? 'Islamic Savings' : 'Savings',  updateServiceRequestStatus: (requestId: string, status: ServiceRequest['status']) => Promise<boolean>;
+
+        accountStatus: 'Active',
+
+        openingDate: new Date(2020 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],    pagination: {  timestamp: string;
+
+        currentBalance: Math.floor(Math.random() * 1000000) + 10000,
+
+        availableBalance: Math.floor(Math.random() * 1000000) + 10000,  // Utility Functions
+
+        minimumBalance: 1000,
+
+        branchId: `BR-00${Math.floor(Math.random() * 5) + 1}`,  refreshCustomers: () => Promise<void>;    currentPage: number;  description?: string;
+
+        branchName: ['Main Branch', 'Gulshan Branch', 'Clifton Branch', 'Defence Branch', 'Nazimabad Branch'][Math.floor(Math.random() * 5)],
+
+        isJointAccount: false,  clearError: () => void;
+
+      }],
+
+        selectCustomer: (customer: Customer | null) => void;    totalPages: number;  assignedTo?: string;
+
+      products: [],
+
+        
+
+      compliance: {
+
+        kycStatus: ['Verified', 'Verified', 'Pending', 'Under Review'][Math.floor(Math.random() * 4)] as KYCStatus,  // Analytics    totalCount: number;  customerId?: string;
+
+        kycLevel: 'Basic',
+
+        amlStatus: 'Clear',  getCustomerStats: () => {
+
+        riskLevel: ['Low', 'Low', 'Medium', 'High'][Math.floor(Math.random() * 4)] as any,
+
+        sanctionScreening: 'Clear',    totalCustomers: number;    pageSize: number;}
+
+        pepStatus: false,
+
+        taxResidency: ['Pakistan'],    activeCustomers: number;
+
+      },
+
+          pendingKYC: number;  };
+
+      documents: [],
+
+      bankingMode,    highRiskCustomers: number;
+
+      
+
+      islamicPreferences: bankingMode === 'ethical' ? {    averageBalance: number;  export interface CustomerCase {
+
+        shariaCompliantOnly: true,
+
+        zakatCalculation: true,  };
+
+        zakatPercentage: 2.5,
+
+        islamicCalendarEvents: true,}  // CRUD Operations  id: string;
+
+        halalInvestmentOnly: true,
+
+        profitSharingPreference: 'Mudarabah',
+
+        preferredIslamicProducts: ['Islamic Savings', 'Mudarabah Investment'],
+
+      } : undefined,// === CONTEXT CREATION ===  createCustomer: (customer: Omit<Customer, 'id' | 'customerNumber' | 'createdDate' | 'createdBy'>) => Promise<Customer>;  customerId: string;
+
+      
+
+      conventionalPreferences: bankingMode === 'conventional' ? {
+
+        creditCardEligible: true,
+
+        investmentRiskTolerance: 'Moderate',const CustomerContext = createContext<CustomerContextType | undefined>(undefined);  updateCustomer: (customerId: string, updates: Partial<Customer>) => Promise<Customer>;  customerName: string;
+
+        interestRatePreference: 'Fixed',
+
+        investmentProducts: ['Mutual Funds', 'Fixed Deposits'],
+
+        loanEligibility: true,
+
+      } : undefined,// === MOCK DATA GENERATION ===  deleteCustomer: (customerId: string) => Promise<boolean>;  caseType: 'Account Issue' | 'Transaction Problem' | 'KYC Query' | 'Product Inquiry' | 'Complaint';
+
+      
+
+      notes: [],
+
+      interactions: [],
+
+      transactions: [],const generateMockCustomers = (bankingMode: BankingMode): Customer[] => {  getCustomer: (customerId: string) => Promise<Customer | null>;  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+
+      
+
+      createdBy: 'system',  const customers: Customer[] = [];
+
+      createdDate: new Date(2020 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString(),
+
+      assignedBranch: `BR-00${Math.floor(Math.random() * 5) + 1}`,      status: 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+
+      
+
+      digitalAdoption: {  for (let i = 1; i <= 25; i++) {
+
+        mobileAppUser: Math.random() > 0.3,
+
+        onlineBankingUser: Math.random() > 0.4,    const customer: Customer = {  // List Operations  assignedTo: string;
+
+        cardUser: Math.random() > 0.6,
+
+        digitalPaymentUser: Math.random() > 0.5,      id: `CUST-${bankingMode}-${i.toString().padStart(6, '0')}`,
+
+      },
+
+            customerNumber: `${bankingMode === 'ethical' ? 'IB' : 'CB'}${(1000000 + i).toString()}`,  searchCustomers: (query: string) => void;  createdAt: string;
+
+      communicationPreferences: {
+
+        smsNotifications: true,      customerType: Math.random() > 0.8 ? 'Business' : 'Individual',
+
+        emailNotifications: true,
+
+        pushNotifications: Math.random() > 0.5,      status: ['Active', 'Active', 'Active', 'Pending', 'Inactive'][Math.floor(Math.random() * 5)] as CustomerStatus,  setFilters: (filters: Partial<CustomerFilters>) => void;  updatedAt: string;
+
+        marketingCommunications: Math.random() > 0.7,
+
+      },      
+
+    };
+
+          personalDetails: {  setSortOptions: (sortOptions: CustomerSortOptions) => void;  description: string;
+
+    customers.push(customer);
+
+  }        firstName: bankingMode === 'ethical' 
+
+  
+
+  return customers;          ? ['Ahmad', 'Fatima', 'Mohammed', 'Aisha', 'Omar', 'Zainab', 'Ali', 'Khadija'][Math.floor(Math.random() * 8)]  setPage: (page: number) => void;  resolution?: string;
+
+};
+
+          : ['John', 'Sarah', 'Michael', 'Emma', 'David', 'Lisa', 'Robert', 'Maria'][Math.floor(Math.random() * 8)],
+
+interface CustomerProviderProps {
+
+  children: ReactNode;        lastName: bankingMode === 'ethical'  setPageSize: (size: number) => void;}
+
+}
+
+          ? ['Al-Rahman', 'Hassan', 'Al-Zahra', 'Khan', 'Ahmed', 'Ali', 'Shah'][Math.floor(Math.random() * 7)]
+
+export function CustomerProvider({ children }: CustomerProviderProps) {
+
+  const [customers, setCustomers] = useState<Customer[]>([]);          : ['Smith', 'Johnson', 'Brown', 'Davis', 'Wilson', 'Miller', 'Taylor'][Math.floor(Math.random() * 7)],  
+
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  const [loading, setLoading] = useState(false);        dateOfBirth: new Date(1970 + Math.floor(Math.random() * 40), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
+
+  const [error, setError] = useState<string | null>(null);
+
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);        gender: Math.random() > 0.5 ? 'Male' : 'Female',  // Customer Actionsexport interface CustomerFormData {
+
+  
+
+  const [filters, setFiltersState] = useState<CustomerFilters>({});        nationality: 'Pakistani',
+
+  const [sortOptions, setSortOptionsState] = useState<CustomerSortOptions>({
+
+    field: 'createdDate',        countryOfBirth: 'Pakistan',  performAction: (action: CustomerAction) => Promise<boolean>;  firstName: string;
+
+    direction: 'desc'
+
+  });        maritalStatus: ['Single', 'Married', 'Divorced', 'Widowed'][Math.floor(Math.random() * 4)] as any,
+
+  const [pagination, setPagination] = useState({
+
+    currentPage: 1,      },  bulkUpdateStatus: (customerIds: string[], status: CustomerStatus) => Promise<boolean>;  lastName: string;
+
+    totalPages: 1,
+
+    totalCount: 0,      
+
+    pageSize: 20
+
+  });      identificationDetails: [{    email: string;
+
+
+
+  useEffect(() => {        idType: 'National ID',
+
+    const mockCustomers = [
+
+      ...generateMockCustomers('ethical'),        idNumber: `3520${(10000000000 + Math.floor(Math.random() * 90000000000)).toString()}`,  // Service Requests  phone: string;
+
+      ...generateMockCustomers('conventional')
+
+    ];        issueDate: '2020-01-01',
+
+    setCustomers(mockCustomers);
+
+    setPagination(prev => ({        expiryDate: '2030-01-01',  serviceRequests: ServiceRequest[];  accountType: string;
+
+      ...prev,
+
+      totalCount: mockCustomers.length,        issuingAuthority: 'NADRA',
+
+      totalPages: Math.ceil(mockCustomers.length / prev.pageSize)
+
+    }));        placeOfIssue: 'Karachi',  createServiceRequest: (request: Omit<ServiceRequest, 'id' | 'createdDate'>) => Promise<ServiceRequest>;  verificationLevel: string;
+
+  }, []);
+
+      }],
+
+  const createCustomer = async (customerData: Omit<Customer, 'id' | 'customerNumber' | 'createdDate' | 'createdBy'>): Promise<Customer> => {
+
+    setLoading(true);        updateServiceRequestStatus: (requestId: string, status: ServiceRequest['status']) => Promise<boolean>;  kycStatus: Customer['kycStatus'];
+
+    try {
+
+      const newCustomer: Customer = {      contactDetails: {
+
+        ...customerData,
+
+        id: `CUST-${Date.now()}`,        primaryPhone: `+92-300-${(1000000 + Math.floor(Math.random() * 9000000)).toString()}`,    accountBalance: string;
+
+        customerNumber: `${customerData.bankingMode === 'ethical' ? 'IB' : 'CB'}${Date.now()}`,
+
+        createdDate: new Date().toISOString(),        primaryEmail: `customer${i}@example.com`,
+
+        createdBy: 'current-user',
+
+      };        preferredContactMethod: 'Phone',  // Utility Functions  status: Customer['status'];
+
+      
+
+      setCustomers(prev => [newCustomer, ...prev]);        preferredLanguage: 'English',
+
+      setLoading(false);
+
+      return newCustomer;      },  refreshCustomers: () => Promise<void>;  notes: string;
+
+    } catch (err) {
+
+      setError('Failed to create customer');      
+
+      setLoading(false);
+
+      throw err;      addresses: [{  clearError: () => void;  branchId: string;
+
+    }
+
+  };        type: 'Permanent',
+
+
+
+  const updateCustomer = async (customerId: string, updates: Partial<Customer>): Promise<Customer> => {        street: `House ${i}, Block A, Gulshan-e-Iqbal`,  selectCustomer: (customer: Customer | null) => void;}
+
+    setLoading(true);
+
+    try {        city: 'Karachi',
+
+      const updatedCustomer = { 
+
+        ...customers.find(c => c.id === customerId)!,        state: 'Sindh',  
+
+        ...updates,
+
+        lastModifiedDate: new Date().toISOString(),        country: 'Pakistan',
+
+        lastModifiedBy: 'current-user'
+
+      };        postalCode: '75300',  // Analyticsexport interface IntakeFormData {
+
+      
+
+      setCustomers(prev => prev.map(c => c.id === customerId ? updatedCustomer : c));      }],
+
+      setLoading(false);
+
+      return updatedCustomer;        getCustomerStats: () => {  customerName: string;
+
+    } catch (err) {
+
+      setError('Failed to update customer');      accounts: [{
+
+      setLoading(false);
+
+      throw err;        accountNumber: `${bankingMode === 'ethical' ? '0101' : '0201'}${(100000000 + i).toString()}`,    totalCustomers: number;  channel: IntakeRequest['channel'];
+
+    }
+
+  };        accountType: bankingMode === 'ethical' ? 'Islamic Savings' : 'Savings',
+
+
+
+  const deleteCustomer = async (customerId: string): Promise<boolean> => {        accountStatus: 'Active',    activeCustomers: number;  requestType: string;
+
+    setLoading(true);
+
+    try {        openingDate: new Date(2020 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
+
+      setCustomers(prev => prev.filter(c => c.id !== customerId));
+
+      setLoading(false);        currentBalance: Math.floor(Math.random() * 1000000) + 10000,    pendingKYC: number;  priority: IntakeRequest['priority'];
+
+      return true;
+
+    } catch (err) {        availableBalance: Math.floor(Math.random() * 1000000) + 10000,
+
+      setError('Failed to delete customer');
+
+      setLoading(false);        minimumBalance: 1000,    highRiskCustomers: number;  description: string;
+
+      throw err;
+
+    }        branchId: `BR-00${Math.floor(Math.random() * 5) + 1}`,
+
+  };
+
+        branchName: ['Main Branch', 'Gulshan Branch', 'Clifton Branch', 'Defence Branch', 'Nazimabad Branch'][Math.floor(Math.random() * 5)],    averageBalance: number;  customerId?: string;
+
+  const getCustomer = async (customerId: string): Promise<Customer | null> => {
+
+    const customer = customers.find(c => c.id === customerId);        isJointAccount: false,
+
+    return customer || null;
+
+  };      }],  };}
+
+
+
+  const searchCustomers = (query: string) => {      
+
+    setFiltersState(prev => ({ ...prev, searchQuery: query }));
+
+  };      products: [],}
+
+
+
+  const setFilters = (newFilters: Partial<CustomerFilters>) => {      
+
+    setFiltersState(prev => ({ ...prev, ...newFilters }));
+
+    setPagination(prev => ({ ...prev, currentPage: 1 }));      compliance: {export interface CaseFormData {
+
+  };
+
+        kycStatus: ['Verified', 'Verified', 'Pending', 'Under Review'][Math.floor(Math.random() * 4)] as KYCStatus,
+
+  const setSortOptions = (newSortOptions: CustomerSortOptions) => {
+
+    setSortOptionsState(newSortOptions);        kycLevel: 'Basic',// === CONTEXT CREATION ===  customerId: string;
+
+  };
+
+        amlStatus: 'Clear',
+
+  const setPage = (page: number) => {
+
+    setPagination(prev => ({ ...prev, currentPage: page }));        riskLevel: ['Low', 'Low', 'Medium', 'High'][Math.floor(Math.random() * 4)] as any,  customerName: string;
+
+  };
+
+        sanctionScreening: 'Clear',
+
+  const setPageSize = (size: number) => {
+
+    setPagination(prev => ({         pepStatus: false,const CustomerContext = createContext<CustomerContextType | undefined>(undefined);  caseType: CustomerCase['caseType'];
+
+      ...prev, 
+
+      pageSize: size,         taxResidency: ['Pakistan'],
+
+      currentPage: 1,
+
+      totalPages: Math.ceil(prev.totalCount / size)      },  priority: CustomerCase['priority'];
+
+    }));
+
+  };      
+
+
+
+  const performAction = async (action: CustomerAction): Promise<boolean> => {      documents: [],// === MOCK DATA GENERATION ===  description: string;
+
+    try {
+
+      switch (action.type) {      
+
+        case 'suspend':
+
+          await updateCustomer(action.customerId, { status: 'Suspended' });      bankingMode,  assignedTo: string;
+
+          break;
+
+        case 'activate':      islamicPreferences: bankingMode === 'ethical' ? {
+
+          await updateCustomer(action.customerId, { status: 'Active' });
+
+          break;        shariaCompliantOnly: true,const generateMockCustomers = (bankingMode: BankingMode): Customer[] => {}
+
+        default:
+
+          return false;        zakatCalculation: true,
+
+      }
+
+      return true;        zakatPercentage: 2.5,  const customers: Customer[] = [];
+
+    } catch {
+
+      return false;        islamicCalendarEvents: true,
+
+    }
+
+  };        halalInvestmentOnly: true,  interface CustomerContextType {
+
+
+
+  const bulkUpdateStatus = async (customerIds: string[], status: CustomerStatus): Promise<boolean> => {        profitSharingPreference: 'Mudarabah',
+
+    try {
+
+      for (const customerId of customerIds) {        preferredIslamicProducts: ['Islamic Savings', 'Mudarabah Investment'],  for (let i = 1; i <= 50; i++) {  // State
+
+        await updateCustomer(customerId, { status });
+
+      }      } : undefined,
+
+      return true;
+
+    } catch {          const customer: Customer = {  customers: Customer[];
+
+      return false;
+
+    }      conventionalPreferences: bankingMode === 'conventional' ? {
+
+  };
+
+        creditCardEligible: true,      id: `CUST-${i.toString().padStart(6, '0')}`,  intakeRequests: IntakeRequest[];
+
+  const createServiceRequest = async (request: Omit<ServiceRequest, 'id' | 'createdDate'>): Promise<ServiceRequest> => {
+
+    const newRequest: ServiceRequest = {        investmentRiskTolerance: 'Moderate',
+
+      ...request,
+
+      id: `SR-${Date.now()}`,        interestRatePreference: 'Fixed',      customerNumber: `${bankingMode === 'ethical' ? 'IB' : 'CB'}${(1000000 + i).toString()}`,  cases: CustomerCase[];
+
+      createdDate: new Date().toISOString(),
+
+    };        investmentProducts: ['Mutual Funds', 'Fixed Deposits'],
+
+    
+
+    setServiceRequests(prev => [newRequest, ...prev]);        loanEligibility: true,      customerType: Math.random() > 0.8 ? 'Business' : 'Individual',  
+
+    return newRequest;
+
+  };      } : undefined,
+
+
+
+  const updateServiceRequestStatus = async (requestId: string, status: ServiceRequest['status']): Promise<boolean> => {            status: ['Active', 'Active', 'Active', 'Pending', 'Inactive'][Math.floor(Math.random() * 5)] as CustomerStatus,  // Customer actions
+
+    try {
+
+      setServiceRequests(prev =>       notes: [],
+
+        prev.map(sr => sr.id === requestId ? { ...sr, status } : sr)
+
+      );      interactions: [],        addCustomer: (customerData: CustomerFormData) => string;
+
+      return true;
+
+    } catch {      transactions: [],
+
+      return false;
+
+    }            personalDetails: {  updateCustomer: (customerId: string, updates: Partial<Customer>) => void;
+
+  };
+
+      createdBy: 'system',
+
+  const refreshCustomers = async () => {
+
+    setLoading(true);      createdDate: new Date(2020 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString(),        firstName: ['Ahmad', 'Fatima', 'Mohammed', 'Aisha', 'Omar', 'Zainab', 'Ali', 'Khadija'][Math.floor(Math.random() * 8)],  deleteCustomer: (customerId: string) => void;
+
+    setTimeout(() => {
+
+      setLoading(false);      assignedBranch: `BR-00${Math.floor(Math.random() * 5) + 1}`,
+
+    }, 1000);
+
+  };              lastName: ['Al-Rahman', 'Hassan', 'Al-Zahra', 'Khan', 'Ahmed', 'Ali', 'Shah'][Math.floor(Math.random() * 7)],  getCustomerById: (customerId: string) => Customer | undefined;
+
+
+
+  const clearError = () => {      digitalAdoption: {
+
+    setError(null);
+
+  };        mobileAppUser: Math.random() > 0.3,        dateOfBirth: new Date(1970 + Math.floor(Math.random() * 40), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],  getCustomersByStatus: (status: Customer['status']) => Customer[];
+
+
+
+  const selectCustomer = (customer: Customer | null) => {        onlineBankingUser: Math.random() > 0.4,
+
+    setSelectedCustomer(customer);
+
+  };        cardUser: Math.random() > 0.6,        gender: Math.random() > 0.5 ? 'Male' : 'Female',  getCustomersByKycStatus: (kycStatus: Customer['kycStatus']) => Customer[];
+
+
+
+  const getCustomerStats = () => {        digitalPaymentUser: Math.random() > 0.5,
+
+    const totalCustomers = customers.length;
+
+    const activeCustomers = customers.filter(c => c.status === 'Active').length;      },        nationality: 'Pakistani',  
+
+    const pendingKYC = customers.filter(c => c.compliance.kycStatus === 'Pending').length;
+
+    const highRiskCustomers = customers.filter(c => c.compliance.riskLevel === 'High').length;      
+
+    const averageBalance = customers.reduce((sum, c) => sum + (c.accounts[0]?.currentBalance || 0), 0) / (totalCustomers || 1);
+
+      communicationPreferences: {        countryOfBirth: 'Pakistan',  // Intake request actions
+
+    return {
+
+      totalCustomers,        smsNotifications: true,
+
+      activeCustomers,
+
+      pendingKYC,        emailNotifications: true,        maritalStatus: ['Single', 'Married', 'Divorced', 'Widowed'][Math.floor(Math.random() * 4)] as any,  addIntakeRequest: (intakeData: IntakeFormData) => string;
+
+      highRiskCustomers,
+
+      averageBalance,        pushNotifications: Math.random() > 0.5,
+
+    };
+
+  };        marketingCommunications: Math.random() > 0.7,      },  updateIntakeStatus: (requestId: string, status: IntakeRequest['status']) => void;
+
+
+
+  const contextValue: CustomerContextType = {      },
+
+    customers,
+
+    selectedCustomer,    };        deleteIntakeRequest: (requestId: string) => void;
+
+    loading,
+
+    error,    
+
+    filters,
+
+    sortOptions,    customers.push(customer);      identificationDetails: [{  getIntakeRequestsByStatus: (status: IntakeRequest['status']) => IntakeRequest[];
+
+    pagination,
+
+    createCustomer,  }
+
+    updateCustomer,
+
+    deleteCustomer,          idType: 'National ID',  getIntakeRequestsByChannel: (channel: IntakeRequest['channel']) => IntakeRequest[];
+
+    getCustomer,
+
+    searchCustomers,  return customers;
+
+    setFilters,
+
+    setSortOptions,};        idNumber: `3520${(10000000000 + Math.floor(Math.random() * 90000000000)).toString()}`,  
+
+    setPage,
+
+    setPageSize,
+
+    performAction,
+
+    bulkUpdateStatus,// === PROVIDER COMPONENT ===        issueDate: '2020-01-01',  // Case actions
+
+    serviceRequests,
+
+    createServiceRequest,
+
+    updateServiceRequestStatus,
+
+    refreshCustomers,interface CustomerProviderProps {        expiryDate: '2030-01-01',  addCase: (caseData: CaseFormData) => string;
+
+    clearError,
+
+    selectCustomer,  children: ReactNode;
+
+    getCustomerStats,
+
+  };}        issuingAuthority: 'NADRA',  updateCaseStatus: (caseId: string, status: CustomerCase['status']) => void;
+
+
+
+  return (
+
+    <CustomerContext.Provider value={contextValue}>
+
+      {children}export function CustomerProvider({ children }: CustomerProviderProps) {        placeOfIssue: 'Karachi',  updateCase: (caseId: string, updates: Partial<CustomerCase>) => void;
+
+    </CustomerContext.Provider>
+
+  );  // State Management
+
+}
+
+  const [customers, setCustomers] = useState<Customer[]>([]);      }],  deleteCase: (caseId: string) => void;
+
+export function useCustomers(): CustomerContextType {
+
+  const context = useContext(CustomerContext);  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  if (context === undefined) {
+
+    throw new Error('useCustomers must be used within a CustomerProvider');  const [loading, setLoading] = useState(false);        getCasesByStatus: (status: CustomerCase['status']) => CustomerCase[];
+
+  }
+
+  return context;  const [error, setError] = useState<string | null>(null);
+
+}
+
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);      contactDetails: {  getCasesByType: (caseType: CustomerCase['caseType']) => CustomerCase[];
+
+export function useCustomerById(customerId: string | undefined): Customer | null {
+
+  const { customers } = useCustomers();  
+
+  return customerId ? customers.find(c => c.id === customerId) || null : null;
+
+}  // Filters and Sorting        primaryPhone: `+92-300-${(1000000 + Math.floor(Math.random() * 9000000)).toString()}`,  
+
+
+
+export function useFilteredCustomers(): Customer[] {  const [filters, setFiltersState] = useState<CustomerFilters>({});
+
+  const { customers, filters, sortOptions } = useCustomers();
+
+    const [sortOptions, setSortOptionsState] = useState<CustomerSortOptions>({        primaryEmail: `customer${i}@example.com`,  // Analytics
+
+  let filtered = [...customers];
+
+      field: 'createdDate',
+
+  if (filters.searchQuery) {
+
+    const query = filters.searchQuery.toLowerCase();    direction: 'desc'        preferredContactMethod: 'Phone',  getCustomerStats: () => {
+
+    filtered = filtered.filter(c => 
+
+      `${c.personalDetails.firstName} ${c.personalDetails.lastName}`.toLowerCase().includes(query) ||  });
+
+      c.customerNumber.toLowerCase().includes(query) ||
+
+      c.contactDetails.primaryEmail.toLowerCase().includes(query)  const [pagination, setPagination] = useState({        preferredLanguage: 'English',    total: number;
+
+    );
+
+  }    currentPage: 1,
+
+  
+
+  if (filters.status?.length) {    totalPages: 1,      },    active: number;
+
+    filtered = filtered.filter(c => filters.status!.includes(c.status));
+
+  }    totalCount: 0,
+
+  
+
+  if (filters.kycStatus?.length) {    pageSize: 20          pending: number;
+
+    filtered = filtered.filter(c => filters.kycStatus!.includes(c.compliance.kycStatus));
+
+  }  });
+
+  
+
+  if (filters.bankingMode?.length) {      addresses: [{    inactive: number;
+
+    filtered = filtered.filter(c => filters.bankingMode!.includes(c.bankingMode));
+
+  }  // Initialize with mock data
+
+  
+
+  filtered.sort((a, b) => {  useEffect(() => {        type: 'Permanent',    verified: number;
+
+    let aVal: any, bVal: any;
+
+        const mockCustomers = [
+
+    switch (sortOptions.field) {
+
+      case 'name':      ...generateMockCustomers('ethical'),        street: `House ${i}, Block A, Gulshan-e-Iqbal`,    pendingKyc: number;
+
+        aVal = `${a.personalDetails.firstName} ${a.personalDetails.lastName}`;
+
+        bVal = `${b.personalDetails.firstName} ${b.personalDetails.lastName}`;      ...generateMockCustomers('conventional')
+
+        break;
+
+      case 'customerNumber':    ];        city: 'Karachi',  };
+
+        aVal = a.customerNumber;
+
+        bVal = b.customerNumber;    setCustomers(mockCustomers);
+
+        break;
+
+      case 'createdDate':    setPagination(prev => ({        state: 'Sindh',  getIntakeStats: () => {
+
+        aVal = new Date(a.createdDate).getTime();
+
+        bVal = new Date(b.createdDate).getTime();      ...prev,
+
+        break;
+
+      case 'totalBalance':      totalCount: mockCustomers.length,        country: 'Pakistan',    total: number;
+
+        aVal = a.accounts[0]?.currentBalance || 0;
+
+        bVal = b.accounts[0]?.currentBalance || 0;      totalPages: Math.ceil(mockCustomers.length / prev.pageSize)
+
+        break;
+
+      default:    }));        postalCode: '75300',    pending: number;
+
+        aVal = a.createdDate;
+
+        bVal = b.createdDate;  }, []);
+
+    }
+
+          }],    inProgress: number;
+
+    if (aVal < bVal) return sortOptions.direction === 'asc' ? -1 : 1;
+
+    if (aVal > bVal) return sortOptions.direction === 'asc' ? 1 : -1;  // === CRUD Operations ===
+
+    return 0;
+
+  });            resolved: number;
+
+  
+
+  return filtered;  const createCustomer = async (customerData: Omit<Customer, 'id' | 'customerNumber' | 'createdDate' | 'createdBy'>): Promise<Customer> => {
+
+}
+    setLoading(true);      accounts: [{    byChannel: Record<IntakeRequest['channel'], number>;
+
+    try {
+
+      const newCustomer: Customer = {        accountNumber: `${bankingMode === 'ethical' ? '0101' : '0201'}${(100000000 + i).toString()}`,  };
+
+        ...customerData,
+
+        id: `CUST-${Date.now()}`,        accountType: bankingMode === 'ethical' ? 'Islamic Savings' : 'Savings',  getCaseStats: () => {
+
+        customerNumber: `${customerData.bankingMode === 'ethical' ? 'IB' : 'CB'}${Date.now()}`,
+
+        createdDate: new Date().toISOString(),        accountStatus: 'Active',    total: number;
+
+        createdBy: 'current-user',
+
+      };        openingDate: new Date(2020 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],    open: number;
+
+      
+
+      setCustomers(prev => [newCustomer, ...prev]);        currentBalance: Math.floor(Math.random() * 1000000) + 10000,    inProgress: number;
+
+      setLoading(false);
+
+      return newCustomer;        availableBalance: Math.floor(Math.random() * 1000000) + 10000,    resolved: number;
+
+    } catch (err) {
+
+      setError('Failed to create customer');        minimumBalance: 1000,    byType: Record<CustomerCase['caseType'], number>;
+
+      setLoading(false);
+
+      throw err;        branchId: `BR-00${Math.floor(Math.random() * 5) + 1}`,  };
+
+    }
+
+  };        branchName: ['Main Branch', 'Gulshan Branch', 'Clifton Branch', 'Defence Branch', 'Nazimabad Branch'][Math.floor(Math.random() * 5)],  
+
+
+
+  const updateCustomer = async (customerId: string, updates: Partial<Customer>): Promise<Customer> => {        isJointAccount: false,  // Utility functions
+
+    setLoading(true);
+
+    try {      }],  generateCustomerId: () => string;
+
+      const updatedCustomer = { 
+
+        ...customers.find(c => c.id === customerId)!,        generateIntakeId: () => string;
+
+        ...updates,
+
+        lastModifiedDate: new Date().toISOString(),      products: [],  generateCaseId: () => string;
+
+        lastModifiedBy: 'current-user'
+
+      };        calculateAccountBalance: (balance: string) => number;
+
+      
+
+      setCustomers(prev => prev.map(c => c.id === customerId ? updatedCustomer : c));      compliance: {}
+
+      setLoading(false);
+
+      return updatedCustomer;        kycStatus: ['Verified', 'Verified', 'Pending', 'Under Review'][Math.floor(Math.random() * 4)] as KYCStatus,
+
+    } catch (err) {
+
+      setError('Failed to update customer');        kycLevel: 'Basic',const CustomerContext = createContext<CustomerContextType | undefined>(undefined);
+
+      setLoading(false);
+
+      throw err;        amlStatus: 'Clear',
+
+    }
+
+  };        riskLevel: ['Low', 'Low', 'Medium', 'High'][Math.floor(Math.random() * 4)] as any,export const useCustomerContext = () => {
+
+
+
+  const deleteCustomer = async (customerId: string): Promise<boolean> => {        sanctionScreening: 'Clear',  const context = useContext(CustomerContext);
+
+    setLoading(true);
+
+    try {        pepStatus: false,  if (context === undefined) {
+
+      setCustomers(prev => prev.filter(c => c.id !== customerId));
+
+      setLoading(false);        taxResidency: ['Pakistan'],    throw new Error('useCustomerContext must be used within a CustomerProvider');
+
+      return true;
+
+    } catch (err) {      },  }
+
+      setError('Failed to delete customer');
+
+      setLoading(false);        return context;
+
+      throw err;
+
+    }      documents: [],};
+
+  };
+
+      
+
+  const getCustomer = async (customerId: string): Promise<Customer | null> => {
+
+    const customer = customers.find(c => c.id === customerId);      bankingMode,interface CustomerProviderProps {
+
+    return customer || null;
+
+  };      islamicPreferences: bankingMode === 'ethical' ? {  children: ReactNode;
+
+
+
+  // === List Management ===        shariaCompliantOnly: true,}
+
+  
+
+  const searchCustomers = (query: string) => {        zakatCalculation: true,
+
+    setFiltersState(prev => ({ ...prev, searchQuery: query }));
+
+  };        zakatPercentage: 2.5,export const CustomerProvider: React.FC<CustomerProviderProps> = ({ children }) => {
+
+
+
+  const setFilters = (newFilters: Partial<CustomerFilters>) => {        islamicCalendarEvents: true,  const [customers, setCustomers] = useState<Customer[]>([
+
+    setFiltersState(prev => ({ ...prev, ...newFilters }));
+
+    setPagination(prev => ({ ...prev, currentPage: 1 }));        halalInvestmentOnly: true,    {
+
+  };
+
+        profitSharingPreference: 'Mudarabah',      id: 'CUST001',
+
+  const setSortOptions = (newSortOptions: CustomerSortOptions) => {
+
+    setSortOptionsState(newSortOptions);        preferredIslamicProducts: ['Islamic Savings', 'Mudarabah Investment'],      name: 'Ahmad Hassan',
+
+  };
+
+      } : undefined,      email: 'ahmad.hassan@email.com',
+
+  const setPage = (page: number) => {
+
+    setPagination(prev => ({ ...prev, currentPage: page }));            phone: '+971-50-123-4567',
+
+  };
+
+      conventionalPreferences: bankingMode === 'conventional' ? {      accountType: 'Savings Account',
+
+  const setPageSize = (size: number) => {
+
+    setPagination(prev => ({         creditCardEligible: true,      kycStatus: 'Verified',
+
+      ...prev, 
+
+      pageSize: size,         investmentRiskTolerance: 'Moderate',      verificationLevel: 'Level 2',
+
+      currentPage: 1,
+
+      totalPages: Math.ceil(prev.totalCount / size)        interestRatePreference: 'Fixed',      accountBalance: 'AED 25,000',
+
+    }));
+
+  };        investmentProducts: ['Mutual Funds', 'Fixed Deposits'],      status: 'Active',
+
+
+
+  // === Customer Actions ===        loanEligibility: true,      lastActivity: '2 hours ago',
+
+  
+
+  const performAction = async (action: CustomerAction): Promise<boolean> => {      } : undefined,      joinDate: '2024-01-15',
+
+    try {
+
+      switch (action.type) {            branchId: 'B001'
+
+        case 'suspend':
+
+          await updateCustomer(action.customerId, { status: 'Suspended' });      notes: [],    },
+
+          break;
+
+        case 'activate':      interactions: [],    {
+
+          await updateCustomer(action.customerId, { status: 'Active' });
+
+          break;      transactions: [],      id: 'CUST002',
+
+        default:
+
+          return false;            name: 'Fatima Al-Zahra',
+
+      }
+
+      return true;      createdBy: 'system',      email: 'fatima.alzahra@email.com',
+
+    } catch {
+
+      return false;      createdDate: new Date(2020 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString(),      phone: '+971-55-987-6543',
+
+    }
+
+  };      assignedBranch: `BR-00${Math.floor(Math.random() * 5) + 1}`,      accountType: 'Investment Account',
+
+
+
+  const bulkUpdateStatus = async (customerIds: string[], status: CustomerStatus): Promise<boolean> => {            kycStatus: 'Under Review',
+
+    try {
+
+      for (const customerId of customerIds) {      digitalAdoption: {      verificationLevel: 'Level 1',
+
+        await updateCustomer(customerId, { status });
+
+      }        mobileAppUser: Math.random() > 0.3,      accountBalance: 'AED 150,000',
+
+      return true;
+
+    } catch {        onlineBankingUser: Math.random() > 0.4,      status: 'Active',
+
+      return false;
+
+    }        cardUser: Math.random() > 0.6,      lastActivity: '1 day ago',
+
+  };
+
+        digitalPaymentUser: Math.random() > 0.5,      joinDate: '2024-01-10',
+
+  // === Service Requests ===
+
+        },      branchId: 'B002'
+
+  const createServiceRequest = async (request: Omit<ServiceRequest, 'id' | 'createdDate'>): Promise<ServiceRequest> => {
+
+    const newRequest: ServiceRequest = {          },
+
+      ...request,
+
+      id: `SR-${Date.now()}`,      communicationPreferences: {    {
+
+      createdDate: new Date().toISOString(),
+
+    };        smsNotifications: true,      id: 'CUST003',
+
+    
+
+    setServiceRequests(prev => [newRequest, ...prev]);        emailNotifications: true,      name: 'Omar Ibrahim',
+
+    return newRequest;
+
+  };        pushNotifications: Math.random() > 0.5,      email: 'omar.ibrahim@email.com',
+
+
+
+  const updateServiceRequestStatus = async (requestId: string, status: ServiceRequest['status']): Promise<boolean> => {        marketingCommunications: Math.random() > 0.7,      phone: '+971-52-456-7890',
+
+    try {
+
+      setServiceRequests(prev =>       },      accountType: 'Current Account',
+
+        prev.map(sr => sr.id === requestId ? { ...sr, status } : sr)
+
+      );    };      kycStatus: 'Pending',
+
+      return true;
+
+    } catch {          verificationLevel: 'Level 1',
+
+      return false;
+
+    }    customers.push(customer);      accountBalance: 'AED 5,000',
+
+  };
+
+  }      status: 'Pending',
+
+  // === Utility Functions ===
+
+          lastActivity: '3 days ago',
+
+  const refreshCustomers = async () => {
+
+    setLoading(true);  return customers;      joinDate: '2024-01-20',
+
+    setTimeout(() => {
+
+      setLoading(false);};      branchId: 'B001'
+
+    }, 1000);
+
+  };    }
+
+
+
+  const clearError = () => {// === PROVIDER COMPONENT ===  ]);
+
+    setError(null);
+
+  };
+
+
+
+  const selectCustomer = (customer: Customer | null) => {interface CustomerProviderProps {  const [intakeRequests, setIntakeRequests] = useState<IntakeRequest[]>([
+
+    setSelectedCustomer(customer);
+
+  };  children: ReactNode;    {
+
+
+
+  const getCustomerStats = () => {}      id: 'INT-001',
+
+    const totalCustomers = customers.length;
+
+    const activeCustomers = customers.filter(c => c.status === 'Active').length;      customerName: 'Ahmad Hassan',
+
+    const pendingKYC = customers.filter(c => c.compliance.kycStatus === 'Pending').length;
+
+    const highRiskCustomers = customers.filter(c => c.compliance.riskLevel === 'High').length;export function CustomerProvider({ children }: CustomerProviderProps) {      channel: 'Web Portal',
+
+    const averageBalance = customers.reduce((sum, c) => sum + (c.accounts[0]?.currentBalance || 0), 0) / (totalCustomers || 1);
+
+  // State Management      requestType: 'Account Inquiry',
+
+    return {
+
+      totalCustomers,  const [customers, setCustomers] = useState<Customer[]>([]);      priority: 'Medium',
+
+      activeCustomers,
+
+      pendingKYC,  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);      status: 'Pending',
+
+      highRiskCustomers,
+
+      averageBalance,  const [loading, setLoading] = useState(false);      timestamp: '2 hours ago',
+
+    };
+
+  };  const [error, setError] = useState<string | null>(null);      customerId: 'CUST001'
+
+
+
+  // === Context Value ===  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);    },
+
+  
+
+  const contextValue: CustomerContextType = {      {
+
+    customers,
+
+    selectedCustomer,  // Filters and Sorting      id: 'INT-002',
+
+    loading,
+
+    error,  const [filters, setFiltersState] = useState<CustomerFilters>({});      customerName: 'Fatima Al-Zahra',
+
+    filters,
+
+    sortOptions,  const [sortOptions, setSortOptionsState] = useState<CustomerSortOptions>({      channel: 'Mobile App',
+
+    pagination,
+
+    createCustomer,    field: 'createdDate',      requestType: 'Loan Query',
+
+    updateCustomer,
+
+    deleteCustomer,    direction: 'desc'      priority: 'High',
+
+    getCustomer,
+
+    searchCustomers,  });      status: 'In Progress',
+
+    setFilters,
+
+    setSortOptions,  const [pagination, setPagination] = useState({      timestamp: '4 hours ago',
+
+    setPage,
+
+    setPageSize,    currentPage: 1,      customerId: 'CUST002'
+
+    performAction,
+
+    bulkUpdateStatus,    totalPages: 1,    },
+
+    serviceRequests,
+
+    createServiceRequest,    totalCount: 0,    {
+
+    updateServiceRequestStatus,
+
+    refreshCustomers,    pageSize: 20      id: 'INT-003',
+
+    clearError,
+
+    selectCustomer,  });      customerName: 'Omar Ibrahim',
+
+    getCustomerStats,
+
+  };      channel: 'Call Center',
+
+
+
+  return (  // Initialize with mock data      requestType: 'Card Issue',
+
+    <CustomerContext.Provider value={contextValue}>
+
+      {children}  useEffect(() => {      priority: 'Low',
+
+    </CustomerContext.Provider>
+
+  );    const mockCustomers = [      status: 'Resolved',
+
+}
+
+      ...generateMockCustomers('ethical'),      timestamp: '1 day ago',
+
+// === HOOK ===
+
+      ...generateMockCustomers('conventional')      customerId: 'CUST003'
+
+export function useCustomers(): CustomerContextType {
+
+  const context = useContext(CustomerContext);    ];    }
+
+  if (context === undefined) {
+
+    throw new Error('useCustomers must be used within a CustomerProvider');    setCustomers(mockCustomers);  ]);
+
+  }
+
+  return context;    setPagination(prev => ({
+
+}
+
+      ...prev,  const [cases, setCases] = useState<CustomerCase[]>([
+
+// === UTILITY HOOKS ===
+
+      totalCount: mockCustomers.length,    {
+
+export function useCustomerById(customerId: string | undefined): Customer | null {
+
+  const { customers } = useCustomers();      totalPages: Math.ceil(mockCustomers.length / prev.pageSize)      id: 'CASE001',
+
+  return customerId ? customers.find(c => c.id === customerId) || null : null;
+
+}    }));      customerId: 'CUST001',
+
+
+
+export function useFilteredCustomers(): Customer[] {  }, []);      customerName: 'Ahmad Hassan',
+
+  const { customers, filters, sortOptions } = useCustomers();
+
+        caseType: 'Account Issue',
+
+  let filtered = [...customers];
+
+    // === CRUD Operations ===      priority: 'Medium',
+
+  // Apply filters
+
+  if (filters.searchQuery) {        status: 'Open',
+
+    const query = filters.searchQuery.toLowerCase();
+
+    filtered = filtered.filter(c =>   const createCustomer = async (customerData: Omit<Customer, 'id' | 'customerNumber' | 'createdDate' | 'createdBy'>): Promise<Customer> => {      assignedTo: 'John Smith',
+
+      `${c.personalDetails.firstName} ${c.personalDetails.lastName}`.toLowerCase().includes(query) ||
+
+      c.customerNumber.toLowerCase().includes(query) ||    setLoading(true);      createdAt: '2024-01-20T10:30:00Z',
+
+      c.contactDetails.primaryEmail.toLowerCase().includes(query)
+
+    );    try {      updatedAt: '2024-01-20T10:30:00Z',
+
+  }
+
+        const newCustomer: Customer = {      description: 'Customer unable to access online banking'
+
+  if (filters.status?.length) {
+
+    filtered = filtered.filter(c => filters.status!.includes(c.status));        ...customerData,    },
+
+  }
+
+          id: `CUST-${Date.now()}`,    {
+
+  if (filters.kycStatus?.length) {
+
+    filtered = filtered.filter(c => filters.kycStatus!.includes(c.compliance.kycStatus));        customerNumber: `${customerData.bankingMode === 'ethical' ? 'IB' : 'CB'}${Date.now()}`,      id: 'CASE002',
+
+  }
+
+          createdDate: new Date().toISOString(),      customerId: 'CUST002',
+
+  if (filters.bankingMode?.length) {
+
+    filtered = filtered.filter(c => filters.bankingMode!.includes(c.bankingMode));        createdBy: 'current-user', // TODO: Get from auth context      customerName: 'Fatima Al-Zahra',
+
+  }
+
+        };      caseType: 'KYC Query',
+
+  // Apply sorting
+
+  filtered.sort((a, b) => {            priority: 'High',
+
+    let aVal: any, bVal: any;
+
+          setCustomers(prev => [newCustomer, ...prev]);      status: 'In Progress',
+
+    switch (sortOptions.field) {
+
+      case 'name':      setLoading(false);      assignedTo: 'Sarah Johnson',
+
+        aVal = `${a.personalDetails.firstName} ${a.personalDetails.lastName}`;
+
+        bVal = `${b.personalDetails.firstName} ${b.personalDetails.lastName}`;      return newCustomer;      createdAt: '2024-01-19T14:15:00Z',
+
+        break;
+
+      case 'customerNumber':    } catch (err) {      updatedAt: '2024-01-20T09:45:00Z',
+
+        aVal = a.customerNumber;
+
+        bVal = b.customerNumber;      setError('Failed to create customer');      description: 'KYC verification documents need review'
+
+        break;
+
+      case 'createdDate':      setLoading(false);    }
+
+        aVal = new Date(a.createdDate).getTime();
+
+        bVal = new Date(b.createdDate).getTime();      throw err;  ]);
+
+        break;
+
+      case 'totalBalance':    }
+
+        aVal = a.accounts[0]?.currentBalance || 0;
+
+        bVal = b.accounts[0]?.currentBalance || 0;  };  // Utility functions
+
+        break;
+
+      default:  const generateCustomerId = () => {
+
+        aVal = a.createdDate;
+
+        bVal = b.createdDate;  const updateCustomer = async (customerId: string, updates: Partial<Customer>): Promise<Customer> => {    return `CUST${String(customers.length + 1).padStart(3, '0')}`;
+
+    }
+
+        setLoading(true);  };
+
+    if (aVal < bVal) return sortOptions.direction === 'asc' ? -1 : 1;
+
+    if (aVal > bVal) return sortOptions.direction === 'asc' ? 1 : -1;    try {
+
+    return 0;
+
+  });      const updatedCustomer = {   const generateIntakeId = () => {
+
+  
+
+  return filtered;        ...customers.find(c => c.id === customerId)!,    return `INT-${String(intakeRequests.length + 1).padStart(3, '0')}`;
+
+}
+        ...updates,  };
+
+        lastModifiedDate: new Date().toISOString(),
+
+        lastModifiedBy: 'current-user' // TODO: Get from auth context  const generateCaseId = () => {
+
+      };    return `CASE${String(cases.length + 1).padStart(3, '0')}`;
+
+        };
+
+      setCustomers(prev => prev.map(c => c.id === customerId ? updatedCustomer : c));
+
+      setLoading(false);  const calculateAccountBalance = (balance: string) => {
+
+      return updatedCustomer;    return parseFloat(balance.replace(/[^0-9.-]+/g, "")) || 0;
+
+    } catch (err) {  };
+
+      setError('Failed to update customer');
+
+      setLoading(false);  // Customer actions
+
+      throw err;  const addCustomer = (customerData: CustomerFormData): string => {
+
+    }    const newCustomer: Customer = {
+
+  };      id: generateCustomerId(),
+
+      name: `${customerData.firstName} ${customerData.lastName}`,
+
+  const deleteCustomer = async (customerId: string): Promise<boolean> => {      email: customerData.email,
+
+    setLoading(true);      phone: customerData.phone,
+
+    try {      accountType: customerData.accountType,
+
+      setCustomers(prev => prev.filter(c => c.id !== customerId));      kycStatus: customerData.kycStatus,
+
+      setLoading(false);      verificationLevel: customerData.verificationLevel,
+
+      return true;      accountBalance: `AED ${customerData.accountBalance}`,
+
+    } catch (err) {      status: customerData.status,
+
+      setError('Failed to delete customer');      lastActivity: 'Just now',
+
+      setLoading(false);      joinDate: new Date().toISOString().split('T')[0],
+
+      throw err;      branchId: customerData.branchId,
+
+    }      notes: customerData.notes
+
+  };    };
+
+
+
+  const getCustomer = async (customerId: string): Promise<Customer | null> => {    setCustomers(prev => [...prev, newCustomer]);
+
+    const customer = customers.find(c => c.id === customerId);    return newCustomer.id;
+
+    return customer || null;  };
+
+  };
+
+  const updateCustomer = (customerId: string, updates: Partial<Customer>) => {
+
+  // === List Management ===    setCustomers(prev => 
+
+        prev.map(customer => 
+
+  const searchCustomers = (query: string) => {        customer.id === customerId 
+
+    setFiltersState(prev => ({ ...prev, searchQuery: query }));          ? { ...customer, ...updates }
+
+  };          : customer
+
+      )
+
+  const setFilters = (newFilters: Partial<CustomerFilters>) => {    );
+
+    setFiltersState(prev => ({ ...prev, ...newFilters }));  };
+
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
+
+  };  const deleteCustomer = (customerId: string) => {
+
+    setCustomers(prev => prev.filter(customer => customer.id !== customerId));
+
+  const setSortOptions = (newSortOptions: CustomerSortOptions) => {  };
+
+    setSortOptionsState(newSortOptions);
+
+  };  const getCustomerById = (customerId: string) => {
+
+    return customers.find(customer => customer.id === customerId);
+
+  const setPage = (page: number) => {  };
+
+    setPagination(prev => ({ ...prev, currentPage: page }));
+
+  };  const getCustomersByStatus = (status: Customer['status']) => {
+
+    return customers.filter(customer => customer.status === status);
+
+  const setPageSize = (size: number) => {  };
+
+    setPagination(prev => ({ 
+
+      ...prev,   const getCustomersByKycStatus = (kycStatus: Customer['kycStatus']) => {
+
+      pageSize: size,     return customers.filter(customer => customer.kycStatus === kycStatus);
+
+      currentPage: 1,  };
+
+      totalPages: Math.ceil(prev.totalCount / size)
+
+    }));  // Intake request actions
+
+  };  const addIntakeRequest = (intakeData: IntakeFormData): string => {
+
+    const newIntake: IntakeRequest = {
+
+  // === Customer Actions ===      id: generateIntakeId(),
+
+        customerName: intakeData.customerName,
+
+  const performAction = async (action: CustomerAction): Promise<boolean> => {      channel: intakeData.channel,
+
+    try {      requestType: intakeData.requestType,
+
+      switch (action.type) {      priority: intakeData.priority,
+
+        case 'suspend':      status: 'Pending',
+
+          await updateCustomer(action.customerId, { status: 'Suspended' });      timestamp: new Date().toLocaleString(),
+
+          break;      description: intakeData.description,
+
+        case 'activate':      customerId: intakeData.customerId
+
+          await updateCustomer(action.customerId, { status: 'Active' });    };
+
+          break;
+
+        // Add more action types as needed    setIntakeRequests(prev => [...prev, newIntake]);
+
+        default:    return newIntake.id;
+
+          return false;  };
+
+      }
+
+      return true;  const updateIntakeStatus = (requestId: string, status: IntakeRequest['status']) => {
+
+    } catch {    setIntakeRequests(prev => 
+
+      return false;      prev.map(request => 
+
+    }        request.id === requestId 
+
+  };          ? { ...request, status }
+
+          : request
+
+  const bulkUpdateStatus = async (customerIds: string[], status: CustomerStatus): Promise<boolean> => {      )
+
+    try {    );
+
+      for (const customerId of customerIds) {  };
+
+        await updateCustomer(customerId, { status });
+
+      }  const deleteIntakeRequest = (requestId: string) => {
+
+      return true;    setIntakeRequests(prev => prev.filter(request => request.id !== requestId));
+
+    } catch {  };
+
+      return false;
+
+    }  const getIntakeRequestsByStatus = (status: IntakeRequest['status']) => {
+
+  };    return intakeRequests.filter(request => request.status === status);
+
+  };
+
+  // === Service Requests ===
+
+    const getIntakeRequestsByChannel = (channel: IntakeRequest['channel']) => {
+
+  const createServiceRequest = async (request: Omit<ServiceRequest, 'id' | 'createdDate'>): Promise<ServiceRequest> => {    return intakeRequests.filter(request => request.channel === channel);
+
+    const newRequest: ServiceRequest = {  };
+
+      ...request,
+
+      id: `SR-${Date.now()}`,  // Case actions
+
+      createdDate: new Date().toISOString(),  const addCase = (caseData: CaseFormData): string => {
+
+    };    const newCase: CustomerCase = {
+
+          id: generateCaseId(),
+
+    setServiceRequests(prev => [newRequest, ...prev]);      customerId: caseData.customerId,
+
+    return newRequest;      customerName: caseData.customerName,
+
+  };      caseType: caseData.caseType,
+
+      priority: caseData.priority,
+
+  const updateServiceRequestStatus = async (requestId: string, status: ServiceRequest['status']): Promise<boolean> => {      status: 'Open',
+
+    try {      assignedTo: caseData.assignedTo,
+
+      setServiceRequests(prev =>       createdAt: new Date().toISOString(),
+
+        prev.map(sr => sr.id === requestId ? { ...sr, status } : sr)      updatedAt: new Date().toISOString(),
+
+      );      description: caseData.description
+
+      return true;    };
+
+    } catch {
+
+      return false;    setCases(prev => [...prev, newCase]);
+
+    }    return newCase.id;
+
+  };  };
+
+
+
+  // === Utility Functions ===  const updateCaseStatus = (caseId: string, status: CustomerCase['status']) => {
+
+      setCases(prev => 
+
+  const refreshCustomers = async () => {      prev.map(caseItem => 
+
+    setLoading(true);        caseItem.id === caseId 
+
+    // Simulate API call          ? { ...caseItem, status, updatedAt: new Date().toISOString() }
+
+    setTimeout(() => {          : caseItem
+
+      setLoading(false);      )
+
+    }, 1000);    );
+
+  };  };
+
+
+
+  const clearError = () => {  const updateCase = (caseId: string, updates: Partial<CustomerCase>) => {
+
+    setError(null);    setCases(prev => 
+
+  };      prev.map(caseItem => 
+
+        caseItem.id === caseId 
+
+  const selectCustomer = (customer: Customer | null) => {          ? { ...caseItem, ...updates, updatedAt: new Date().toISOString() }
+
+    setSelectedCustomer(customer);          : caseItem
+
+  };      )
+
+    );
+
+  const getCustomerStats = () => {  };
+
+    const totalCustomers = customers.length;
+
+    const activeCustomers = customers.filter(c => c.status === 'Active').length;  const deleteCase = (caseId: string) => {
+
+    const pendingKYC = customers.filter(c => c.compliance.kycStatus === 'Pending').length;    setCases(prev => prev.filter(caseItem => caseItem.id !== caseId));
+
+    const highRiskCustomers = customers.filter(c => c.compliance.riskLevel === 'High').length;  };
+
+    const averageBalance = customers.reduce((sum, c) => sum + (c.accounts[0]?.currentBalance || 0), 0) / totalCustomers;
+
+  const getCasesByStatus = (status: CustomerCase['status']) => {
+
+    return {    return cases.filter(caseItem => caseItem.status === status);
+
+      totalCustomers,  };
+
+      activeCustomers,
+
+      pendingKYC,  const getCasesByType = (caseType: CustomerCase['caseType']) => {
+
+      highRiskCustomers,    return cases.filter(caseItem => caseItem.caseType === caseType);
+
+      averageBalance,  };
+
+    };
+
+  };  // Analytics
+
+  const getCustomerStats = () => {
+
+  // === Context Value ===    return {
+
+        total: customers.length,
+
+  const contextValue: CustomerContextType = {      active: customers.filter(c => c.status === 'Active').length,
+
+    // Customer Data      pending: customers.filter(c => c.status === 'Pending').length,
+
+    customers,      inactive: customers.filter(c => c.status === 'Inactive').length,
+
+    selectedCustomer,      verified: customers.filter(c => c.kycStatus === 'Verified').length,
+
+    loading,      pendingKyc: customers.filter(c => c.kycStatus === 'Pending').length
+
+    error,    };
+
+      };
+
+    // List Management
+
+    filters,  const getIntakeStats = () => {
+
+    sortOptions,    const byChannel = {
+
+    pagination,      'Web Portal': intakeRequests.filter(r => r.channel === 'Web Portal').length,
+
+          'Mobile App': intakeRequests.filter(r => r.channel === 'Mobile App').length,
+
+    // CRUD Operations      'Call Center': intakeRequests.filter(r => r.channel === 'Call Center').length,
+
+    createCustomer,      'Branch Visit': intakeRequests.filter(r => r.channel === 'Branch Visit').length
+
+    updateCustomer,    };
+
+    deleteCustomer,
+
+    getCustomer,    return {
+
+          total: intakeRequests.length,
+
+    // List Operations      pending: intakeRequests.filter(r => r.status === 'Pending').length,
+
+    searchCustomers,      inProgress: intakeRequests.filter(r => r.status === 'In Progress').length,
+
+    setFilters,      resolved: intakeRequests.filter(r => r.status === 'Resolved').length,
+
+    setSortOptions,      byChannel
+
+    setPage,    };
+
+    setPageSize,  };
+
+    
+
+    // Customer Actions  const getCaseStats = () => {
+
+    performAction,    const byType = {
+
+    bulkUpdateStatus,      'Account Issue': cases.filter(c => c.caseType === 'Account Issue').length,
+
+          'Transaction Problem': cases.filter(c => c.caseType === 'Transaction Problem').length,
+
+    // Service Requests      'KYC Query': cases.filter(c => c.caseType === 'KYC Query').length,
+
+    serviceRequests,      'Product Inquiry': cases.filter(c => c.caseType === 'Product Inquiry').length,
+
+    createServiceRequest,      'Complaint': cases.filter(c => c.caseType === 'Complaint').length
+
+    updateServiceRequestStatus,    };
+
+    
+
+    // Utility Functions    return {
+
+    refreshCustomers,      total: cases.length,
+
+    clearError,      open: cases.filter(c => c.status === 'Open').length,
+
+    selectCustomer,      inProgress: cases.filter(c => c.status === 'In Progress').length,
+
+    getCustomerStats,      resolved: cases.filter(c => c.status === 'Resolved').length,
+
+  };      byType
+
+    };
+
+  return (  };
+
+    <CustomerContext.Provider value={contextValue}>
+
+      {children}  const value: CustomerContextType = {
+
+    </CustomerContext.Provider>    customers,
+
+  );    intakeRequests,
+
+}    cases,
+
+    addCustomer,
+
+// === HOOK ===    updateCustomer,
+
+    deleteCustomer,
+
+export function useCustomers(): CustomerContextType {    getCustomerById,
+
+  const context = useContext(CustomerContext);    getCustomersByStatus,
+
+  if (context === undefined) {    getCustomersByKycStatus,
+
+    throw new Error('useCustomers must be used within a CustomerProvider');    addIntakeRequest,
+
+  }    updateIntakeStatus,
+
+  return context;    deleteIntakeRequest,
+
+}    getIntakeRequestsByStatus,
+
+    getIntakeRequestsByChannel,
+
+// === UTILITY HOOKS ===    addCase,
+
+    updateCaseStatus,
+
+export function useCustomerById(customerId: string | undefined): Customer | null {    updateCase,
+
+  const { customers } = useCustomers();    deleteCase,
+
+  return customerId ? customers.find(c => c.id === customerId) || null : null;    getCasesByStatus,
+
+}    getCasesByType,
+
+    getCustomerStats,
+
+export function useFilteredCustomers(): Customer[] {    getIntakeStats,
+
+  const { customers, filters, sortOptions } = useCustomers();    getCaseStats,
+
+      generateCustomerId,
+
+  let filtered = [...customers];    generateIntakeId,
+
+      generateCaseId,
+
+  // Apply filters    calculateAccountBalance
+
+  if (filters.searchQuery) {  };
+
+    const query = filters.searchQuery.toLowerCase();
+
+    filtered = filtered.filter(c =>   return (
+
+      `${c.personalDetails.firstName} ${c.personalDetails.lastName}`.toLowerCase().includes(query) ||    <CustomerContext.Provider value={value}>
+
+      c.customerNumber.toLowerCase().includes(query) ||      {children}
+
+      c.contactDetails.primaryEmail.toLowerCase().includes(query)    </CustomerContext.Provider>
+
+    );  );
+
+  }}; 
+  
+  if (filters.status?.length) {
+    filtered = filtered.filter(c => filters.status!.includes(c.status));
+  }
+  
+  if (filters.kycStatus?.length) {
+    filtered = filtered.filter(c => filters.kycStatus!.includes(c.compliance.kycStatus));
+  }
+  
+  if (filters.bankingMode?.length) {
+    filtered = filtered.filter(c => filters.bankingMode!.includes(c.bankingMode));
+  }
+  
+  // Apply sorting
+  filtered.sort((a, b) => {
+    let aVal: any, bVal: any;
+    
+    switch (sortOptions.field) {
+      case 'name':
+        aVal = `${a.personalDetails.firstName} ${a.personalDetails.lastName}`;
+        bVal = `${b.personalDetails.firstName} ${b.personalDetails.lastName}`;
+        break;
+      case 'customerNumber':
+        aVal = a.customerNumber;
+        bVal = b.customerNumber;
+        break;
+      case 'createdDate':
+        aVal = new Date(a.createdDate).getTime();
+        bVal = new Date(b.createdDate).getTime();
+        break;
+      case 'totalBalance':
+        aVal = a.accounts[0]?.currentBalance || 0;
+        bVal = b.accounts[0]?.currentBalance || 0;
+        break;
+      default:
+        aVal = a.createdDate;
+        bVal = b.createdDate;
+    }
+    
+    if (aVal < bVal) return sortOptions.direction === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortOptions.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+  
+  return filtered;
+}

@@ -215,14 +215,14 @@ export default function BranchOverview({ branches, onViewBranch }: BranchOvervie
     <div className="space-y-6">
       {/* Header and Controls */}
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-900">Statistical Overview</h3>
+        <h3 className="text-lg font-semibold text-stripe-text">Statistical Overview</h3>
         <div className="flex space-x-2">
           <button
             onClick={() => setViewType('state')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               viewType === 'state'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                : 'bg-stripe-background-light text-stripe-text hover:bg-stripe-border'
             }`}
           >
             By State
@@ -232,7 +232,7 @@ export default function BranchOverview({ branches, onViewBranch }: BranchOvervie
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               viewType === 'city'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                : 'bg-stripe-background-light text-stripe-text hover:bg-stripe-border'
             }`}
           >
             By City
@@ -257,46 +257,46 @@ export default function BranchOverview({ branches, onViewBranch }: BranchOvervie
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-stripe-background-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   <div className="flex items-center">
                     <MapPinIcon className="w-4 h-4 mr-2" />
                     {viewType === 'state' ? 'State' : 'City'}
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   <div className="flex items-center">
                     <BuildingOfficeIcon className="w-4 h-4 mr-2" />
                     Branches
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   <div className="flex items-center">
                     <UserGroupIcon className="w-4 h-4 mr-2" />
                     Employees
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   <div className="flex items-center">
                     <UserGroupIcon className="w-4 h-4 mr-2" />
                     Customers
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   <div className="flex items-center">
                     <CurrencyRupeeIcon className="w-4 h-4 mr-2" />
                     Total Deposits
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   <div className="flex items-center">
                     <CurrencyRupeeIcon className="w-4 h-4 mr-2" />
                     Total Loans
                   </div>
                 </th>
                 {viewType === 'state' && (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                     Cities
                   </th>
                 )}
@@ -304,17 +304,17 @@ export default function BranchOverview({ branches, onViewBranch }: BranchOvervie
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredStats.map((stat, index) => (
-                <tr key={index} className="hover:bg-gray-50">
+                <tr key={index} className="hover:bg-stripe-border">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-stripe-text">
                       {viewType === 'state' ? (stat as StateStatistics).state : (stat as CityStatistics).city}
                     </div>
                     {viewType === 'city' && (
-                      <div className="text-sm text-gray-500">{(stat as CityStatistics).state}</div>
+                      <div className="text-sm text-stripe-text-secondary">{(stat as CityStatistics).state}</div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
+                    <div className="text-sm text-stripe-text">
                       {stat.totalBranches} total
                     </div>
                     <div className="text-sm text-green-600">
@@ -322,12 +322,12 @@ export default function BranchOverview({ branches, onViewBranch }: BranchOvervie
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-stripe-text">
                       {stat.totalEmployees.toLocaleString()}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-stripe-text">
                       {stat.totalCustomers.toLocaleString()}
                     </div>
                   </td>
@@ -343,7 +343,7 @@ export default function BranchOverview({ branches, onViewBranch }: BranchOvervie
                   </td>
                   {viewType === 'state' && (
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-stripe-text">
                         {(stat as StateStatistics).cities.join(', ')}
                       </div>
                     </td>
@@ -361,7 +361,7 @@ export default function BranchOverview({ branches, onViewBranch }: BranchOvervie
           <div className="flex items-center">
             <ChartBarIcon className="w-8 h-8 text-blue-600 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Total {viewType === 'state' ? 'States' : 'Cities'}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Total {viewType === 'state' ? 'States' : 'Cities'}</p>
               <p className="text-2xl font-bold text-blue-600">{filteredStats.length}</p>
             </div>
           </div>
@@ -371,7 +371,7 @@ export default function BranchOverview({ branches, onViewBranch }: BranchOvervie
           <div className="flex items-center">
             <CurrencyRupeeIcon className="w-8 h-8 text-green-600 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Deposits</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Deposits</p>
               <p className="text-2xl font-bold text-green-600">
                 {formatCurrency(filteredStats.reduce((sum, stat) => sum + stat.totalDeposits, 0))}
               </p>
@@ -383,7 +383,7 @@ export default function BranchOverview({ branches, onViewBranch }: BranchOvervie
           <div className="flex items-center">
             <UserGroupIcon className="w-8 h-8 text-purple-600 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Customers</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Customers</p>
               <p className="text-2xl font-bold text-purple-600">
                 {filteredStats.reduce((sum, stat) => sum + stat.totalCustomers, 0).toLocaleString()}
               </p>

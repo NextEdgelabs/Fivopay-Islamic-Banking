@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -334,7 +335,7 @@ function Sidebar() {
       <div className="flex-shrink-0 p-6 border-b border-stripe-border">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-stripe-primary rounded-stripe flex items-center justify-center">
-            <img src="/logo.jpeg" alt="FivoPay Logo" className="w-full h-full object-cover rounded-stripe" />
+            <Image src="/logo.jpeg" alt="FivoPay Logo" width={100} height={100} className="w-full h-full object-cover rounded-stripe" />
           </div>
           <div>
             <h1 className="text-lg font-semibold text-stripe-text">FivoPay</h1>
@@ -368,7 +369,7 @@ function Sidebar() {
                       className={`flex items-center px-4 py-2 text-sm font-medium rounded-stripe transition-colors duration-200 flex-1 ${
                         isActive
                           ? "bg-stripe-primary text-white shadow-stripe-sm"
-                          : "text-stripe-text-secondary hover:bg-gray-50 hover:text-stripe-text"
+                          : "text-stripe-text-secondary hover:bg-stripe-background-light hover:text-stripe-text"
                       }`}
                     >
                       <item.icon className="mr-3 h-5 w-5" />
@@ -424,7 +425,7 @@ function Sidebar() {
                                 className={`flex items-center px-4 py-2 text-xs font-medium rounded-stripe transition-colors duration-200 ${
                                   isSubActive
                                     ? "bg-stripe-info-light text-stripe-primary border-l-2 border-stripe-primary"
-                                    : "text-stripe-text-muted hover:bg-gray-50 hover:text-stripe-text"
+                                    : "text-stripe-text-muted hover:bg-stripe-background-light hover:text-stripe-text"
                                 }`}
                               >
                                 <subItem.icon className="mr-3 h-4 w-4" />

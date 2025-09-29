@@ -30,7 +30,7 @@ const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => vo
   return (
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
       <span>{toast.message}</span>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-stripe-text-secondary">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
@@ -56,12 +56,12 @@ const ConfirmDialog = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold text-stripe-text mb-2">{title}</h3>
+        <p className="text-stripe-text-secondary mb-6">{message}</p>
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-stripe-border text-stripe-text rounded-lg hover:bg-stripe-background-light"
           >
             Cancel
           </button>
@@ -203,8 +203,8 @@ export default function DigitalWalletPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Digital Wallet Management</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-stripe-text">Digital Wallet Management</h1>
+          <p className="text-stripe-text-secondary">
             Manage digital wallets, monitor balances, and track transactions
           </p>
         </div>
@@ -219,11 +219,11 @@ export default function DigitalWalletPage() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Wallets</p>
-              <p className="text-2xl font-bold text-gray-900">{wallets.length}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Wallets</p>
+              <p className="text-2xl font-bold text-stripe-text">{wallets.length}</p>
             </div>
             <div className="bg-blue-500 p-3 rounded-lg text-white">
               <WalletIcon className="h-6 w-6" />
@@ -231,11 +231,11 @@ export default function DigitalWalletPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Balance</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-stripe-text-secondary">Total Balance</p>
+              <p className="text-2xl font-bold text-stripe-text">
                 ₹{showBalance ? totalBalance.toLocaleString() : "••••••"}
               </p>
             </div>
@@ -252,11 +252,11 @@ export default function DigitalWalletPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Active Wallets</p>
-              <p className="text-2xl font-bold text-gray-900">{activeWallets}</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Active Wallets</p>
+              <p className="text-2xl font-bold text-stripe-text">{activeWallets}</p>
             </div>
             <div className="bg-green-500 p-3 rounded-lg text-white">
               <ArrowUpIcon className="h-6 w-6" />
@@ -266,26 +266,26 @@ export default function DigitalWalletPage() {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border p-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-stripe-text-secondary" />
               <input
                 type="text"
                 placeholder="Search by customer name or wallet number..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="text-gray-700 w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="text-stripe-text w-full pl-10 pr-4 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <FunnelIcon className="h-5 w-5 text-gray-400" />
+            <FunnelIcon className="h-5 w-5 text-stripe-text-secondary" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="text-stripe-text border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -297,54 +297,54 @@ export default function DigitalWalletPage() {
       </div>
 
       {/* Wallets Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Wallet List</h2>
+      <div className="bg-white rounded-lg shadow-sm border border-stripe-border overflow-hidden">
+        <div className="px-6 py-4 border-b border-stripe-border">
+          <h2 className="text-lg font-semibold text-stripe-text">Wallet List</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-stripe-background-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Wallet Number
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Balance
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Last Transaction
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredWallets.map((wallet) => (
-                <tr key={wallet.id} className="hover:bg-gray-50">
+                <tr key={wallet.id} className="hover:bg-stripe-background-light">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-stripe-text">
                         {wallet.customerName}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-stripe-text-secondary">
                         Created: {new Date(wallet.createdAt).toLocaleDateString()}
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 font-mono">
+                    <div className="text-sm text-stripe-text font-mono">
                       {wallet.walletNumber}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-semibold text-gray-900">
+                    <div className="text-sm font-semibold text-stripe-text">
                       ₹{showBalance ? wallet.balance.toLocaleString() : "••••••"}
                     </div>
                   </td>
@@ -361,7 +361,7 @@ export default function DigitalWalletPage() {
                       {wallet.status.charAt(0).toUpperCase() + wallet.status.slice(1)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-stripe-text-secondary">
                     {new Date(wallet.lastTransaction).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -410,39 +410,39 @@ export default function DigitalWalletPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-stripe-text">
                 Create New Wallet
               </h3>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text-secondary"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
             <form onSubmit={handleCreateWallet} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   Customer Name *
                 </label>
                 <input
                   type="text"
                   value={formData.customerName}
                   onChange={(e) => handleFormChange('customerName', e.target.value)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter customer name"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   Initial Balance *
                 </label>
                 <input
                   type="number"
                   value={formData.initialBalance}
                   onChange={(e) => handleFormChange('initialBalance', parseFloat(e.target.value) || 0)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter initial balance"
                   min="0"
                   step="0.01"
@@ -450,14 +450,14 @@ export default function DigitalWalletPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-stripe-text mb-1">
                   Branch ID *
                 </label>
                 <input
                   type="text"
                   value={formData.branchId}
                   onChange={(e) => handleFormChange('branchId', e.target.value)}
-                  className="text-gray-700 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="text-stripe-text w-full border border-stripe-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter branch ID"
                   required
                 />
@@ -469,7 +469,7 @@ export default function DigitalWalletPage() {
                     setShowCreateModal(false);
                     setFormData({ customerName: '', initialBalance: 0, branchId: '' });
                   }}
-                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
+                  className="flex-1 bg-stripe-background-light text-stripe-text px-4 py-2 rounded-lg hover:bg-stripe-border"
                 >
                   Cancel
                 </button>
@@ -490,12 +490,12 @@ export default function DigitalWalletPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900">
+              <h3 className="text-xl font-semibold text-stripe-text">
                 Wallet Details
               </h3>
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text-secondary"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -504,19 +504,19 @@ export default function DigitalWalletPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Customer Information</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Customer Information</h4>
+                  <div className="bg-stripe-background-light p-4 rounded-lg">
                     <div className="flex items-center space-x-3 mb-3">
-                      <UserIcon className="h-5 w-5 text-gray-400" />
-                      <span className="font-medium text-gray-900">{selectedWallet.customerName}</span>
+                      <UserIcon className="h-5 w-5 text-stripe-text-secondary" />
+                      <span className="font-medium text-stripe-text">{selectedWallet.customerName}</span>
                     </div>
                     <div className="space-y-2 text-sm">
                       <div>
-                        <span className="text-gray-500">Wallet Number:</span>
-                        <span className="ml-2 font-mono text-gray-900">{selectedWallet.walletNumber}</span>
+                        <span className="text-stripe-text-secondary">Wallet Number:</span>
+                        <span className="ml-2 font-mono text-stripe-text">{selectedWallet.walletNumber}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Status:</span>
+                        <span className="text-stripe-text-secondary">Status:</span>
                         <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           selectedWallet.status.toLowerCase() === "active"
                             ? "bg-green-100 text-green-800"
@@ -532,12 +532,12 @@ export default function DigitalWalletPage() {
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Balance Information</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-900 mb-2">
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Balance Information</h4>
+                  <div className="bg-stripe-background-light p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-stripe-text mb-2">
                       ₹{showBalance ? selectedWallet.balance.toLocaleString() : "••••••"}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-stripe-text-secondary">
                       Current available balance
                     </div>
                   </div>
@@ -546,22 +546,22 @@ export default function DigitalWalletPage() {
 
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Timeline</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Timeline</h4>
+                  <div className="bg-stripe-background-light p-4 rounded-lg space-y-3">
                     <div className="flex items-center space-x-3">
-                      <CalendarIcon className="h-4 w-4 text-gray-400" />
+                      <CalendarIcon className="h-4 w-4 text-stripe-text-secondary" />
                       <div>
-                        <div className="text-sm font-medium text-gray-900">Created</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-sm font-medium text-stripe-text">Created</div>
+                        <div className="text-xs text-stripe-text-secondary">
                           {new Date(selectedWallet.createdAt).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <ClockIcon className="h-4 w-4 text-gray-400" />
+                      <ClockIcon className="h-4 w-4 text-stripe-text-secondary" />
                       <div>
-                        <div className="text-sm font-medium text-gray-900">Last Transaction</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-sm font-medium text-stripe-text">Last Transaction</div>
+                        <div className="text-xs text-stripe-text-secondary">
                           {new Date(selectedWallet.lastTransaction).toLocaleString()}
                         </div>
                       </div>
@@ -570,7 +570,7 @@ export default function DigitalWalletPage() {
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Quick Actions</h4>
+                  <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Quick Actions</h4>
                   <div className="space-y-2">
                     <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
                       Add Funds
@@ -607,15 +607,15 @@ export default function DigitalWalletPage() {
             </div>
 
             <div>
-              <h4 className="text-sm font-medium text-gray-500 mb-2">Recent Transactions</h4>
-              <div className="bg-gray-50 rounded-lg overflow-hidden">
+              <h4 className="text-sm font-medium text-stripe-text-secondary mb-2">Recent Transactions</h4>
+              <div className="bg-stripe-background-light rounded-lg overflow-hidden">
                 <table className="min-w-full">
-                  <thead className="bg-gray-100">
+                  <thead className="bg-stripe-background-light">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Type</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Amount</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Description</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Date</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-stripe-text-secondary">Type</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-stripe-text-secondary">Amount</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-stripe-text-secondary">Description</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-stripe-text-secondary">Date</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -632,13 +632,13 @@ export default function DigitalWalletPage() {
                             {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
                           </span>
                         </td>
-                        <td className="px-4 py-2 text-sm font-medium text-gray-900">
+                        <td className="px-4 py-2 text-sm font-medium text-stripe-text">
                           ₹{transaction.amount.toLocaleString()}
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-600">
+                        <td className="px-4 py-2 text-sm text-stripe-text-secondary">
                           {transaction.description}
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-500">
+                        <td className="px-4 py-2 text-sm text-stripe-text-secondary">
                           {new Date(transaction.timestamp).toLocaleDateString()}
                         </td>
                       </tr>

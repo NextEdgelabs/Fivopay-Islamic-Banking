@@ -53,27 +53,27 @@ export default function QuickFilters({
 
   return (
     <div className="flex items-center space-x-4">
-      <span className="text-sm font-medium text-gray-700">Quick filters:</span>
+      <span className="text-sm font-medium text-stripe-text">Quick filters:</span>
       
       {/* States Dropdown */}
       <div className="relative">
         <button
           onClick={() => setShowStateDropdown(!showStateDropdown)}
-          className="text-gray-700 flex items-center space-x-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="text-stripe-text flex items-center space-x-1 px-3 py-2 text-sm border border-stripe-border rounded-lg hover:bg-stripe-background-light focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           <span>{currentState === 'All States' ? 'Select State' : currentState}</span>
           <ChevronDownIcon className="w-4 h-4" />
         </button>
         
         {showStateDropdown && (
-          <div className="absolute top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+          <div className="absolute top-full mt-1 w-48 bg-white border border-stripe-border rounded-lg shadow-lg z-10">
             <div className="py-1">
               <button
                 onClick={() => {
                   onStateSelect('All States');
                   setShowStateDropdown(false);
                 }}
-                className="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                className="text-stripe-text block w-full text-left px-4 py-2 text-sm hover:bg-stripe-background-light"
               >
                 All States
               </button>
@@ -84,11 +84,11 @@ export default function QuickFilters({
                     onStateSelect(state);
                     setShowStateDropdown(false);
                   }}
-                  className="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                  className="text-stripe-text block w-full text-left px-4 py-2 text-sm hover:bg-stripe-background-light"
                 >
                   <div className="flex justify-between">
                     <span>{state}</span>
-                    <span className="text-gray-500">{count}</span>
+                    <span className="text-stripe-text-secondary">{count}</span>
                   </div>
                 </button>
               ))}
@@ -101,21 +101,21 @@ export default function QuickFilters({
       <div className="relative">
         <button
           onClick={() => setShowCityDropdown(!showCityDropdown)}
-          className="text-gray-700 flex items-center space-x-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="text-stripe-text flex items-center space-x-1 px-3 py-2 text-sm border border-stripe-border rounded-lg hover:bg-stripe-background-light focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           <span>{currentCity === 'All Cities' ? 'Select City' : currentCity}</span>
           <ChevronDownIcon className="w-4 h-4" />
         </button>
         
         {showCityDropdown && (
-          <div className="absolute top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+          <div className="absolute top-full mt-1 w-48 bg-white border border-stripe-border rounded-lg shadow-lg z-10">
             <div className="py-1 max-h-64 overflow-y-auto">
               <button
                 onClick={() => {
                   onCitySelect('All Cities');
                   setShowCityDropdown(false);
                 }}
-                className="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                className="text-stripe-text block w-full text-left px-4 py-2 text-sm hover:bg-stripe-background-light"
               >
                 All Cities
               </button>
@@ -126,11 +126,11 @@ export default function QuickFilters({
                     onCitySelect(city);
                     setShowCityDropdown(false);
                   }}
-                  className="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                  className="text-stripe-text block w-full text-left px-4 py-2 text-sm hover:bg-stripe-background-light"
                 >
                   <div className="flex justify-between">
                     <span>{city}</span>
-                    <span className="text-gray-500">{count}</span>
+                    <span className="text-stripe-text-secondary">{count}</span>
                   </div>
                 </button>
               ))}

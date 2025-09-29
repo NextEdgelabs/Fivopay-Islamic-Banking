@@ -110,7 +110,6 @@ export default function CreateProductPage() {
   const onSubmit = async (data: ProductFormData) => {
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Creating product:', data);
       alert('Product created successfully!');
     } catch (error) {
       console.error('Error creating product:', error);

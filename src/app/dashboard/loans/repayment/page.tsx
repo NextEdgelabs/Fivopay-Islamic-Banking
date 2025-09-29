@@ -239,7 +239,6 @@ export default function RepaymentJourneyPage() {
     }
 
     // Here you would typically process the CSV/Excel file
-    console.log('Processing bulk upload file:', selectedFile.name);
     
     addToast(`Bulk repayment upload initiated! Processing ${Math.floor(Math.random() * 50) + 10} entries from ${selectedFile.name}`, 'success');
     

@@ -32,7 +32,7 @@ const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => vo
   return (
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
       <span>{toast.message}</span>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-stripe-text-secondary">
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-stripe-text">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
@@ -276,8 +276,8 @@ export default function DepositManagementPage() {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Active Accounts</p>
-              <p className="text-3xl font-bold text-gray-900">2,847</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Active Accounts</p>
+              <p className="text-3xl font-bold text-stripe-text">2,847</p>
               <p className="text-sm text-green-600 mt-1">+8.3% from last month</p>
             </div>
             <UserGroupIcon className="w-12 h-12 text-green-600" />
@@ -287,8 +287,8 @@ export default function DepositManagementPage() {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Avg. Profit Rate</p>
-              <p className="text-3xl font-bold text-gray-900">6.8%</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Avg. Profit Rate</p>
+              <p className="text-3xl font-bold text-stripe-text">6.8%</p>
               <p className="text-sm text-blue-600 mt-1">Competitive Rates</p>
             </div>
             <ArrowTrendingUpIcon className="w-12 h-12 text-yellow-600" />
@@ -298,8 +298,8 @@ export default function DepositManagementPage() {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Maturing This Month</p>
-              <p className="text-3xl font-bold text-gray-900">₹2.3 Cr</p>
+              <p className="text-sm font-medium text-stripe-text-secondary">Maturing This Month</p>
+              <p className="text-3xl font-bold text-stripe-text">₹2.3 Cr</p>
               <p className="text-sm text-yellow-600 mt-1">23 accounts</p>
             </div>
             <CalendarIcon className="w-12 h-12 text-red-600" />
@@ -309,7 +309,7 @@ export default function DepositManagementPage() {
 
       {/* Tabs Navigation */}
       <div className="bg-white rounded-lg shadow-md">
-        <div className="border-b border-gray-200">
+        <div className="border-b border-stripe-border">
           <nav className="-mb-px flex space-x-8 px-6">
             {[
               { id: 'overview', name: 'Overview', icon: ChartBarIcon },
@@ -323,7 +323,7 @@ export default function DepositManagementPage() {
                 className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                   activeTab === tab.id
                     ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    : 'border-transparent text-stripe-text-secondary hover:text-stripe-text hover:border-stripe-border'
                 }`}
               >
                 <tab.icon className="w-5 h-5" />
@@ -339,59 +339,59 @@ export default function DepositManagementPage() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Deposit Type Distribution */}
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Deposit Distribution</h3>
+                <div className="bg-stripe-background-light p-6 rounded-lg">
+                  <h3 className="text-lg font-semibold text-stripe-text mb-4">Deposit Distribution</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Fixed Deposits</span>
-                      <span className="text-sm font-bold text-gray-900">65% (₹12.2 Cr)</span>
+                      <span className="text-sm font-medium text-stripe-text-secondary">Fixed Deposits</span>
+                      <span className="text-sm font-bold text-stripe-text">65% (₹12.2 Cr)</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-stripe-background-dark rounded-full h-2">
                       <div className="bg-blue-600 h-2 rounded-full" style={{ width: '65%' }}></div>
                     </div>
                   </div>
                   <div className="space-y-3 mt-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Recurring Deposits</span>
-                      <span className="text-sm font-bold text-gray-900">25% (₹4.7 Cr)</span>
+                      <span className="text-sm font-medium text-stripe-text-secondary">Recurring Deposits</span>
+                      <span className="text-sm font-bold text-stripe-text">25% (₹4.7 Cr)</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-stripe-background-dark rounded-full h-2">
                       <div className="bg-green-600 h-2 rounded-full" style={{ width: '25%' }}></div>
                     </div>
                   </div>
                   <div className="space-y-3 mt-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Savings Account</span>
-                      <span className="text-sm font-bold text-gray-900">10% (₹1.8 Cr)</span>
+                      <span className="text-sm font-medium text-stripe-text-secondary">Savings Account</span>
+                      <span className="text-sm font-bold text-stripe-text">10% (₹1.8 Cr)</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-stripe-background-dark rounded-full h-2">
                       <div className="bg-yellow-600 h-2 rounded-full" style={{ width: '10%' }}></div>
                     </div>
                   </div>
                 </div>
 
                 {/* Monthly Growth */}
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Growth</h3>
+                <div className="bg-stripe-background-light p-6 rounded-lg">
+                  <h3 className="text-lg font-semibold text-stripe-text mb-4">Monthly Growth</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center p-3 bg-white rounded-lg">
                       <div>
-                        <p className="font-medium text-gray-900">New Deposits</p>
-                        <p className="text-sm text-gray-600">January 2024</p>
+                        <p className="font-medium text-stripe-text">New Deposits</p>
+                        <p className="text-sm text-stripe-text-secondary">January 2024</p>
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-green-600">+₹2.4 Cr</p>
-                        <p className="text-sm text-gray-600">145 accounts</p>
+                        <p className="text-sm text-stripe-text-secondary">145 accounts</p>
                       </div>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-white rounded-lg">
                       <div>
-                        <p className="font-medium text-gray-900">Profit Distributed</p>
-                        <p className="text-sm text-gray-600">December 2023</p>
+                        <p className="font-medium text-stripe-text">Profit Distributed</p>
+                        <p className="text-sm text-stripe-text-secondary">December 2023</p>
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-blue-600">₹85.2 L</p>
-                        <p className="text-sm text-gray-600">1,234 accounts</p>
+                        <p className="text-sm text-stripe-text-secondary">1,234 accounts</p>
                       </div>
                     </div>
                   </div>
@@ -408,9 +408,9 @@ export default function DepositManagementPage() {
                   <input
                     type="text"
                     placeholder="Search accounts..."
-                    className="border border-gray-300 rounded-lg px-3 py-2 w-64 text-gray-700"
+                    className="border border-stripe-border rounded-lg px-3 py-2 w-64 text-stripe-text"
                   />
-                  <select className="border border-gray-300 rounded-lg px-3 py-2 text-gray-700">
+                  <select className="border border-stripe-border rounded-lg px-3 py-2 text-stripe-text">
                     <option>All Types</option>
                     <option>Fixed Deposit</option>
                     <option>Recurring Deposit</option>
@@ -424,56 +424,56 @@ export default function DepositManagementPage() {
 
               <div className="overflow-x-auto">
                 <table className="min-w-full bg-white">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-stripe-background-light">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                         Account Details
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                         Deposit Type
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                         Amount
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                         Profit Rate
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                         Maturity
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-stripe-text-secondary uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {depositAccounts.map((account) => (
-                      <tr key={account.id} className="hover:bg-gray-50">
+                      <tr key={account.id} className="hover:bg-stripe-background-light">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{account.customerName}</div>
-                            <div className="text-sm text-gray-500">{account.accountNumber}</div>
+                            <div className="text-sm font-medium text-stripe-text">{account.customerName}</div>
+                            <div className="text-sm text-stripe-text-secondary">{account.accountNumber}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{account.depositType}</div>
+                          <div className="text-sm text-stripe-text">{account.depositType}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{formatCurrency(account.currentBalance)}</div>
-                            <div className="text-sm text-gray-500">Principal: {formatCurrency(account.principalAmount)}</div>
+                            <div className="text-sm font-medium text-stripe-text">{formatCurrency(account.currentBalance)}</div>
+                            <div className="text-sm text-stripe-text-secondary">Principal: {formatCurrency(account.principalAmount)}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-stripe-text">
                             {account.profitRate > 0 ? `${account.profitRate}%` : 'N/A'}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{account.maturityDate}</div>
+                          <div className="text-sm text-stripe-text">{account.maturityDate}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(account.status)}`}>
@@ -505,13 +505,13 @@ export default function DepositManagementPage() {
           {activeTab === 'transactions' && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
+                <h3 className="text-lg font-semibold text-stripe-text">Recent Transactions</h3>
                 <div className="flex space-x-3">
                   <input
                     type="date"
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-gray-700"
+                    className="border border-stripe-border rounded-lg px-3 py-2 text-stripe-text"
                   />
-                  <select className="border border-gray-300 rounded-lg px-3 py-2 text-gray-700">
+                  <select className="border border-stripe-border rounded-lg px-3 py-2 text-stripe-text">
                     <option>All Types</option>
                     <option>Deposit</option>
                     <option>Withdrawal</option>
@@ -523,24 +523,24 @@ export default function DepositManagementPage() {
 
               <div className="space-y-3">
                 {transactions.map((transaction) => (
-                  <div key={transaction.id} className="bg-gray-50 p-4 rounded-lg">
+                  <div key={transaction.id} className="bg-stripe-background-light p-4 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         {getTransactionIcon(transaction.type)}
                         <div>
-                          <p className="font-medium text-gray-900">{transaction.customerName}</p>
-                          <p className="text-sm text-gray-600">
+                          <p className="font-medium text-stripe-text">{transaction.customerName}</p>
+                          <p className="text-sm text-stripe-text-secondary">
                             {transaction.type} • {transaction.accountNumber}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-gray-900">{formatCurrency(transaction.amount)}</p>
+                        <p className="font-bold text-stripe-text">{formatCurrency(transaction.amount)}</p>
                         <div className="flex items-center space-x-2">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(transaction.status)}`}>
                             {transaction.status}
                           </span>
-                          <p className="text-sm text-gray-600">{transaction.timestamp}</p>
+                          <p className="text-sm text-stripe-text-secondary">{transaction.timestamp}</p>
                         </div>
                       </div>
                     </div>
@@ -554,7 +554,7 @@ export default function DepositManagementPage() {
           {activeTab === 'maturing' && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">Accounts Maturing Soon</h3>
+                <h3 className="text-lg font-semibold text-stripe-text">Accounts Maturing Soon</h3>
                 <button className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors">
                   Send Maturity Notices
                 </button>
@@ -569,14 +569,14 @@ export default function DepositManagementPage() {
                         <div className="flex items-center space-x-3">
                           <ExclamationTriangleIcon className="w-6 h-6 text-yellow-600" />
                           <div>
-                            <p className="font-medium text-gray-900">{account.customerName}</p>
-                            <p className="text-sm text-gray-600">
+                            <p className="font-medium text-stripe-text">{account.customerName}</p>
+                            <p className="text-sm text-stripe-text-secondary">
                               {account.depositType} • {account.accountNumber}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-gray-900">{formatCurrency(account.currentBalance)}</p>
+                          <p className="font-bold text-stripe-text">{formatCurrency(account.currentBalance)}</p>
                           <p className="text-sm text-yellow-600">Matures: {account.maturityDate}</p>
                         </div>
                         <div className="flex space-x-2">
@@ -601,10 +601,10 @@ export default function DepositManagementPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Account Details</h3>
+              <h3 className="text-lg font-semibold text-stripe-text">Account Details</h3>
               <button
                 onClick={() => setShowAccountModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text"
               >
                 ✕
               </button>
@@ -612,19 +612,19 @@ export default function DepositManagementPage() {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Customer Name</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedAccount.customerName}</p>
+                <label className="block text-sm font-medium text-stripe-text">Customer Name</label>
+                <p className="mt-1 text-sm text-stripe-text">{selectedAccount.customerName}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Account Number</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedAccount.accountNumber}</p>
+                <label className="block text-sm font-medium text-stripe-text">Account Number</label>
+                <p className="mt-1 text-sm text-stripe-text">{selectedAccount.accountNumber}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Deposit Type</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedAccount.depositType}</p>
+                <label className="block text-sm font-medium text-stripe-text">Deposit Type</label>
+                <p className="mt-1 text-sm text-stripe-text">{selectedAccount.depositType}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <label className="block text-sm font-medium text-stripe-text">Status</label>
                 <p className="mt-1">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedAccount.status)}`}>
                     {selectedAccount.status}
@@ -632,29 +632,29 @@ export default function DepositManagementPage() {
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Principal Amount</label>
-                <p className="mt-1 text-sm text-gray-900">{formatCurrency(selectedAccount.principalAmount)}</p>
+                <label className="block text-sm font-medium text-stripe-text">Principal Amount</label>
+                <p className="mt-1 text-sm text-stripe-text">{formatCurrency(selectedAccount.principalAmount)}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Current Balance</label>
-                <p className="mt-1 text-sm text-gray-900">{formatCurrency(selectedAccount.currentBalance)}</p>
+                <label className="block text-sm font-medium text-stripe-text">Current Balance</label>
+                <p className="mt-1 text-sm text-stripe-text">{formatCurrency(selectedAccount.currentBalance)}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Profit Rate</label>
-                <p className="mt-1 text-sm text-gray-900">
+                <label className="block text-sm font-medium text-stripe-text">Profit Rate</label>
+                <p className="mt-1 text-sm text-stripe-text">
                   {selectedAccount.profitRate > 0 ? `${selectedAccount.profitRate}%` : 'N/A (Basic Savings Account)'}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Maturity Date</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedAccount.maturityDate}</p>
+                <label className="block text-sm font-medium text-stripe-text">Maturity Date</label>
+                <p className="mt-1 text-sm text-stripe-text">{selectedAccount.maturityDate}</p>
               </div>
             </div>
             
             <div className="mt-6 flex justify-end space-x-3">
               <button
                 onClick={() => setShowAccountModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 border border-stripe-border rounded-lg text-stripe-text hover:bg-stripe-background-light transition-colors"
               >
                 Close
               </button>
@@ -674,10 +674,10 @@ export default function DepositManagementPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900">Create New Account</h3>
+              <h3 className="text-xl font-semibold text-stripe-text">Create New Account</h3>
               <button
                 onClick={() => setShowNewAccountModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text"
               >
                 <XMarkIcon className="w-6 h-6" />
               </button>
@@ -685,26 +685,26 @@ export default function DepositManagementPage() {
 
             <form onSubmit={handleNewAccountSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Customer Name</label>
+                <label className="block text-sm font-medium text-stripe-text">Customer Name</label>
                 <input
                   type="text"
                   required
                   value={newAccountForm.customerName}
                   onChange={(e) => setNewAccountForm({ ...newAccountForm, customerName: e.target.value })}
-                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-stripe-text mt-1 block w-full border border-stripe-border rounded-lg px-3 py-2"
                   placeholder="Enter customer name"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Account Type</label>
+                <label className="block text-sm font-medium text-stripe-text">Account Type</label>
                 <select
                   value={newAccountForm.accountType}
                   onChange={(e) => setNewAccountForm({ 
                     ...newAccountForm, 
                     accountType: e.target.value as NewAccountFormData['accountType']
                   })}
-                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-stripe-text mt-1 block w-full border border-stripe-border rounded-lg px-3 py-2"
                 >
                   <option value="Fixed Deposit">Fixed Deposit</option>
                   <option value="Recurring Deposit">Recurring Deposit</option>
@@ -713,7 +713,7 @@ export default function DepositManagementPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-stripe-text">
                   {newAccountForm.accountType === 'Recurring Deposit' ? 'Monthly Deposit' : 'Initial Deposit'}
                 </label>
                 <input
@@ -722,14 +722,14 @@ export default function DepositManagementPage() {
                   min="0"
                   value={newAccountForm.initialDeposit}
                   onChange={(e) => setNewAccountForm({ ...newAccountForm, initialDeposit: Number(e.target.value) })}
-                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-stripe-text mt-1 block w-full border border-stripe-border rounded-lg px-3 py-2"
                 />
               </div>
 
               {newAccountForm.accountType !== 'Savings Account' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Interest Rate (%)</label>
+                    <label className="block text-sm font-medium text-stripe-text">Interest Rate (%)</label>
                     <input
                       type="number"
                       required
@@ -738,13 +738,13 @@ export default function DepositManagementPage() {
                       max="15"
                       value={newAccountForm.profitRate}
                       onChange={(e) => setNewAccountForm({ ...newAccountForm, profitRate: Number(e.target.value) })}
-                      className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="text-stripe-text mt-1 block w-full border border-stripe-border rounded-lg px-3 py-2"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Tenure (Years)</label>
+                      <label className="block text-sm font-medium text-stripe-text">Tenure (Years)</label>
                       <input
                         type="number"
                         min="0"
@@ -757,11 +757,11 @@ export default function DepositManagementPage() {
                             months: newAccountForm.tenure.months
                           }
                         })}
-                        className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                        className="text-stripe-text mt-1 block w-full border border-stripe-border rounded-lg px-3 py-2"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Tenure (Months)</label>
+                      <label className="block text-sm font-medium text-stripe-text">Tenure (Months)</label>
                       <input
                         type="number"
                         min="0"
@@ -774,7 +774,7 @@ export default function DepositManagementPage() {
                             months: Number(e.target.value)
                           }
                         })}
-                        className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                        className="text-stripe-text mt-1 block w-full border border-stripe-border rounded-lg px-3 py-2"
                       />
                     </div>
                   </div>
@@ -785,7 +785,7 @@ export default function DepositManagementPage() {
                 <button
                   type="button"
                   onClick={() => setShowNewAccountModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-stripe-border rounded-lg text-stripe-text hover:bg-stripe-background-light transition-colors"
                 >
                   Cancel
                 </button>
@@ -806,10 +806,10 @@ export default function DepositManagementPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900">Process Transaction</h3>
+              <h3 className="text-xl font-semibold text-stripe-text">Process Transaction</h3>
               <button
                 onClick={() => setShowTransactionModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-stripe-text-secondary hover:text-stripe-text"
               >
                 <XMarkIcon className="w-6 h-6" />
               </button>
@@ -817,26 +817,26 @@ export default function DepositManagementPage() {
 
             <form onSubmit={handleTransactionSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Account Number</label>
+                <label className="block text-sm font-medium text-stripe-text">Account Number</label>
                 <input
                   type="text"
                   required
                   value={transactionForm.accountNumber}
                   onChange={(e) => setTransactionForm({ ...transactionForm, accountNumber: e.target.value })}
-                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-stripe-text mt-1 block w-full border border-stripe-border rounded-lg px-3 py-2"
                   placeholder="Enter account number"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Transaction Type</label>
+                <label className="block text-sm font-medium text-stripe-text">Transaction Type</label>
                 <select
                   value={transactionForm.transactionType}
                   onChange={(e) => setTransactionForm({ 
                     ...transactionForm, 
                     transactionType: e.target.value as TransactionFormData['transactionType']
                   })}
-                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-stripe-text mt-1 block w-full border border-stripe-border rounded-lg px-3 py-2"
                 >
                   <option value="Deposit">Deposit</option>
                   <option value="Withdrawal">Withdrawal</option>
@@ -846,24 +846,24 @@ export default function DepositManagementPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Amount</label>
+                <label className="block text-sm font-medium text-stripe-text">Amount</label>
                 <input
                   type="number"
                   required
                   min="0"
                   value={transactionForm.amount}
                   onChange={(e) => setTransactionForm({ ...transactionForm, amount: Number(e.target.value) })}
-                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-stripe-text mt-1 block w-full border border-stripe-border rounded-lg px-3 py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <label className="block text-sm font-medium text-stripe-text">Description</label>
                 <textarea
                   value={transactionForm.description}
                   onChange={(e) => setTransactionForm({ ...transactionForm, description: e.target.value })}
                   rows={3}
-                  className="text-gray-700 mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-stripe-text mt-1 block w-full border border-stripe-border rounded-lg px-3 py-2"
                   placeholder="Enter transaction description"
                 />
               </div>
@@ -872,7 +872,7 @@ export default function DepositManagementPage() {
                 <button
                   type="button"
                   onClick={() => setShowTransactionModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-stripe-border rounded-lg text-stripe-text hover:bg-stripe-background-light transition-colors"
                 >
                   Cancel
                 </button>

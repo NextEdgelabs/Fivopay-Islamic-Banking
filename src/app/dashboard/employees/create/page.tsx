@@ -134,7 +134,7 @@ export default function CreateEmployeePage() {
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Personal Information */}
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+        <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
           <h3 className="text-lg font-semibold text-stripe-text mb-4">Personal Information</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -153,7 +153,7 @@ export default function CreateEmployeePage() {
             </div>
 
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="lastName" className="block text-sm font-medium text-stripe-text mb-1">
                 Last Name *
               </label>
               <input
@@ -161,13 +161,13 @@ export default function CreateEmployeePage() {
                 type="text"
                 value={formData.lastName}
                 onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-stripe-text mb-1">
                 Email Address *
               </label>
               <input
@@ -175,13 +175,13 @@ export default function CreateEmployeePage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="phone" className="block text-sm font-medium text-stripe-text mb-1">
                 Phone Number
               </label>
               <input
@@ -189,19 +189,19 @@ export default function CreateEmployeePage() {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               />
             </div>
           </div>
         </div>
 
         {/* Employment Information */}
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+        <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
           <h3 className="text-lg font-semibold text-stripe-text mb-4">Employment Information</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="position" className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="position" className="block text-sm font-medium text-stripe-text mb-1">
                 Position/Title *
               </label>
               <input
@@ -209,21 +209,21 @@ export default function CreateEmployeePage() {
                 type="text"
                 value={formData.position}
                 onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
-                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="e.g., Senior Banking Specialist"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="department" className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="department" className="block text-sm font-medium text-stripe-text mb-1">
                 Department *
               </label>
               <select
                 id="department"
                 value={formData.department}
                 onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
               >
                 <option value="">Select department</option>
@@ -234,14 +234,14 @@ export default function CreateEmployeePage() {
             </div>
 
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-slate-700 mb-1">
-                System Role *
+                            <label htmlFor="role" className="block text-sm font-medium text-stripe-text mb-1">
+                Access Role *
               </label>
               <select
                 id="role"
                 value={formData.role}
                 onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
-                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
               >
                 <option value="">Select role</option>
@@ -250,21 +250,21 @@ export default function CreateEmployeePage() {
                 ))}
               </select>
               {formData.role && (
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-stripe-text-secondary">
                   {roles.find(r => r.id === formData.role)?.description}
                 </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="status" className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="status" className="block text-sm font-medium text-stripe-text mb-1">
                 Status
               </label>
               <select
                 id="status"
                 value={formData.status}
                 onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as Employee["status"] }))}
-                className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="text-stripe-text w-full px-3 py-2 border border-stripe-border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
@@ -275,8 +275,8 @@ export default function CreateEmployeePage() {
         </div>
 
         {/* Regulatory Compliance */}
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Regulatory Compliance</h3>
+        <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
+          <h3 className="text-lg font-semibold text-stripe-text mb-4">Regulatory Compliance</h3>
           
           <div className="flex items-start mb-6">
             <div className="flex items-center h-5">
@@ -285,14 +285,14 @@ export default function CreateEmployeePage() {
                 type="checkbox"
                 checked={formData.regulatoryCompliant}
                 onChange={(e) => setFormData(prev => ({ ...prev, regulatoryCompliant: e.target.checked }))}
-                className=" h-4 w-4 text-purple-600 focus:ring-purple-500 border-slate-300 rounded"
+                className=" h-4 w-4 text-purple-600 focus:ring-purple-500 border-stripe-border rounded"
               />
             </div>
             <div className="ml-3 text-sm">
-              <label htmlFor="regulatoryCompliant" className="font-medium text-slate-700">
+              <label htmlFor="regulatoryCompliant" className="font-medium text-stripe-text">
                 Verified Regulatory Compliance
               </label>
-              <p className="text-slate-500">
+              <p className="text-stripe-text-secondary">
                 Employee has completed regulatory compliance training and understands banking principles
               </p>
             </div>

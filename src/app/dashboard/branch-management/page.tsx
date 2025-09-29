@@ -34,7 +34,7 @@ const Toast = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => vo
   return (
     <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px]`}>
       <span>{toast.message}</span>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-200">
+      <button onClick={() => onRemove(toast.id)} className="ml-4 text-white hover:text-gray-300">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
@@ -60,12 +60,12 @@ const ConfirmDialog = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold text-stripe-text mb-2">{title}</h3>
+        <p className="text-stripe-text-secondary mb-6">{message}</p>
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-stripe-border text-stripe-text rounded-lg hover:bg-stripe-background-light"
           >
             Cancel
           </button>
@@ -664,7 +664,6 @@ export default function BranchManagementPage() {
   };
 
   const handleExportData = () => {
-    console.log('Exporting branch data');
     // Here you would implement data export functionality
   };
 
@@ -697,8 +696,8 @@ export default function BranchManagementPage() {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Branch Management</h1>
-            <p className="text-gray-600 mt-1">Manage bank branches across cities and states</p>
+            <h1 className="text-3xl font-bold text-stripe-text">Branch Management</h1>
+            <p className="text-stripe-text-secondary mt-1">Manage bank branches across cities and states</p>
           </div>
           <div className="flex space-x-3">
             <button
@@ -731,7 +730,7 @@ export default function BranchManagementPage() {
 
       {/* Tabs Navigation */}
       <div className="bg-white rounded-lg shadow-md">
-        <div className="border-b border-gray-200">
+        <div className="border-b border-stripe-border">
           <nav className="-mb-px flex space-x-8 px-6">
             {[
               { id: 'overview', name: 'State Overview', icon: ChartBarIcon },
@@ -744,7 +743,7 @@ export default function BranchManagementPage() {
                 className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                   activeTab === tab.id
                     ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    : 'border-transparent text-stripe-text-secondary hover:text-stripe-text hover:border-stripe-border'
                 }`}
               >
                 <tab.icon className="w-5 h-5" />
