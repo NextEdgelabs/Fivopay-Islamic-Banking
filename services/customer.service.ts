@@ -302,7 +302,7 @@ class CustomerService {
           verificationLevel: customerData.verificationLevel || 'Level 1',
           joinDate: new Date().toISOString().split('T')[0],
           lastActivity: 'Just now',
-          accountBalance: customerData.accountBalance || '$0',
+          accountBalance: customerData.accountBalance || '₹0',
           status: customerData.status || 'Pending'
         };
         resolve(newCustomer);
@@ -324,7 +324,7 @@ class CustomerService {
           verificationLevel: customerData.verificationLevel || 'Level 1',
           joinDate: '2024-01-01',
           lastActivity: 'Just now',
-          accountBalance: customerData.accountBalance || '$0',
+          accountBalance: customerData.accountBalance || '₹0',
           status: customerData.status || 'Active'
         };
         resolve(updatedCustomer);

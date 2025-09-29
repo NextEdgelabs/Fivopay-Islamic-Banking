@@ -62,12 +62,12 @@ const DEFAULT_BANKING: BankingSettings = {
 
 const DEFAULT_SYSTEM: SystemSettings = {
   language: 'en',
-  timezone: 'Asia/Dubai',
+  timezone: 'Asia/Kolkata',
   dateFormat: 'DD/MM/YYYY',
   currency: {
-    primary: 'AED',
+    primary: 'INR',
     decimalPlaces: 2,
-    symbol: 'د.إ'
+    symbol: '₹'
   },
   backupFrequency: 'daily',
   auditLevel: 'detailed'

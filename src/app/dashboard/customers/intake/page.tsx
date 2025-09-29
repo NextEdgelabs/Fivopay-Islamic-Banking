@@ -184,7 +184,7 @@ export default function CustomerIntakePage() {
         verificationLevel: "Level 1",
         joinDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
         lastActivity: "Just now",
-        accountBalance: formData.initialDeposit ? `$${formData.initialDeposit}` : "$0",
+        accountBalance: formData.initialDeposit ? `₹${formData.initialDeposit}` : "₹0",
         status: "Pending" as const,
       };
       

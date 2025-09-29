@@ -31,30 +31,45 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (credentials?.email === "admin@fivopay.com" && credentials.password === "password") {
-          return { 
-            id: "1", 
-            name: "Admin", 
-            email: "admin@fivopay.com", 
-            role: "admin" 
+        try {
+          if (credentials?.email === "admin@fivopay.com" && credentials.password === "password") {
+            return { 
+              id: "1", 
+              name: "Admin", 
+              email: "admin@fivopay.com", 
+              role: "admin" 
+            }
           }
+          return null
+        } catch (error) {
+          console.error('Auth error:', error);
+          return null;
         }
-        return null
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.role = (user as any).role
+      try {
+        if (user) {
+          token.role = (user as any).role
+        }
+        return token
+      } catch (error) {
+        console.error('JWT callback error:', error);
+        return token;
       }
-      return token
     },
     async session({ session, token }) {
-      if (session?.user && token.role) {
-        (session.user as any).role = token.role as string;
+      try {
+        if (session?.user && token.role) {
+          (session.user as any).role = token.role as string;
+        }
+        return session
+      } catch (error) {
+        console.error('Session callback error:', error);
+        return session;
       }
-      return session
     },
   },
   session: {
@@ -69,7 +84,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
     error: "/login",
   },
-  debug: false, // Disable debug to reduce console noise
+  debug: process.env.NODE_ENV === 'development',
   logger: customLogger,
 }
 

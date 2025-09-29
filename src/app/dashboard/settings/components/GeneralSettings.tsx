@@ -15,7 +15,7 @@ export default function GeneralSettings() {
   const settings = state.settings;
   const [tempSettings, setTempSettings] = useState({
     language: settings?.system.language || 'en',
-    timezone: settings?.system.timezone || 'Asia/Dubai',
+    timezone: settings?.system.timezone || 'Asia/Kolkata',
     dateFormat: settings?.system.dateFormat || 'DD/MM/YYYY'
   });
 
@@ -42,7 +42,7 @@ export default function GeneralSettings() {
   ];
 
   const timezones = [
-    { value: 'Asia/Dubai', label: 'UAE (GMT+4)' },
+    { value: 'Asia/Kolkata', label: 'India (GMT+5:30)' },
     { value: 'Asia/Riyadh', label: 'Saudi Arabia (GMT+3)' },
     { value: 'Asia/Karachi', label: 'Pakistan (GMT+5)' },
     { value: 'Asia/Kolkata', label: 'India (GMT+5:30)' },

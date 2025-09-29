@@ -14,6 +14,15 @@ export default function CustomersPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const { customers } = useAppContext();
 
+  // Stable avatar initials generation to prevent hydration errors
+  const getAvatarInitials = (name: string): string => {
+    if (!name || name.trim() === '') return 'NA';
+    const parts = name.trim().split(' ').filter(part => part.length > 0);
+    if (parts.length === 0) return 'NA';
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  };
+
   // Calculate analytics from real customer data
   const analytics = useMemo(() => {
     const totalCustomers = customers.length;
@@ -395,7 +404,7 @@ export default function CustomersPage() {
                           <div className="flex-shrink-0 h-10 w-10">
                             <div className="h-10 w-10 rounded-full bg-stripe-primary flex items-center justify-center">
                               <span className="text-sm font-medium text-white">
-                                {customer.name.charAt(0).toUpperCase()}
+                                {getAvatarInitials(customer.name)}
                               </span>
                             </div>
                           </div>

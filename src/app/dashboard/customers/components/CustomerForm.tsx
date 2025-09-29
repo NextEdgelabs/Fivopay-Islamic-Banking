@@ -25,7 +25,7 @@ export default function CustomerForm({
     accountType: 'savings',
     kycStatus: 'Pending',
     verificationLevel: 'Basic',
-    accountBalance: '$0',
+    accountBalance: '₹0',
     status: 'Pending',
     ...customer
   });
@@ -40,7 +40,7 @@ export default function CustomerForm({
       accountType: 'savings',
       kycStatus: 'Pending',
       verificationLevel: 'Basic',
-      accountBalance: '$0',
+      accountBalance: '₹0',
       status: 'Pending',
       ...customer
     });
@@ -235,7 +235,7 @@ export default function CustomerForm({
                 value={formData.accountBalance || ''}
                 onChange={(e) => handleInputChange('accountBalance', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="$0"
+                placeholder="₹0"
               />
             </div>
           )}

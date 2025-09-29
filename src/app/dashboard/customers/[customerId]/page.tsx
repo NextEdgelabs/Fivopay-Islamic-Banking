@@ -102,16 +102,16 @@ export default function CustomerProfilePage() {
 
   // Mock transaction data
   const transactions = [
-    { id: '1', date: '2024-01-15', description: 'Salary Credit', amount: '+$2,500', type: 'credit' },
-    { id: '2', date: '2024-01-14', description: 'Online Transfer', amount: '-$150', type: 'debit' },
-    { id: '3', date: '2024-01-13', description: 'ATM Withdrawal', amount: '-$100', type: 'debit' },
-    { id: '4', date: '2024-01-12', description: 'Utility Payment', amount: '-$75', type: 'debit' },
-    { id: '5', date: '2024-01-10', description: 'Investment Return', amount: '+$200', type: 'credit' },
+    { id: '1', date: '2024-01-15', description: 'Salary Credit', amount: '+₹25,000', type: 'credit' },
+    { id: '2', date: '2024-01-14', description: 'Online Transfer', amount: '-₹1,500', type: 'debit' },
+    { id: '3', date: '2024-01-13', description: 'ATM Withdrawal', amount: '-₹1,000', type: 'debit' },
+    { id: '4', date: '2024-01-12', description: 'Utility Payment', amount: '-₹750', type: 'debit' },
+    { id: '5', date: '2024-01-10', description: 'Investment Return', amount: '+₹2,000', type: 'credit' },
   ];
 
   // Mock documents data
   const documents = [
-    { id: '1', name: 'National ID Copy', type: 'Identity', status: 'Verified', uploadDate: '2024-01-01' },
+    { id: '1', name: 'Aadhaar Card Copy', type: 'Identity', status: 'Verified', uploadDate: '2024-01-01' },
     { id: '2', name: 'Proof of Address', type: 'Address', status: 'Verified', uploadDate: '2024-01-01' },
     { id: '3', name: 'Income Statement', type: 'Financial', status: 'Pending Review', uploadDate: '2024-01-05' },
     { id: '4', name: 'Bank Statement', type: 'Financial', status: 'Verified', uploadDate: '2024-01-03' },

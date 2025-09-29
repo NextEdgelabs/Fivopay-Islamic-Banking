@@ -29,6 +29,15 @@ export default function CustomerListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Stable avatar initials generation to prevent hydration errors
+  const getAvatarInitials = (name: string): string => {
+    if (!name || name.trim() === '') return 'NA';
+    const parts = name.trim().split(' ').filter(part => part.length > 0);
+    if (parts.length === 0) return 'NA';
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  };
+
   // Filter and sort customers
   const filteredAndSortedCustomers = useMemo(() => {
     const filtered = customers.filter(customer => {
@@ -359,7 +368,7 @@ export default function CustomerListPage() {
                       <div className="flex-shrink-0 h-10 w-10">
                         <div className="h-10 w-10 rounded-full bg-stripe-primary/10 flex items-center justify-center">
                           <span className="text-sm font-medium text-stripe-primary">
-                            {customer.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                            {getAvatarInitials(customer.name)}
                           </span>
                         </div>
                       </div>
