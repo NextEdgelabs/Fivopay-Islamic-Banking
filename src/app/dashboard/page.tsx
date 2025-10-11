@@ -19,9 +19,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAppContext } from "@/app/context/AppContext";
 import { useBankingMode } from "@/context/BankingModeContext";
+import { formatCurrency as formatCurrencyUtil } from "../../../utils/currency";
 
 export default function DashboardPage() {
-  const { customers, employees, dashboardData } = useAppContext();
+  const { employees, dashboardData } = useAppContext();
   const { currentMode, config } = useBankingMode();
   
   // Date range state
@@ -32,19 +33,9 @@ export default function DashboardPage() {
   });
 
   // Calculate statistics
-  const activeCustomers = customers.filter(c => c.status === "Active").length;
-  const pendingCustomers = customers.filter(c => c.status === "Pending").length;
-  const kycVerified = customers.filter(c => c.kycStatus === "Verified").length;
-  const kycPending = customers.filter(c => c.kycStatus === "Pending" || c.kycStatus === "Under Review").length;
-  
   const activeEmployees = employees.filter(e => e.status === "Active").length;
   const shariaCompliant = employees.filter(e => e.regulatoryCompliant).length;
   const compliancePercentage = employees.length > 0 ? Math.round((shariaCompliant / employees.length) * 100) : 0;
-
-  // Recent customers
-  const recentCustomers = [...customers]
-    .sort((a, b) => new Date(b.joinDate).getTime() - new Date(a.joinDate).getTime())
-    .slice(0, 5);
 
   // Get top and underperforming branches
   const topPerformingBranches = [...dashboardData.branches]
@@ -56,12 +47,7 @@ export default function DashboardPage() {
     .slice(0, 3);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    return formatCurrencyUtil(amount);
   };
 
   const formatPercentage = (value: number) => {
@@ -364,47 +350,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Customers and Ethical Banking Principles */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Customers */}
-        <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-stripe-text">Recent Customers</h2>
-            <Link 
-              href="/dashboard/customers"
-              className="text-sm text-blue-600 hover:underline"
-            >
-              View All
-            </Link>
-          </div>
-          
-          <div className="space-y-4">
-            {recentCustomers.map((customer) => (
-              <div key={customer.id} className="flex items-center justify-between p-4 card">
-                <div className="flex items-center">
-                  <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-700 font-medium">{customer.name.charAt(0)}</span>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-stripe-text">{customer.name}</p>
-                    <p className="text-xs text-stripe-text-secondary">{customer.accountType}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-stripe-text">{customer.accountBalance}</p>
-                  <p className="text-xs text-stripe-text-secondary">Joined {customer.joinDate}</p>
-                </div>
-              </div>
-            ))}
-            
-            {recentCustomers.length === 0 && (
-              <div className="text-center py-6">
-                <p className="text-stripe-text-secondary">No customers yet</p>
-              </div>
-            )}
-          </div>
-        </div>
-
+      {/* Banking Principles */}
+      <div className="grid grid-cols-1 gap-6">
         {/* Banking Principles */}
         <div className="bg-white shadow-lg rounded-2xl p-6 border border-stripe-border">
           <h2 className="text-lg font-semibold text-stripe-text mb-6">

@@ -55,6 +55,35 @@ export const API_ENDPOINTS = {
     UPDATE_USER: '/users',
     DELETE_USER: '/users',
     GET_USER_PROFILE: '/users/profile'
+  },
+
+  // Customers
+  CUSTOMERS: {
+    GET_CUSTOMERS: '/customers',
+    GET_CUSTOMER_BY_ID: '/customers',
+    CREATE_CUSTOMER: '/customers',
+    UPDATE_CUSTOMER: '/customers',
+    DELETE_CUSTOMER: '/customers',
+    GET_CUSTOMER_STATS: '/customers/stats',
+    GET_CUSTOMER_KYC: '/customers/kyc',
+    UPDATE_CUSTOMER_KYC: '/customers/kyc',
+    VERIFY_KYC: '/customers/kyc/verify',
+    GET_CUSTOMER_DOCUMENTS: '/customers/documents',
+    UPLOAD_DOCUMENT: '/customers/documents/upload',
+    DELETE_DOCUMENT: '/customers/documents',
+    GET_CUSTOMER_ADDRESSES: '/customers/addresses',
+    ADD_CUSTOMER_ADDRESS: '/customers/addresses',
+    UPDATE_CUSTOMER_ADDRESS: '/customers/addresses',
+    DELETE_CUSTOMER_ADDRESS: '/customers/addresses',
+    GET_CUSTOMER_NOMINEES: '/customers/nominees',
+    ADD_CUSTOMER_NOMINEE: '/customers/nominees',
+    UPDATE_CUSTOMER_NOMINEE: '/customers/nominees',
+    DELETE_CUSTOMER_NOMINEE: '/customers/nominees',
+    GET_CUSTOMER_ACCOUNTS: '/customers/accounts',
+    ASSESS_CUSTOMER_RISK: '/customers/risk/assess',
+    UPDATE_CUSTOMER_STATUS: '/customers/status',
+    BULK_UPDATE_CUSTOMERS: '/customers/bulk-update',
+    EXPORT_CUSTOMERS: '/customers/export'
   }
 } as const;
 

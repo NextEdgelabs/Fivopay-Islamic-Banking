@@ -74,7 +74,7 @@ const DEFAULT_SYSTEM: SystemSettings = {
 };
 
 const DEFAULT_ORGANIZATION: OrganizationSettings = {
-  bankingModel: 'standard',
+  bankingModel: 'ethical',
   organizationName: 'Fivo Pay Digital Banking',
   organizationCode: 'FPDB001',
   complianceFramework: {
@@ -85,7 +85,7 @@ const DEFAULT_ORGANIZATION: OrganizationSettings = {
   branding: {
     displayName: 'Fivo Pay',
     tagline: 'Digital Banking for Everyone',
-    primaryBankingTerms: 'conventional'
+    primaryBankingTerms: 'ethical'
   },
   operationalMode: {
     interestBasedProducts: false,

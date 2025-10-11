@@ -2,9 +2,19 @@
 
 import BankingModeSwitcher from '@/components/BankingModeSwitcher';
 import { useBankingMode } from '@/context/BankingModeContext';
+import { useAuth } from '@/context/AuthContext';
+import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const { currentMode } = useBankingMode();
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  };
   
   return (
     <header className="bg-stripe-background-light border-b border-stripe-border h-20 flex items-center justify-between px-8">
@@ -26,6 +36,22 @@ export default function Header() {
             {currentMode === 'ethical' ? 'Sharia Compliant' : 'Fully Compliant'}
           </span>
         </div>
+
+        {user && (
+          <div className="flex items-center space-x-3">
+            <div className="text-right">
+              <p className="text-sm font-medium text-stripe-text">{user.name}</p>
+              <p className="text-xs text-stripe-text-secondary">{user.email}</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-2 text-stripe-text-secondary hover:text-stripe-text hover:bg-stripe-background rounded-lg transition-colors"
+              title="Logout"
+            >
+              <ArrowRightOnRectangleIcon className="h-5 w-5" />
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );

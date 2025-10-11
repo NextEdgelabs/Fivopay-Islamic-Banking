@@ -1,6 +1,6 @@
 // Services index file for easy imports
 export { SettingsService, SettingsCache } from './settings.service';
-export { CustomerService, customerService } from './customer.service';
+export { CustomerService, CustomerCache } from './customer.service';
 
 // Re-export types for convenience
 export type {
@@ -15,11 +15,19 @@ export type {
 } from '../src/app/dashboard/settings/types';
 
 export type {
+  Customer,
+  CustomerKYC,
+  CustomerDocument,
+  CustomerAddress,
+  CustomerNominee,
+  CustomerAccount,
   CreateCustomerRequest,
   UpdateCustomerRequest,
   CustomerSearchFilters,
-  CustomerSearchParams,
-  PaginatedCustomers,
-  BulkCustomerAction,
-  CustomerStats
-} from './customer.service';
+  CustomerListResponse,
+  CustomerStats,
+  CustomerType,
+  CustomerStatus,
+  KYCStatus,
+  RiskRating
+} from '../src/types/customer';

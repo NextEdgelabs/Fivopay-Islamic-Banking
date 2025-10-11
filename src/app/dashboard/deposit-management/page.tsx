@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BanknotesIcon,
   ChartBarIcon,
@@ -17,6 +17,10 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { useDepositContext, NewAccountFormData, TransactionFormData, DepositAccount } from './context/DepositContext';
+import { useProductContext, useProductsByCategory } from '@/context/ProductContext';
+import { useBankingMode } from '@/context/BankingModeContext';
+import { DepositProduct } from '@/types/products';
+import { formatCurrency as formatCurrencyUtil } from '../../../../utils/currency';
 
 // Toast notification state
 interface Toast {
@@ -90,6 +94,9 @@ export default function DepositManagementPage() {
     updateAccountBalance,
     getAccountByNumber
   } = useDepositContext();
+  
+  const { currentMode } = useBankingMode();
+  const depositProducts = useProductsByCategory('deposits');
 
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedAccount, setSelectedAccount] = useState<DepositAccount | null>(null);
@@ -107,11 +114,16 @@ export default function DepositManagementPage() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [newAccountForm, setNewAccountForm] = useState<NewAccountFormData>({
     customerName: '',
-    accountType: 'Fixed Deposit',
+    accountType: depositProducts.length > 0 ? (depositProducts[0] as DepositProduct).depositType : 'Fixed Deposit',
     initialDeposit: 0,
     profitRate: 7.2,
     tenure: { years: 0, months: 0 }
   });
+
+  // Get available deposit types based on banking mode
+  const getAvailableDepositTypes = () => {
+    return depositProducts.map(product => (product as DepositProduct).depositType);
+  };
   const [transactionForm, setTransactionForm] = useState<TransactionFormData>({
     accountNumber: '',
     transactionType: 'Deposit',
@@ -226,12 +238,7 @@ export default function DepositManagementPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    return formatCurrencyUtil(amount);
   };
 
   return (
@@ -412,9 +419,9 @@ export default function DepositManagementPage() {
                   />
                   <select className="border border-stripe-border rounded-lg px-3 py-2 text-stripe-text">
                     <option>All Types</option>
-                    <option>Fixed Deposit</option>
-                    <option>Recurring Deposit</option>
-                    <option>Savings Account</option>
+                    {getAvailableDepositTypes().map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
                   </select>
                 </div>
                 <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
@@ -706,9 +713,9 @@ export default function DepositManagementPage() {
                   })}
                   className="text-stripe-text mt-1 block w-full border border-stripe-border rounded-lg px-3 py-2"
                 >
-                  <option value="Fixed Deposit">Fixed Deposit</option>
-                  <option value="Recurring Deposit">Recurring Deposit</option>
-                  <option value="Savings Account">Savings Account</option>
+                  {getAvailableDepositTypes().map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
                 </select>
               </div>
 

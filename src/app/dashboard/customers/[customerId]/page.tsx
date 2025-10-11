@@ -1,52 +1,384 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAppContext, Customer } from '@/app/context/AppContext';
-import { CustomerModal } from '../components';
+import { useCustomers } from '../context/CustomerContext';
+import { Customer, CustomerStatus, RiskRating, CustomerLoan, CustomerDeposit, CustomerActivity, CustomerKYCDetailed, CustomerAddress } from '@/types/customer';
+import { CustomerService } from '@/services/customer.service';
+import { 
+  ArrowLeftIcon,
+  PencilIcon,
+  UserCircleIcon,
+  PhoneIcon,
+  EnvelopeIcon,
+  MapPinIcon,
+  CalendarIcon,
+  ShieldCheckIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  DocumentTextIcon,
+  BanknotesIcon,
+  BuildingOfficeIcon,
+  UserGroupIcon,
+  ArrowPathIcon,
+  HomeIcon,
+  BriefcaseIcon,
+  CurrencyDollarIcon,
+  GlobeAltIcon
+} from '@heroicons/react/24/outline';
+import InfoBlock, { InfoRow } from '../components/InfoBlock';
+import KYCSection from '../components/KYCSection';
+import LoanCard from '../components/LoanCard';
+import LoanDetailsModal from '../components/LoanDetailsModal';
+import DepositCard from '../components/DepositCard';
+import TimelineItem from '../components/TimelineItem';
 
-export default function CustomerProfilePage() {
+// Loading skeleton
+const CustomerDetailSkeleton = () => (
+  <div className="animate-pulse space-y-6">
+    <div className="card">
+      <div className="card-content">
+        <div className="flex items-center space-x-4">
+          <div className="w-16 h-16 bg-stripe-background rounded-full"></div>
+          <div className="flex-1 space-y-2">
+            <div className="h-6 bg-stripe-background rounded w-1/3"></div>
+            <div className="h-4 bg-stripe-background rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="card">
+          <div className="card-content">
+            <div className="h-4 bg-stripe-background rounded w-1/4 mb-4"></div>
+            <div className="space-y-2">
+              <div className="h-3 bg-stripe-background rounded w-full"></div>
+              <div className="h-3 bg-stripe-background rounded w-3/4"></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// Status badge component
+const StatusBadge = ({ status }: { status: CustomerStatus }) => {
+  const getStatusConfig = (status: CustomerStatus) => {
+    switch (status) {
+      case CustomerStatus.ACTIVE:
+        return {
+          bg: 'bg-green-100',
+          text: 'text-green-800',
+          border: 'border-green-200',
+          icon: CheckCircleIcon
+        };
+      case CustomerStatus.INACTIVE:
+        return {
+          bg: 'bg-gray-100',
+          text: 'text-gray-800',
+          border: 'border-gray-200',
+          icon: ClockIcon
+        };
+      case CustomerStatus.DORMANT:
+        return {
+          bg: 'bg-yellow-100',
+          text: 'text-yellow-800',
+          border: 'border-yellow-200',
+          icon: ClockIcon
+        };
+      case CustomerStatus.CLOSED:
+        return {
+          bg: 'bg-red-100',
+          text: 'text-red-800',
+          border: 'border-red-200',
+          icon: ExclamationTriangleIcon
+        };
+      case CustomerStatus.BLOCKED:
+        return {
+          bg: 'bg-red-100',
+          text: 'text-red-800',
+          border: 'border-red-200',
+          icon: ExclamationTriangleIcon
+        };
+      default:
+        return {
+          bg: 'bg-gray-100',
+          text: 'text-gray-800',
+          border: 'border-gray-200',
+          icon: ClockIcon
+        };
+    }
+  };
+
+  const config = getStatusConfig(status);
+  const Icon = config.icon;
+
+  return (
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${config.bg} ${config.text} ${config.border}`}>
+      <Icon className="w-3 h-3 mr-1" />
+      {status}
+    </span>
+  );
+};
+
+// Risk rating badge component
+const RiskRatingBadge = ({ riskRating }: { riskRating: RiskRating }) => {
+  const getRiskConfig = (riskRating: RiskRating) => {
+    switch (riskRating) {
+      case RiskRating.LOW:
+        return {
+          bg: 'bg-green-100',
+          text: 'text-green-800',
+          icon: CheckCircleIcon
+        };
+      case RiskRating.MEDIUM:
+        return {
+          bg: 'bg-yellow-100',
+          text: 'text-yellow-800',
+          icon: ExclamationTriangleIcon
+        };
+      case RiskRating.HIGH:
+        return {
+          bg: 'bg-red-100',
+          text: 'text-red-800',
+          icon: ExclamationTriangleIcon
+        };
+      default:
+        return {
+          bg: 'bg-gray-100',
+          text: 'text-gray-800',
+          icon: ClockIcon
+        };
+    }
+  };
+
+  const config = getRiskConfig(riskRating);
+  const Icon = config.icon;
+
+  return (
+    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+      <Icon className="w-3 h-3 mr-1" />
+      {riskRating} Risk
+    </span>
+  );
+};
+
+// Info card component
+const InfoCard = ({ 
+  title, 
+  children, 
+  icon: Icon,
+  className = ""
+}: { 
+  title: string; 
+  children: React.ReactNode; 
+  icon?: React.ComponentType<{ className?: string }>;
+  className?: string;
+}) => (
+  <div className={`card ${className}`}>
+    <div className="card-content">
+      <div className="flex items-center mb-4">
+        {Icon && <Icon className="w-5 h-5 text-stripe-text-secondary mr-2" />}
+        <h3 className="text-lg font-semibold text-stripe-text">{title}</h3>
+      </div>
+      {children}
+    </div>
+  </div>
+);
+
+// Detail row component
+const DetailRow = ({ 
+  label, 
+  value, 
+  icon: Icon 
+}: { 
+  label: string; 
+  value: string | React.ReactNode; 
+  icon?: React.ComponentType<{ className?: string }>;
+}) => (
+  <div className="flex items-center justify-between py-2 border-b border-stripe-border last:border-b-0">
+    <div className="flex items-center">
+      {Icon && <Icon className="w-4 h-4 text-stripe-text-muted mr-2" />}
+      <span className="text-sm font-medium text-stripe-text-secondary">{label}</span>
+    </div>
+    <div className="text-sm text-stripe-text">{value}</div>
+  </div>
+);
+
+export default function CustomerDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { customers, updateCustomer } = useAppContext();
+  const { fetchCustomerById, loading, errors } = useCustomers();
   
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const [kycDetails, setKycDetails] = useState<CustomerKYCDetailed | null>(null);
+  const [loans, setLoans] = useState<CustomerLoan[]>([]);
+  const [deposits, setDeposits] = useState<CustomerDeposit[]>([]);
+  const [activities, setActivities] = useState<CustomerActivity[]>([]);
+  const [addresses, setAddresses] = useState<CustomerAddress[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState({
+    customer: true,
+    kyc: true,
+    loans: true,
+    deposits: true,
+    activities: true,
+    addresses: true
+  });
+  const [selectedLoan, setSelectedLoan] = useState<CustomerLoan | null>(null);
+  const [showLoanModal, setShowLoanModal] = useState(false);
+  const [timelineFilter, setTimelineFilter] = useState<string>('all');
+  const [timelineSearch, setTimelineSearch] = useState('');
 
   const customerId = params.customerId as string;
 
   useEffect(() => {
-    // Find customer by ID
-    const foundCustomer = customers.find((c: Customer) => c.id === customerId);
-    setCustomer(foundCustomer || null);
-    setLoading(false);
-  }, [customerId, customers]);
+    const loadCustomerData = async () => {
+      if (customerId) {
+        console.log('📄 DetailPage: Loading customer with ID:', customerId);
+        setIsLoading(true);
+        
+        try {
+          // Load all data in parallel
+          const [
+            customerRes,
+            kycRes,
+            loansRes,
+            depositsRes,
+            activitiesRes,
+            addressesRes
+          ] = await Promise.allSettled([
+            fetchCustomerById(customerId),
+            CustomerService.getCustomerKYCDetails(customerId),
+            CustomerService.getCustomerLoans(customerId),
+            CustomerService.getCustomerDeposits(customerId),
+            CustomerService.getCustomerActivities(customerId),
+            CustomerService.getCustomerAddresses(customerId)
+          ]);
 
-  const handleEditCustomer = async (customerData: Partial<Customer>) => {
-    if (!customer) return;
-    
-    console.log('Updating customer:', customerData);
-    
-    try {
-      // Update customer data using AppContext
-      const updatedCustomer = { ...customer, ...customerData };
-      updateCustomer(updatedCustomer);
-      setCustomer(updatedCustomer);
-      setIsEditModalOpen(false);
-    } catch (error) {
-      console.error('Error updating customer:', error);
-      throw error;
-    }
+          // Handle customer data
+          if (customerRes.status === 'fulfilled' && customerRes.value) {
+            console.log('✅ DetailPage: Customer data loaded');
+            setCustomer(customerRes.value);
+            setDataLoading(prev => ({ ...prev, customer: false }));
+          } else {
+            console.error('❌ DetailPage: Failed to load customer data');
+          }
+
+          // Handle KYC data
+          if (kycRes.status === 'fulfilled' && kycRes.value.success) {
+            console.log('✅ DetailPage: KYC data loaded');
+            setKycDetails(kycRes.value.data!);
+            setDataLoading(prev => ({ ...prev, kyc: false }));
+          }
+
+          // Handle loans data
+          if (loansRes.status === 'fulfilled' && loansRes.value.success) {
+            console.log('✅ DetailPage: Loans data loaded');
+            setLoans(loansRes.value.data || []);
+            setDataLoading(prev => ({ ...prev, loans: false }));
+          }
+
+          // Handle deposits data
+          if (depositsRes.status === 'fulfilled' && depositsRes.value.success) {
+            console.log('✅ DetailPage: Deposits data loaded');
+            setDeposits(depositsRes.value.data || []);
+            setDataLoading(prev => ({ ...prev, deposits: false }));
+          }
+
+          // Handle activities data
+          if (activitiesRes.status === 'fulfilled' && activitiesRes.value.success) {
+            console.log('✅ DetailPage: Activities data loaded');
+            setActivities(activitiesRes.value.data || []);
+            setDataLoading(prev => ({ ...prev, activities: false }));
+          }
+
+          // Handle addresses data
+          if (addressesRes.status === 'fulfilled' && addressesRes.value.success) {
+            console.log('✅ DetailPage: Addresses data loaded');
+            setAddresses(addressesRes.value.data || []);
+            setDataLoading(prev => ({ ...prev, addresses: false }));
+          }
+
+        } catch (error) {
+          console.error('❌ DetailPage: Error loading customer data:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadCustomerData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customerId]);
+
+  // Loan handlers
+  const handleViewBasicLoan = (loan: CustomerLoan) => {
+    setSelectedLoan(loan);
+    setShowLoanModal(true);
   };
 
-  if (loading) {
+  const handleViewFullLoan = (loan: CustomerLoan) => {
+    // Navigate to loans page with loan filter
+    router.push(`/dashboard/loans?loanId=${loan.loanId}`);
+  };
+
+  const handleCloseLoanModal = () => {
+    setShowLoanModal(false);
+    setSelectedLoan(null);
+  };
+
+  // Deposit handlers
+  const handleViewCertificate = (deposit: CustomerDeposit) => {
+    console.log('View certificate for deposit:', deposit.depositId);
+    // TODO: Implement certificate viewing
+  };
+
+  const handlePrematureClosure = (deposit: CustomerDeposit) => {
+    console.log('Premature closure for deposit:', deposit.depositId);
+    // TODO: Implement premature closure
+  };
+
+  const handleRenewDeposit = (deposit: CustomerDeposit) => {
+    console.log('Renew deposit:', deposit.depositId);
+    // TODO: Implement deposit renewal
+  };
+
+  // Timeline filtering
+  const filteredActivities = activities.filter(activity => {
+    const matchesFilter = timelineFilter === 'all' || activity.activityType.toLowerCase() === timelineFilter;
+    const matchesSearch = !timelineSearch || 
+      activity.title.toLowerCase().includes(timelineSearch.toLowerCase()) ||
+      activity.description.toLowerCase().includes(timelineSearch.toLowerCase()) ||
+      activity.performedBy.toLowerCase().includes(timelineSearch.toLowerCase());
+    
+    return matchesFilter && matchesSearch;
+  });
+
+  if (isLoading) {
+    return <CustomerDetailSkeleton />;
+  }
+
+  if (errors.customers) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading customer profile...</p>
+      <div className="space-y-6">
+        <div className="card">
+          <div className="card-content text-center py-12">
+            <ExclamationTriangleIcon className="w-12 h-12 text-stripe-error mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-stripe-text mb-2">Error Loading Customer</h3>
+            <p className="text-stripe-text-secondary mb-4">{errors.customers}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="btn btn-primary"
+            >
+              <ArrowPathIcon className="w-4 h-4 mr-2" />
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -54,345 +386,410 @@ export default function CustomerProfilePage() {
 
   if (!customer) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
+      <div className="space-y-6">
+        <div className="card">
+          <div className="card-content text-center py-12">
+            <UserCircleIcon className="w-12 h-12 text-stripe-text-muted mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-stripe-text mb-2">Customer Not Found</h3>
+            <p className="text-stripe-text-secondary mb-4">The customer you're looking for doesn't exist.</p>
+            <button
+              onClick={() => router.push('/dashboard/customers')}
+              className="btn btn-primary"
+            >
+              <ArrowLeftIcon className="w-4 h-4 mr-2" />
+              Back to Customers
+            </button>
           </div>
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">Customer Not Found</h1>
-          <p className="text-gray-600 mb-4">The customer with ID "{customerId}" could not be found.</p>
-          <button
-            onClick={() => router.push('/dashboard/customers')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Back to Customers
-          </button>
         </div>
       </div>
     );
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Active': return 'bg-green-100 text-green-800';
-      case 'Pending': return 'bg-yellow-100 text-yellow-800';
-      case 'Inactive': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getKycStatusColor = (status: string) => {
-    switch (status) {
-      case 'Verified': return 'bg-green-100 text-green-800';
-      case 'Pending': return 'bg-yellow-100 text-yellow-800';
-      case 'Under Review': return 'bg-blue-100 text-blue-800';
-      case 'Rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: '📋' },
-    { id: 'transactions', label: 'Transactions', icon: '💳' },
-    { id: 'documents', label: 'Documents', icon: '📄' },
-    { id: 'activity', label: 'Activity Log', icon: '📊' },
-  ];
-
-  // Mock transaction data
-  const transactions = [
-    { id: '1', date: '2024-01-15', description: 'Salary Credit', amount: '+₹25,000', type: 'credit' },
-    { id: '2', date: '2024-01-14', description: 'Online Transfer', amount: '-₹1,500', type: 'debit' },
-    { id: '3', date: '2024-01-13', description: 'ATM Withdrawal', amount: '-₹1,000', type: 'debit' },
-    { id: '4', date: '2024-01-12', description: 'Utility Payment', amount: '-₹750', type: 'debit' },
-    { id: '5', date: '2024-01-10', description: 'Investment Return', amount: '+₹2,000', type: 'credit' },
-  ];
-
-  // Mock documents data
-  const documents = [
-    { id: '1', name: 'Aadhaar Card Copy', type: 'Identity', status: 'Verified', uploadDate: '2024-01-01' },
-    { id: '2', name: 'Proof of Address', type: 'Address', status: 'Verified', uploadDate: '2024-01-01' },
-    { id: '3', name: 'Income Statement', type: 'Financial', status: 'Pending Review', uploadDate: '2024-01-05' },
-    { id: '4', name: 'Bank Statement', type: 'Financial', status: 'Verified', uploadDate: '2024-01-03' },
-  ];
-
-  // Mock activity log
-  const activities = [
-    { id: '1', action: 'Profile Updated', timestamp: '2024-01-15 10:30 AM', user: 'System' },
-    { id: '2', action: 'KYC Document Verified', timestamp: '2024-01-14 3:45 PM', user: 'Admin' },
-    { id: '3', action: 'Account Status Changed', timestamp: '2024-01-12 2:15 PM', user: 'Manager' },
-    { id: '4', action: 'New Transaction', timestamp: '2024-01-12 11:00 AM', user: 'Customer' },
+    { id: 'overview', name: 'Overview', icon: UserCircleIcon },
+    { id: 'kyc', name: 'KYC Details', icon: ShieldCheckIcon },
+    { id: 'loans', name: 'Loans', icon: BanknotesIcon },
+    { id: 'deposits', name: 'Term Deposits', icon: CurrencyDollarIcon },
+    { id: 'timeline', name: 'Timeline', icon: ClockIcon },
+    { id: 'documents', name: 'Documents', icon: DocumentTextIcon },
+    { id: 'accounts', name: 'Accounts', icon: BanknotesIcon },
+    { id: 'addresses', name: 'Addresses', icon: MapPinIcon },
+    { id: 'nominees', name: 'Nominees', icon: UserGroupIcon }
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-6">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => router.push('/dashboard/customers')}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-xl">
-                  👤
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{customer.name}</h1>
-                  <p className="text-sm text-gray-500">Customer ID: {customer.id}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(customer.status)}`}>
-                  {customer.status}
-                </span>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getKycStatusColor(customer.kycStatus)}`}>
-                  KYC: {customer.kycStatus}
-                </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => router.push('/dashboard/customers')}
+            className="btn btn-secondary flex items-center space-x-2"
+          >
+            <ArrowLeftIcon className="w-4 h-4" />
+            <span>Back</span>
+          </button>
+          <div>
+            <h1 className="text-2xl font-semibold text-stripe-text">Customer Details</h1>
+            <p className="text-stripe-text-secondary">View and manage customer information</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => router.push(`/dashboard/customers/${customerId}/edit`)}
+            className="btn btn-primary flex items-center space-x-2"
+          >
+            <PencilIcon className="w-4 h-4" />
+            <span>Edit Customer</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Customer Header Card */}
+      <div className="card">
+        <div className="card-content">
+          <div className="flex items-center space-x-6">
+            <div className="flex-shrink-0">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-xl">
+                {(customer.firstName?.charAt(0) || 'U').toUpperCase()}{(customer.lastName?.charAt(0) || 'U').toUpperCase()}
               </div>
             </div>
-            
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setIsEditModalOpen(true)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Edit Profile
-              </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                Send Message
-              </button>
+            <div className="flex-1">
+              <div className="flex items-center space-x-4 mb-2">
+                <h2 className="text-2xl font-semibold text-stripe-text">
+                  {customer.fullName || `${customer.title || ''} ${customer.firstName || 'Unknown'} ${customer.middleName || ''} ${customer.lastName || 'Customer'}`.trim()}
+                </h2>
+                <StatusBadge status={customer.status} />
+                <RiskRatingBadge riskRating={customer.riskRating} />
+              </div>
+              <div className="flex items-center space-x-6 text-sm text-stripe-text-secondary">
+                <div className="flex items-center">
+                  <PhoneIcon className="w-4 h-4 mr-1" />
+                  {customer.primaryMobile || 'Not provided'}
+                </div>
+                <div className="flex items-center">
+                  <EnvelopeIcon className="w-4 h-4 mr-1" />
+                  {customer.primaryEmail || 'Not provided'}
+                </div>
+                <div className="flex items-center">
+                  <BuildingOfficeIcon className="w-4 h-4 mr-1" />
+                  {customer.customerType || 'Unknown'}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
-            {tabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <span className="mr-2">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
+      {/* Tabs */}
+      <div className="card">
+        <div className="border-b border-stripe-border">
+          <nav className="-mb-px flex space-x-8 px-6">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-stripe-primary text-stripe-primary'
+                      : 'border-transparent text-stripe-text-secondary hover:text-stripe-text hover:border-stripe-border'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.name}</span>
+                </button>
+              );
+            })}
           </nav>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Info */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500">Full Name</label>
-                    <p className="text-sm text-gray-900">{customer.name}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500">Email</label>
-                    <p className="text-sm text-gray-900">{customer.email}</p>
-                  </div>
-                  {customer.phone && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500">Phone</label>
-                      <p className="text-sm text-gray-900">{customer.phone}</p>
-                    </div>
-                  )}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500">Join Date</label>
-                    <p className="text-sm text-gray-900">{new Date(customer.joinDate).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              </div>
+        <div className="p-6">
+          {activeTab === 'overview' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Personal Information Block */}
+              <InfoBlock title="Personal Information" icon={UserCircleIcon}>
+                <InfoRow label="Customer Type" value={customer.customerType || 'Not specified'} />
+                <InfoRow label="Title" value={customer.title || 'Not specified'} />
+                <InfoRow label="Full Name" value={`${customer.title || ''} ${customer.firstName || ''} ${customer.middleName || ''} ${customer.lastName || ''}`.trim() || 'Not provided'} />
+                <InfoRow label="Father's Name" value={customer.fatherName || 'Not provided'} />
+                <InfoRow label="Mother's Name" value={customer.motherName || 'Not provided'} />
+                <InfoRow label="Spouse Name" value={customer.spouseName || 'Not applicable'} />
+                <InfoRow label="Date of Birth" value={customer.dateOfBirth ? new Date(customer.dateOfBirth).toLocaleDateString() : 'Not provided'} icon={CalendarIcon} />
+                <InfoRow label="Gender" value={customer.gender || 'Not specified'} />
+                <InfoRow label="Marital Status" value={customer.maritalStatus || 'Not specified'} />
+                <InfoRow label="Nationality" value={customer.nationality || 'Not specified'} />
+              </InfoBlock>
 
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">Account Information</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500">Account Type</label>
-                    <p className="text-sm text-gray-900 capitalize">{customer.accountType}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500">Verification Level</label>
-                    <p className="text-sm text-gray-900">{customer.verificationLevel}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500">Account Balance</label>
-                    <p className="text-lg font-semibold text-green-600">{customer.accountBalance}</p>
-                  </div>
-                  {customer.lastActivity && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500">Last Activity</label>
-                      <p className="text-sm text-gray-900">{customer.lastActivity}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+              {/* Contact Information Block */}
+              <InfoBlock title="Contact Information" icon={PhoneIcon}>
+                <InfoRow label="Primary Mobile" value={customer.primaryMobile || 'Not provided'} icon={PhoneIcon} />
+                <InfoRow label="Secondary Mobile" value={customer.secondaryMobile || 'Not provided'} />
+                <InfoRow label="Primary Email" value={customer.primaryEmail || 'Not provided'} icon={EnvelopeIcon} />
+                <InfoRow label="Secondary Email" value={customer.secondaryEmail || 'Not provided'} />
+                <InfoRow label="Preferred Language" value={customer.preferredLanguage || 'Not specified'} />
+              </InfoBlock>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-                <div className="space-y-3">
-                  <button className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    View Transactions
-                  </button>
-                  <button className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    Generate Statement
-                  </button>
-                  <button className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    Update KYC
-                  </button>
-                  <button className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
-                    Suspend Account
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
-                <div className="space-y-3">
-                  {activities.slice(0, 3).map(activity => (
-                    <div key={activity.id} className="border-l-4 border-blue-200 pl-3">
-                      <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                      <p className="text-xs text-gray-500">{activity.timestamp}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'transactions' && (
-          <div className="bg-white rounded-lg shadow-sm">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">Transaction History</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {transactions.map(transaction => (
-                    <tr key={transaction.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.date}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.description}</td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
-                        transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {transaction.amount}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          transaction.type === 'credit' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              {/* Address Information Block */}
+              <InfoBlock title="Address Information" icon={HomeIcon}>
+                {addresses.length > 0 ? (
+                  addresses.map((address, index) => (
+                    <div key={address.addressId} className="mb-4 last:mb-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-stripe-text">{address.addressType} Address</span>
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          address.verificationStatus === 'Verified' 
+                            ? 'bg-green-100 text-green-800' 
+                            : address.verificationStatus === 'Pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
                         }`}>
-                          {transaction.type}
+                          {address.verificationStatus}
                         </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'documents' && (
-          <div className="bg-white rounded-lg shadow-sm">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">Documents</h2>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {documents.map(document => (
-                  <div key={document.id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-sm font-medium text-gray-900">{document.name}</h3>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        document.status === 'Verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {document.status}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 mb-2">{document.type}</p>
-                    <p className="text-xs text-gray-500">Uploaded: {document.uploadDate}</p>
-                    <div className="mt-3 flex space-x-2">
-                      <button className="text-xs text-blue-600 hover:text-blue-800">View</button>
-                      <button className="text-xs text-gray-600 hover:text-gray-800">Download</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'activity' && (
-          <div className="bg-white rounded-lg shadow-sm">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">Activity Log</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {activities.map(activity => (
-                  <div key={activity.id} className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                      <div className="mt-1 flex items-center space-x-2 text-xs text-gray-500">
-                        <span>{activity.timestamp}</span>
-                        <span>•</span>
-                        <span>by {activity.user}</span>
+                      </div>
+                      <div className="text-sm text-stripe-text-secondary space-y-1">
+                        <div>{address.addressLine1}</div>
+                        {address.addressLine2 && <div>{address.addressLine2}</div>}
+                        <div>{address.city}, {address.state} - {address.pincode}</div>
+                        <div>{address.country}</div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))
+                ) : (
+                  <div className="text-sm text-stripe-text-muted">No addresses found</div>
+                )}
+              </InfoBlock>
+
+              {/* Professional Information Block */}
+              <InfoBlock title="Professional Information" icon={BriefcaseIcon}>
+                <InfoRow label="Occupation" value={customer.occupation || 'Not specified'} />
+                <InfoRow label="Annual Income" value={customer.annualIncome ? `₹${customer.annualIncome.toLocaleString()}` : 'Not specified'} icon={CurrencyDollarIcon} />
+                <InfoRow label="Income Source" value={customer.incomeSource || 'Not specified'} />
+                <InfoRow label="Customer Segment" value={customer.customerSegment || 'Not specified'} />
+                <InfoRow label="Customer Category" value={customer.customerCategory || 'Not specified'} />
+              </InfoBlock>
+
+              {/* Account Information Block */}
+              <InfoBlock title="Account Information" icon={ShieldCheckIcon}>
+                <InfoRow label="Customer ID" value={customer.customerId || 'Not provided'} />
+                <InfoRow label="Customer Type" value={customer.customerType || 'Not specified'} />
+                <InfoRow label="Risk Rating" value={<RiskRatingBadge riskRating={customer.riskRating} />} />
+                <InfoRow label="PEP Status" value={customer.pepStatus ? 'Yes' : 'No'} />
+                <InfoRow label="Onboarding Date" value={customer.onboardingDate ? new Date(customer.onboardingDate).toLocaleDateString() : 'Not provided'} icon={CalendarIcon} />
+                <InfoRow label="Last Login" value={customer.lastLogin ? new Date(customer.lastLogin).toLocaleDateString() : 'Never'} />
+              </InfoBlock>
+
+              {/* Banking Preferences Block */}
+              <InfoBlock title="Banking Preferences" icon={GlobeAltIcon}>
+                <InfoRow label="Preferred Branch" value={customer.preferredBranchId || 'Not specified'} />
+                <InfoRow label="Communication Preferences" value="Email & SMS" />
+                <InfoRow label="Account Preferences" value="Standard" />
+                <InfoRow label="Service Preferences" value="Full Service" />
+              </InfoBlock>
             </div>
-          </div>
-        )}
+          )}
+
+          {activeTab === 'kyc' && (
+            <KYCSection 
+              kycDetails={kycDetails}
+              onVerify={(field) => {
+                console.log(`Verifying ${field} for customer ${customerId}`);
+                // TODO: Implement verification logic
+              }}
+              onReject={(field, reason) => {
+                console.log(`Rejecting ${field} for customer ${customerId}, reason: ${reason}`);
+                // TODO: Implement rejection logic
+              }}
+            />
+          )}
+
+          {activeTab === 'loans' && (
+            <div className="space-y-6">
+              {dataLoading.loans ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stripe-primary mx-auto mb-4"></div>
+                  <p className="text-stripe-text-secondary">Loading loan information...</p>
+                </div>
+              ) : loans.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {loans.map((loan) => (
+                    <LoanCard
+                      key={loan.loanId}
+                      loan={loan}
+                      onViewBasic={handleViewBasicLoan}
+                      onViewFull={handleViewFullLoan}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <BanknotesIcon className="w-12 h-12 text-stripe-text-muted mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-stripe-text mb-2">No Loans Found</h3>
+                  <p className="text-stripe-text-secondary mb-4">This customer doesn't have any active loans.</p>
+                  <button className="px-4 py-2 bg-stripe-primary text-white rounded-lg hover:bg-stripe-primary-dark">
+                    Create New Loan
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'deposits' && (
+            <div className="space-y-6">
+              {dataLoading.deposits ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stripe-primary mx-auto mb-4"></div>
+                  <p className="text-stripe-text-secondary">Loading deposit information...</p>
+                </div>
+              ) : deposits.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {deposits.map((deposit) => (
+                    <DepositCard
+                      key={deposit.depositId}
+                      deposit={deposit}
+                      bankingMode="conventional" // TODO: Get from context or props
+                      onViewCertificate={handleViewCertificate}
+                      onPrematureClosure={handlePrematureClosure}
+                      onRenew={handleRenewDeposit}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <CurrencyDollarIcon className="w-12 h-12 text-stripe-text-muted mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-stripe-text mb-2">No Deposits Found</h3>
+                  <p className="text-stripe-text-secondary mb-4">This customer doesn't have any term deposits.</p>
+                  <button className="px-4 py-2 bg-stripe-primary text-white rounded-lg hover:bg-stripe-primary-dark">
+                    Open New Deposit
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'timeline' && (
+            <div className="space-y-6">
+              {/* Timeline Filters */}
+              <div className="card">
+                <div className="card-content">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1">
+                      <label htmlFor="timelineSearch" className="block text-sm font-medium text-stripe-text-secondary mb-2">
+                        Search Activities
+                      </label>
+                      <input
+                        id="timelineSearch"
+                        type="text"
+                        value={timelineSearch}
+                        onChange={(e) => setTimelineSearch(e.target.value)}
+                        placeholder="Search activities..."
+                        className="w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-stripe-primary focus:border-stripe-primary"
+                      />
+                    </div>
+                    <div className="md:w-48">
+                      <label htmlFor="timelineFilter" className="block text-sm font-medium text-stripe-text-secondary mb-2">
+                        Filter by Type
+                      </label>
+                      <select
+                        id="timelineFilter"
+                        value={timelineFilter}
+                        onChange={(e) => setTimelineFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-stripe-border rounded-lg focus:ring-2 focus:ring-stripe-primary focus:border-stripe-primary"
+                      >
+                        <option value="all">All Activities</option>
+                        <option value="account">Account</option>
+                        <option value="loan">Loan</option>
+                        <option value="deposit">Deposit</option>
+                        <option value="communication">Communication</option>
+                        <option value="team">Team</option>
+                        <option value="request">Request</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Timeline Content */}
+              {dataLoading.activities ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stripe-primary mx-auto mb-4"></div>
+                  <p className="text-stripe-text-secondary">Loading activity timeline...</p>
+                </div>
+              ) : filteredActivities.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredActivities.map((activity) => (
+                    <TimelineItem
+                      key={activity.activityId}
+                      activity={activity}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <ClockIcon className="w-12 h-12 text-stripe-text-muted mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-stripe-text mb-2">No Activities Found</h3>
+                  <p className="text-stripe-text-secondary">
+                    {activities.length === 0 
+                      ? 'No activities recorded for this customer yet.'
+                      : 'No activities match your current filters.'
+                    }
+                  </p>
+                  {activities.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setTimelineFilter('all');
+                        setTimelineSearch('');
+                      }}
+                      className="mt-4 px-4 py-2 bg-stripe-primary text-white rounded-lg hover:bg-stripe-primary-dark"
+                    >
+                      Clear Filters
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'documents' && (
+            <div className="text-center py-12">
+              <DocumentTextIcon className="w-12 h-12 text-stripe-text-muted mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-stripe-text mb-2">Documents</h3>
+              <p className="text-stripe-text-secondary">Customer documents will be displayed here</p>
+            </div>
+          )}
+
+          {activeTab === 'accounts' && (
+            <div className="text-center py-12">
+              <BanknotesIcon className="w-12 h-12 text-stripe-text-muted mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-stripe-text mb-2">Accounts</h3>
+              <p className="text-stripe-text-secondary">Customer accounts will be displayed here</p>
+            </div>
+          )}
+
+          {activeTab === 'addresses' && (
+            <div className="text-center py-12">
+              <MapPinIcon className="w-12 h-12 text-stripe-text-muted mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-stripe-text mb-2">Addresses</h3>
+              <p className="text-stripe-text-secondary">Customer addresses will be displayed here</p>
+            </div>
+          )}
+
+          {activeTab === 'nominees' && (
+            <div className="text-center py-12">
+              <UserGroupIcon className="w-12 h-12 text-stripe-text-muted mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-stripe-text mb-2">Nominees</h3>
+              <p className="text-stripe-text-secondary">Customer nominees will be displayed here</p>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Edit Modal */}
-      <CustomerModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        customer={customer}
-        mode="edit"
-        onSave={handleEditCustomer}
+      {/* Loan Details Modal */}
+      <LoanDetailsModal
+        loan={selectedLoan}
+        isOpen={showLoanModal}
+        onClose={handleCloseLoanModal}
       />
     </div>
   );

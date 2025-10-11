@@ -44,8 +44,7 @@ export default function GeneralSettings() {
   const timezones = [
     { value: 'Asia/Kolkata', label: 'India (GMT+5:30)' },
     { value: 'Asia/Riyadh', label: 'Saudi Arabia (GMT+3)' },
-    { value: 'Asia/Karachi', label: 'Pakistan (GMT+5)' },
-    { value: 'Asia/Kolkata', label: 'India (GMT+5:30)' },
+    { value: 'Asia/Dubai', label: 'UAE (GMT+4)' },
     { value: 'Europe/London', label: 'London (GMT+0)' },
     { value: 'America/New_York', label: 'New York (GMT-5)' }
   ];

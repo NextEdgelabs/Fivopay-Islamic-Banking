@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 import {
   ChartBarIcon,
   UserIcon,
@@ -25,6 +26,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { CreditCardIcon } from "@heroicons/react/24/outline";
 import { SettingsProvider } from "./settings/context/SettingsContext";
+import { CustomerProvider } from "./customers/context/CustomerContext";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: ChartBarIcon },
@@ -495,8 +497,32 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { isAuthenticated, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, loading, router]);
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render dashboard if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <SettingsProvider>
+      <CustomerProvider>
         <div className="flex min-h-screen bg-stripe-background">
           <Sidebar />
           <div className="flex-1 flex flex-col ml-68">
@@ -504,6 +530,7 @@ export default function DashboardLayout({
             <main className="flex-1 p-6 max-w-7xl mx-auto w-full overflow-y-auto">{children}</main>
           </div>
         </div>
+      </CustomerProvider>
     </SettingsProvider>
   );
 }

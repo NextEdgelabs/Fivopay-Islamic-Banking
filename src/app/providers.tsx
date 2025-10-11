@@ -1,18 +1,17 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
 import { BankingModeProvider } from "@/context/BankingModeContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { ProductProvider } from "@/context/ProductContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider 
-      basePath="/api/auth"
-      refetchInterval={5 * 60} // Refetch session every 5 minutes
-      refetchOnWindowFocus={true}
-    >
+    <AuthProvider>
       <BankingModeProvider>
-        {children}
+        <ProductProvider>
+          {children}
+        </ProductProvider>
       </BankingModeProvider>
-    </SessionProvider>
+    </AuthProvider>
   );
 }

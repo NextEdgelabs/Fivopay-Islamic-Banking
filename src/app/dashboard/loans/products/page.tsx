@@ -1,7 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useAppContext } from "@/app/context/AppContext";
+import { useProductContext, useProductsByCategory } from "@/context/ProductContext";
+import { useBankingMode } from "@/context/BankingModeContext";
+import { LoanProduct } from "@/types/products";
 import { 
   PlusIcon,
   PencilIcon,
@@ -77,7 +79,9 @@ const ConfirmDialog = ({
 };
 
 export default function ProductManagementPage() {
-  const { products, addProduct, updateProduct, deleteProduct } = useAppContext();
+  const { addProduct, updateProduct, deleteProduct, getProductStats } = useProductContext();
+  const { currentMode } = useBankingMode();
+  const loanProducts = useProductsByCategory('loans');
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('All');
@@ -91,14 +95,24 @@ export default function ProductManagementPage() {
   });
   const [formData, setFormData] = useState({
     name: '',
-    type: 'Personal' as 'Personal' | 'Business' | 'Home' | 'Vehicle' | 'Education',
+    loanType: 'Personal' as string,
     minAmount: '',
     maxAmount: '',
+    profitRate: '0',
     interestRate: '0',
     tenure: '',
     status: 'Draft' as 'Active' | 'Inactive' | 'Draft',
     description: ''
   });
+
+  // Get available loan types based on banking mode
+  const getAvailableLoanTypes = () => {
+    if (currentMode === 'ethical') {
+      return ['Murabaha', 'Musharakah', 'Ijarah', 'Istisna', 'Salam'];
+    } else {
+      return ['Personal', 'Business', 'Home', 'Vehicle', 'Education'];
+    }
+  };
 
   // Toast functions
   const addToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -122,40 +136,55 @@ export default function ProductManagementPage() {
     setConfirmDialog({ isOpen: false, productId: '', productName: '' });
   };
 
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = loanProducts.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === 'All' || product.type === selectedType;
+    const matchesType = selectedType === 'All' || (product as LoanProduct).loanType === selectedType;
     const matchesStatus = selectedStatus === 'All' || product.status === selectedStatus;
     
     return matchesSearch && matchesType && matchesStatus;
   });
 
   const handleCreateProduct = () => {
-    if (!formData.name || !formData.type || !formData.minAmount || !formData.maxAmount || !formData.tenure || !formData.description) {
+    if (!formData.name || !formData.loanType || !formData.minAmount || !formData.maxAmount || !formData.tenure || !formData.description) {
       addToast('Please fill in all required fields', 'error');
       return;
     }
 
-    const newProduct = {
+    const newProduct: Partial<LoanProduct> = {
       name: formData.name,
-      type: formData.type,
+      description: formData.description,
+      category: 'loans',
+      bankingMode: currentMode,
+      status: formData.status as any,
+      loanType: formData.loanType as any,
       minAmount: parseInt(formData.minAmount),
       maxAmount: parseInt(formData.maxAmount),
-      interestRate: parseFloat(formData.interestRate),
       tenure: formData.tenure,
-      status: formData.status,
-      description: formData.description
+      applications: 0,
+      disbursed: 0,
+      isShariaCompliant: currentMode === 'ethical',
+      shariaBoardApproval: currentMode === 'ethical',
+      profitLossSharing: currentMode === 'ethical',
+      noInterest: currentMode === 'ethical'
     };
 
-    addProduct(newProduct);
+    // Add rate based on banking mode
+    if (currentMode === 'ethical') {
+      newProduct.profitRate = parseFloat(formData.profitRate);
+    } else {
+      newProduct.interestRate = parseFloat(formData.interestRate);
+    }
+
+    addProduct(newProduct as any);
 
     // Reset form
     setFormData({
       name: '',
-      type: 'Personal',
+      loanType: getAvailableLoanTypes()[0],
       minAmount: '',
       maxAmount: '',
+      profitRate: '0',
       interestRate: '0',
       tenure: '',
       status: 'Draft',
@@ -193,10 +222,11 @@ export default function ProductManagementPage() {
   };
 
   // Calculate statistics
-  const totalProducts = products.length;
-  const activeProducts = products.filter(p => p.status === 'Active').length;
-  const totalApplications = products.reduce((sum, p) => sum + p.applications, 0);
-  const totalDisbursed = products.reduce((sum, p) => sum + p.disbursed, 0);
+  const stats = getProductStats();
+  const totalProducts = loanProducts.length;
+  const activeProducts = loanProducts.filter(p => p.status === 'active').length;
+  const totalApplications = loanProducts.reduce((sum, p) => sum + (p as LoanProduct).applications, 0);
+  const totalDisbursed = loanProducts.reduce((sum, p) => sum + (p as LoanProduct).disbursed, 0);
 
   return (
     <div className="space-y-6">
@@ -285,11 +315,9 @@ export default function ProductManagementPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
             >
               <option value="All">All Types</option>
-              <option value="Personal">Personal</option>
-              <option value="Business">Business</option>
-              <option value="Home">Home</option>
-              <option value="Vehicle">Vehicle</option>
-              <option value="Education">Education</option>
+              {getAvailableLoanTypes().map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
             </select>
           </div>
           <div>
@@ -350,7 +378,7 @@ export default function ProductManagementPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {product.type}
+                      {(product as LoanProduct).loanType}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -368,7 +396,7 @@ export default function ProductManagementPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {product.applications} / {product.disbursed}
+                    {(product as LoanProduct).applications} / {(product as LoanProduct).disbursed}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                     <button className="text-blue-600 hover:text-blue-900">
@@ -417,15 +445,13 @@ export default function ProductManagementPage() {
                     Product Type *
                   </label>
                   <select
-                    value={formData.type}
-                    onChange={(e) => setFormData({...formData, type: e.target.value as any})}
+                    value={formData.loanType}
+                    onChange={(e) => setFormData({...formData, loanType: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
                   >
-                    <option value="Personal">Personal</option>
-                    <option value="Business">Business</option>
-                    <option value="Home">Home</option>
-                    <option value="Vehicle">Vehicle</option>
-                    <option value="Education">Education</option>
+                    {getAvailableLoanTypes().map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -471,17 +497,37 @@ export default function ProductManagementPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tenure *
-                </label>
-                <input
-                  type="text"
-                  value={formData.tenure}
-                  onChange={(e) => setFormData({...formData, tenure: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
-                  placeholder="e.g., 6-36 months"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {currentMode === 'ethical' ? 'Profit Rate (%)' : 'Interest Rate (%)'} *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="50"
+                    value={currentMode === 'ethical' ? formData.profitRate : formData.interestRate}
+                    onChange={(e) => setFormData({
+                      ...formData, 
+                      [currentMode === 'ethical' ? 'profitRate' : 'interestRate']: e.target.value
+                    })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
+                    placeholder="0.0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tenure *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.tenure}
+                    onChange={(e) => setFormData({...formData, tenure: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
+                    placeholder="e.g., 6-36 months"
+                  />
+                </div>
               </div>
 
               <div>

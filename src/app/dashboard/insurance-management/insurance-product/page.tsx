@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ShieldCheckIcon,
   PlusIcon,
@@ -15,6 +15,9 @@ import {
   XCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import { useProductContext, useProductsByCategory } from "@/context/ProductContext";
+import { useBankingMode } from "@/context/BankingModeContext";
+import { InsuranceProduct as InsuranceProductType } from "@/types/products";
 
 interface InsuranceProduct {
   id: string;
@@ -41,86 +44,29 @@ interface NewProductForm {
 }
 
 export default function InsuranceProductPage() {
-  const [products, setProducts] = useState<InsuranceProduct[]>([
-    {
-      id: "1",
-      name: "Health Insurance Plus",
-      category: "health",
-      description: "Comprehensive health insurance with regulatory-compliant coverage",
-      premium: 250,
-      coverage: 50000,
-      status: "active",
-      features: ["Hospitalization", "Outpatient", "Dental", "Vision"],
-      createdAt: "2024-01-01",
-      updatedAt: "2024-01-15",
-      subscribers: 1250,
-    },
-    {
-      id: "2",
-      name: "Life Insurance Protection",
-      category: "life",
-      description: "Life insurance with family protection benefits",
-      premium: 180,
-      coverage: 100000,
-      status: "active",
-      features: ["Death Benefit", "Disability", "Critical Illness"],
-      createdAt: "2024-01-01",
-      updatedAt: "2024-01-10",
-      subscribers: 890,
-    },
-    {
-      id: "3",
-      name: "Motor Insurance Shield",
-      category: "motor",
-      description: "Comprehensive motor vehicle insurance",
-      premium: 320,
-      coverage: 75000,
-      status: "active",
-      features: ["Accident Coverage", "Theft Protection", "Third Party"],
-      createdAt: "2024-01-01",
-      updatedAt: "2024-01-12",
-      subscribers: 2100,
-    },
-    {
-      id: "4",
-      name: "Property Insurance Guard",
-      category: "property",
-      description: "Home and property insurance coverage",
-      premium: 150,
-      coverage: 200000,
-      status: "active",
-      features: ["Fire Damage", "Natural Disasters", "Theft"],
-      createdAt: "2024-01-01",
-      updatedAt: "2024-01-08",
-      subscribers: 650,
-    },
-    {
-      id: "5",
-      name: "Travel Insurance Safe",
-      category: "travel",
-      description: "International travel insurance",
-      premium: 45,
-      coverage: 25000,
-      status: "active",
-      features: ["Medical Emergency", "Trip Cancellation", "Baggage Loss"],
-      createdAt: "2024-01-01",
-      updatedAt: "2024-01-05",
-      subscribers: 320,
-    },
-    {
-      id: "6",
-      name: "Business Insurance Protect",
-      category: "business",
-      description: "Business liability and property insurance",
-      premium: 450,
-      coverage: 500000,
-      status: "draft",
-      features: ["General Liability", "Property Damage", "Business Interruption"],
-      createdAt: "2024-01-15",
-      updatedAt: "2024-01-15",
-      subscribers: 0,
-    },
-  ]);
+  const { addProduct, updateProduct, deleteProduct } = useProductContext();
+  const { currentMode } = useBankingMode();
+  const insuranceProducts = useProductsByCategory('insurance');
+  
+  // Convert ProductContext products to local interface for compatibility
+  const [products, setProducts] = useState<InsuranceProduct[]>([]);
+  
+  useEffect(() => {
+    const convertedProducts = insuranceProducts.map(product => ({
+      id: product.id,
+      name: product.name,
+      category: (product as InsuranceProductType).insuranceType.toLowerCase() as any,
+      description: product.description,
+      premium: (product as InsuranceProductType).premium,
+      coverage: (product as InsuranceProductType).coverage,
+      status: product.status as any,
+      features: product.features || [],
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+      subscribers: (product as InsuranceProductType).subscribers,
+    }));
+    setProducts(convertedProducts);
+  }, [insuranceProducts]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -137,15 +83,17 @@ export default function InsuranceProductPage() {
   });
   const [newFeature, setNewFeature] = useState("");
 
-  const categories = [
-    { value: "all", label: "All Categories" },
-    { value: "health", label: "Health" },
-    { value: "life", label: "Life" },
-    { value: "motor", label: "Motor" },
-    { value: "property", label: "Property" },
-    { value: "travel", label: "Travel" },
-    { value: "business", label: "Business" },
-  ];
+  // Get available categories based on banking mode
+  const getAvailableCategories = () => {
+    const uniqueCategories = [...new Set(products.map(p => p.category))];
+    return [
+      { value: "all", label: "All Categories" },
+      ...uniqueCategories.map(cat => ({
+        value: cat,
+        label: cat.charAt(0).toUpperCase() + cat.slice(1)
+      }))
+    ];
+  };
 
   const statuses = [
     { value: "all", label: "All Status" },
@@ -230,14 +178,24 @@ export default function InsuranceProductPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newProductData: InsuranceProduct = {
-      id: (products.length + 1).toString(),
-      ...newProduct,
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0],
+    
+    const newProductData: Partial<InsuranceProductType> = {
+      name: newProduct.name,
+      description: newProduct.description,
+      category: 'insurance',
+      bankingMode: currentMode,
+      status: newProduct.status as any,
+      insuranceType: newProduct.category.charAt(0).toUpperCase() + newProduct.category.slice(1) as any,
+      premium: newProduct.premium,
+      coverage: newProduct.coverage,
       subscribers: 0,
+      features: newProduct.features,
+      isShariaCompliant: currentMode === 'ethical',
+      takafulModel: currentMode === 'ethical' ? 'Mudarabah' : undefined,
+      profitLossSharing: currentMode === 'ethical'
     };
-    setProducts([...products, newProductData]);
+
+    addProduct(newProductData as any);
     setShowAddModal(false);
     setNewProduct({
       name: "",
@@ -291,7 +249,7 @@ export default function InsuranceProductPage() {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="text-gray-700 w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              {categories.map((category) => (
+              {getAvailableCategories().map((category) => (
                 <option key={category.value} value={category.value}>
                   {category.label}
                 </option>
@@ -483,12 +441,22 @@ export default function InsuranceProductPage() {
                     onChange={(e) => setNewProduct({...newProduct, category: e.target.value as any})}
                     className="text-gray-700 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="health">Health</option>
-                    <option value="life">Life</option>
-                    <option value="motor">Motor</option>
-                    <option value="property">Property</option>
-                    <option value="travel">Travel</option>
-                    <option value="business">Business</option>
+                    {currentMode === 'ethical' ? (
+                      <>
+                        <option value="takaful">Takaful (Health)</option>
+                        <option value="family-takaful">Family Takaful</option>
+                        <option value="general-takaful">General Takaful</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="health">Health</option>
+                        <option value="life">Life</option>
+                        <option value="motor">Motor</option>
+                        <option value="property">Property</option>
+                        <option value="travel">Travel</option>
+                        <option value="business">Business</option>
+                      </>
+                    )}
                   </select>
                 </div>
 

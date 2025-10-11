@@ -37,7 +37,9 @@ export function BankingModeProvider({ children }: BankingModeProviderProps) {
   };
 
   const getProductTypes = (category: keyof BankingModeConfig['productTypes']): string[] => {
-    return config.productTypes[category];
+    // This method is deprecated - use ProductContext instead
+    // Return empty array for backward compatibility
+    return [];
   };
 
   const getComplianceRequirements = (): string[] => {

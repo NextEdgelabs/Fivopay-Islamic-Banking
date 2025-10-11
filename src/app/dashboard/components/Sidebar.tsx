@@ -1,7 +1,7 @@
 "use client";
-import { useSession, signOut } from "next-auth/react";
+import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   ChartBarIcon,
@@ -29,7 +29,8 @@ import { CreditCardIcon } from "@heroicons/react/24/outline";
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   // ... (rest of the component is unchanged)

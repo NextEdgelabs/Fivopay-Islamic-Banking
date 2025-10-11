@@ -16,7 +16,9 @@ export interface BankingModeConfig {
     conventionalInsurance: boolean;
   };
   complianceRequirements: string[];
-  productTypes: {
+  // Product types are now managed dynamically through ProductContext
+  // This field is kept for backward compatibility but will be populated from ProductContext
+  productTypes?: {
     deposits: string[];
     loans: string[];
     investments: string[];
@@ -52,12 +54,8 @@ export const BANKING_MODES: Record<BankingMode, BankingModeConfig> = {
       'Halal Investment Screening',
       'Profit-Loss Documentation'
     ],
-    productTypes: {
-      deposits: ['Savings Account (Wadiah)', 'Investment Account (Mudarabah)', 'Current Account'],
-      loans: ['Murabaha Financing', 'Musharakah Partnership', 'Ijarah Leasing', 'Istisna Manufacturing'],
-      investments: ['Sukuk Bonds', 'Sharia-Compliant Funds', 'Real Estate Investment'],
-      insurance: ['Takaful (Islamic Insurance)', 'Family Takaful', 'General Takaful']
-    }
+    // Product types are now managed dynamically through ProductContext
+    // This will be populated from ProductContext.getProductsByBankingMode('ethical')
   },
   conventional: {
     mode: 'conventional',
@@ -86,12 +84,8 @@ export const BANKING_MODES: Record<BankingMode, BankingModeConfig> = {
       'Capital Adequacy Ratios',
       'Anti-Money Laundering'
     ],
-    productTypes: {
-      deposits: ['Savings Account', 'Fixed Deposits', 'Current Account', 'Recurring Deposits'],
-      loans: ['Personal Loans', 'Home Loans', 'Business Loans', 'Credit Cards'],
-      investments: ['Mutual Funds', 'Corporate Bonds', 'Equity Investments', 'Government Securities'],
-      insurance: ['Life Insurance', 'Health Insurance', 'Property Insurance', 'Vehicle Insurance']
-    }
+    // Product types are now managed dynamically through ProductContext
+    // This will be populated from ProductContext.getProductsByBankingMode('conventional')
   }
 };
 

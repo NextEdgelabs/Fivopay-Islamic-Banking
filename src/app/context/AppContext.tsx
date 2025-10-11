@@ -16,20 +16,6 @@ export type Employee = {
   regulatoryCompliant?: boolean;
 };
 
-export type Customer = {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  accountType: string;
-  kycStatus: 'Verified' | 'Pending' | 'Under Review' | 'Rejected';
-  verificationLevel: string;
-  joinDate: string;
-  lastActivity?: string;
-  accountBalance: string;
-  status: 'Active' | 'Pending' | 'Inactive';
-};
-
 // Interfaces for different loan-related data types
 export interface LoanApplication {
   id: string;
@@ -229,84 +215,12 @@ const initialEmployees: Employee[] = [
   },
 ];
 
-const initialCustomers: Customer[] = [
-  {
-    id: "CUST-001",
-    name: "Rajesh Kumar",
-    email: "rajesh.kumar@email.com",
-    phone: "+91-98765-43210",
-    accountType: "Savings Account",
-    kycStatus: "Verified",
-    verificationLevel: "Level 3",
-    joinDate: "2023-11-15",
-    lastActivity: "2 hours ago",
-    accountBalance: "₹1,25,450",
-    status: "Active",
-  },
-  {
-    id: "CUST-002",
-    name: "Priya Sharma",
-    email: "priya.sharma@email.com", 
-    phone: "+91-98765-12345",
-    accountType: "Current Account",
-    kycStatus: "Verified",
-    verificationLevel: "Level 2",
-    joinDate: "2023-10-22",
-    lastActivity: "1 day ago",
-    accountBalance: "₹87,320",
-    status: "Active",
-  },
-  {
-    id: "CUST-003",
-    name: "Amit Singh",
-    email: "amit.singh@email.com",
-    phone: "+91-98765-67890",
-    accountType: "Lease Financing",
-    kycStatus: "Pending",
-    verificationLevel: "Level 1",
-    joinDate: "2023-12-01",
-    lastActivity: "5 days ago",
-    accountBalance: "₹45,600",
-    status: "Pending",
-  },
-  {
-    id: "CUST-004",
-    name: "Sunita Patel",
-    email: "sunita.patel@email.com",
-    phone: "+91-98765-11111",
-    accountType: "Investment Account",
-    kycStatus: "Verified",
-    verificationLevel: "Level 3",
-    joinDate: "2023-09-10",
-    lastActivity: "3 hours ago",
-    accountBalance: "₹2,34,890",
-    status: "Active",
-  },
-  {
-    id: "CUST-005",
-    name: "Vikram Gupta",
-    email: "vikram.gupta@email.com",
-    phone: "+91-98765-55555",
-    accountType: "Savings Account",
-    kycStatus: "Under Review",
-    verificationLevel: "Level 2",
-    joinDate: "2023-11-28",
-    lastActivity: "1 week ago",
-    accountBalance: "₹67,120",
-    status: "Inactive",
-  },
-];
-
 // Create the context
 type AppContextType = {
   employees: Employee[];
-  customers: Customer[];
   addEmployee: (employee: Omit<Employee, 'id'>) => string;
   updateEmployee: (employee: Employee) => void;
   deleteEmployee: (id: string) => void;
-  addCustomer: (customer: Omit<Customer, 'id'>) => string;
-  updateCustomer: (customer: Customer) => void;
-  deleteCustomer: (id: string) => void;
   applications: LoanApplication[];
   addApplication: (application: Omit<LoanApplication, 'id' | 'submittedDate' | 'lastUpdate'>) => void;
   updateApplication: (id: string, updates: Partial<LoanApplication>) => void;
@@ -344,22 +258,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return initialEmployees;
   });
 
-  const [customers, setCustomers] = useState<Customer[]>(() => {
-    // Try to load from localStorage on client side
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('fivopay_customers');
-      return saved ? JSON.parse(saved) : initialCustomers;
-    }
-    return initialCustomers;
-  });
-
   // Save to localStorage whenever state changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('fivopay_employees', JSON.stringify(employees));
-      localStorage.setItem('fivopay_customers', JSON.stringify(customers));
     }
-  }, [employees, customers]);
+  }, [employees]);
 
   // Generate a unique ID
   const generateId = (prefix: string) => {
@@ -385,27 +289,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const deleteEmployee = (id: string) => {
     setEmployees(prev => prev.filter(emp => emp.id !== id));
-  };
-
-  // Customer CRUD operations
-  const addCustomer = (customer: Omit<Customer, 'id'>) => {
-    const id = generateId('CUST');
-    const newCustomer = { 
-      ...customer, 
-      id, 
-      joinDate: new Date().toISOString().split('T')[0]
-    } as Customer;
-    
-    setCustomers(prev => [...prev, newCustomer]);
-    return id;
-  };
-
-  const updateCustomer = (customer: Customer) => {
-    setCustomers(prev => prev.map(cust => cust.id === customer.id ? customer : cust));
-  };
-
-  const deleteCustomer = (id: string) => {
-    setCustomers(prev => prev.filter(cust => cust.id !== id));
   };
 
   // Loan Application CRUD operations
@@ -477,71 +360,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setApplications(prev => prev.filter(app => app.id !== id));
   };
 
-  // Loan Product CRUD operations
-  const [products, setProducts] = useState<LoanProduct[]>([
-    {
-      id: '1',
-      name: 'Personal Loan',
-      type: 'Personal',
-      minAmount: 50000,
-      maxAmount: 1000000,
-      interestRate: 0,
-      tenure: '6-36 months',
-      status: 'Active',
-      applications: 156,
-      disbursed: 89,
-      createdDate: '2024-01-15',
-      description: 'compliant personal financing based on financing principles'
-    },
-    {
-      id: '2',
-      name: 'Business Term Loan',
-      type: 'Business',
-      minAmount: 500000,
-      maxAmount: 10000000,
-      interestRate: 0,
-      tenure: '12-60 months',
-      status: 'Active',
-      applications: 78,
-      disbursed: 45,
-      createdDate: '2024-01-10',
-      description: 'Competitive business financing with flexible repayment terms'
-    },
-    {
-      id: '3',
-      name: 'Home Purchase Plan',
-      type: 'Home',
-      minAmount: 1000000,
-      maxAmount: 50000000,
-      interestRate: 0,
-      tenure: '60-240 months',
-      status: 'Active',
-      applications: 234,
-      disbursed: 167,
-      createdDate: '2024-01-05',
-      description: 'Standard home financing with competitive mortgage rates'
-    }
-  ]);
+  // Loan Product CRUD operations - Now managed by ProductContext
+  const [products, setProducts] = useState<LoanProduct[]>([]);
 
+  // Product operations are now handled by ProductContext
+  // These methods are kept for backward compatibility but should not be used
   const addProduct = (product: Omit<LoanProduct, 'id' | 'createdDate' | 'applications' | 'disbursed'>) => {
-    const newProduct: LoanProduct = {
-      ...product,
-      id: generateId('PRD'),
-      createdDate: new Date().toISOString().split('T')[0],
-      applications: 0,
-      disbursed: 0,
-    };
-    setProducts(prev => [...prev, newProduct]);
+    console.warn('addProduct is deprecated. Use ProductContext instead.');
+    // This method is deprecated - use ProductContext instead
   };
 
   const updateProduct = (id: string, updates: Partial<LoanProduct>) => {
-    setProducts(prev => prev.map(product => 
-      product.id === id ? { ...product, ...updates } : product
-    ));
+    console.warn('updateProduct is deprecated. Use ProductContext instead.');
+    // This method is deprecated - use ProductContext instead
   };
 
   const deleteProduct = (id: string) => {
-    setProducts(prev => prev.filter(product => product.id !== id));
+    console.warn('deleteProduct is deprecated. Use ProductContext instead.');
+    // This method is deprecated - use ProductContext instead
   };
 
   // Loan Approval CRUD operations
@@ -768,13 +604,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value: AppContextType = {
     employees,
-    customers,
     addEmployee,
     updateEmployee,
     deleteEmployee,
-    addCustomer,
-    updateCustomer,
-    deleteCustomer,
     applications,
     addApplication,
     updateApplication,

@@ -56,7 +56,7 @@ export interface BankingSettings {
 }
 
 export interface OrganizationSettings {
-  bankingModel: 'standard' | 'conventional';
+  bankingModel: 'ethical' | 'conventional';
   organizationName: string;
   organizationCode: string;
   complianceFramework: {
@@ -67,7 +67,7 @@ export interface OrganizationSettings {
   branding: {
     displayName: string;
     tagline: string;
-    primaryBankingTerms: 'standard' | 'generic' | 'conventional';
+    primaryBankingTerms: 'ethical' | 'generic' | 'conventional';
   };
   operationalMode: {
     interestBasedProducts: boolean;
@@ -130,4 +130,5 @@ export type SettingsCategory =
   | 'dashboard'
   | 'system'
   | 'organization'
-  | 'import-export';
+  | 'import-export'
+  | 'products';

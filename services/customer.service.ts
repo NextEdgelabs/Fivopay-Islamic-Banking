@@ -1,394 +1,400 @@
-/**
- * Customer Service - Handles all customer-related API operations
- * This service provides a clean abstraction layer for customer operations
- * Ready for real API integration - just replace mock functions with actual API calls
- */
+import { apiClient, API_ENDPOINTS, ApiResponse, ApiError } from '../api';
+import { logger } from '../utils/logger';
+import { 
+  Customer, 
+  CustomerKYC, 
+  CustomerDocument, 
+  CustomerAddress, 
+  CustomerNominee,
+  CustomerAccount,
+  CreateCustomerRequest,
+  UpdateCustomerRequest,
+  CustomerSearchFilters,
+  CustomerListResponse,
+  CustomerStats,
+  CustomerType,
+  CustomerStatus,
+  KYCStatus,
+  RiskRating
+} from '../src/types/customer';
 
-import { Customer } from '@/app/context/AppContext';
-
-// Types for customer operations
-export interface CreateCustomerRequest {
-  name: string;
-  email: string;
-  phone?: string;
-  accountType: string;
-  kycStatus?: Customer['kycStatus'];
-  verificationLevel?: string;
-  accountBalance?: string;
-  status?: Customer['status'];
-}
-
-export interface UpdateCustomerRequest {
-  id: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  accountType?: string;
-  kycStatus?: Customer['kycStatus'];
-  verificationLevel?: string;
-  accountBalance?: string;
-  status?: Customer['status'];
-}
-
-export interface CustomerSearchFilters {
-  search?: string;
-  status?: string;
-  kycStatus?: string;
-  accountType?: string;
-  verificationLevel?: string;
-  dateRange?: {
-    from?: string;
-    to?: string;
-  };
-  balanceRange?: {
-    min?: number;
-    max?: number;
-  };
-}
-
-export interface CustomerSearchParams extends CustomerSearchFilters {
-  page?: number;
-  limit?: number;
-  sortBy?: keyof Customer;
-  sortOrder?: 'asc' | 'desc';
-}
-
-export interface PaginatedCustomers {
-  customers: Customer[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface BulkCustomerAction {
-  customerIds: string[];
-  action: 'updateStatus' | 'updateKyc' | 'sendMessage' | 'export' | 'delete';
-  payload?: {
-    status?: Customer['status'];
-    kycStatus?: Customer['kycStatus'];
-    message?: string;
-    exportFormat?: 'csv' | 'excel';
-  };
-}
-
-export interface CustomerStats {
-  totalCustomers: number;
-  activeCustomers: number;
-  newCustomersToday: number;
-  newCustomersThisMonth: number;
-  activeRate: number;
-  kycVerificationRate: number;
-  accountTypeDistribution: Record<string, number>;
-  kycStatusDistribution: Record<string, number>;
-  recentActivity: number;
-}
-
-/**
- * Customer Service Class
- * Provides all customer-related operations with error handling and type safety
- */
-class CustomerService {
-  private baseUrl = '/api/customers'; // Will be used when real API is implemented
-
-  /**
-   * Get paginated list of customers with filtering and sorting
-   */
-  async getCustomers(params: CustomerSearchParams = {}): Promise<PaginatedCustomers> {
+// Customer Service Class
+export class CustomerService {
+  // Customer CRUD Operations
+  static async getCustomers(filters?: CustomerSearchFilters): Promise<ApiResponse<CustomerListResponse>> {
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`${this.baseUrl}?${new URLSearchParams(params)}`);
-      // return await response.json();
-      
-      // Mock implementation - remove when API is ready
-      return this.mockGetCustomers(params);
-    } catch (error) {
-      console.error('Error fetching customers:', error);
-      throw new Error('Failed to fetch customers');
-    }
-  }
-
-  /**
-   * Get a single customer by ID
-   */
-  async getCustomerById(id: string): Promise<Customer | null> {
-    try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`${this.baseUrl}/${id}`);
-      // return await response.json();
-      
-      // Mock implementation
-      return this.mockGetCustomerById(id);
-    } catch (error) {
-      console.error('Error fetching customer:', error);
-      throw new Error('Failed to fetch customer');
-    }
-  }
-
-  /**
-   * Create a new customer
-   */
-  async createCustomer(customerData: CreateCustomerRequest): Promise<Customer> {
-    try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(this.baseUrl, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(customerData)
-      // });
-      // return await response.json();
-      
-      // Mock implementation
-      return this.mockCreateCustomer(customerData);
-    } catch (error) {
-      console.error('Error creating customer:', error);
-      throw new Error('Failed to create customer');
-    }
-  }
-
-  /**
-   * Update an existing customer
-   */
-  async updateCustomer(customerData: UpdateCustomerRequest): Promise<Customer> {
-    try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`${this.baseUrl}/${customerData.id}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(customerData)
-      // });
-      // return await response.json();
-      
-      // Mock implementation
-      return this.mockUpdateCustomer(customerData);
-    } catch (error) {
-      console.error('Error updating customer:', error);
-      throw new Error('Failed to update customer');
-    }
-  }
-
-  /**
-   * Delete a customer
-   */
-  async deleteCustomer(id: string): Promise<void> {
-    try {
-      // TODO: Replace with actual API call
-      // await fetch(`${this.baseUrl}/${id}`, { method: 'DELETE' });
-      
-      // Mock implementation
-      await this.mockDeleteCustomer(id);
-    } catch (error) {
-      console.error('Error deleting customer:', error);
-      throw new Error('Failed to delete customer');
-    }
-  }
-
-  /**
-   * Perform bulk operations on multiple customers
-   */
-  async bulkAction(action: BulkCustomerAction): Promise<void> {
-    try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`${this.baseUrl}/bulk`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(action)
-      // });
-      
-      // Mock implementation
-      await this.mockBulkAction(action);
-    } catch (error) {
-      console.error('Error performing bulk action:', error);
-      throw new Error('Failed to perform bulk action');
-    }
-  }
-
-  /**
-   * Get customer statistics and analytics
-   */
-  async getCustomerStats(): Promise<CustomerStats> {
-    try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`${this.baseUrl}/stats`);
-      // return await response.json();
-      
-      // Mock implementation
-      return this.mockGetCustomerStats();
-    } catch (error) {
-      console.error('Error fetching customer stats:', error);
-      throw new Error('Failed to fetch customer stats');
-    }
-  }
-
-  /**
-   * Send message to customers
-   */
-  async sendMessage(customerIds: string[], message: string): Promise<void> {
-    try {
-      // TODO: Replace with actual API call
-      // await fetch(`${this.baseUrl}/message`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ customerIds, message })
-      // });
-      
-      // Mock implementation
-      await this.mockSendMessage(customerIds, message);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      throw new Error('Failed to send message');
-    }
-  }
-
-  /**
-   * Export customers data
-   */
-  async exportCustomers(filters: CustomerSearchFilters, format: 'csv' | 'excel' = 'csv'): Promise<Blob> {
-    try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`${this.baseUrl}/export`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ filters, format })
-      // });
-      // return await response.blob();
-      
-      // Mock implementation
-      return this.mockExportCustomers(filters, format);
-    } catch (error) {
-      console.error('Error exporting customers:', error);
-      throw new Error('Failed to export customers');
-    }
-  }
-
-  // ===== MOCK IMPLEMENTATIONS (Remove when API is ready) =====
-
-  private mockGetCustomers(params: CustomerSearchParams): Promise<PaginatedCustomers> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // This would normally come from AppContext or API
-        const mockCustomers: Customer[] = []; // Will be populated from AppContext
-        
-        resolve({
-          customers: mockCustomers,
-          total: mockCustomers.length,
-          page: params.page || 1,
-          limit: params.limit || 10,
-          totalPages: Math.ceil(mockCustomers.length / (params.limit || 10))
+      const params = new URLSearchParams();
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            params.append(key, value.toString());
+          }
         });
-      }, 300);
-    });
+      }
+      
+      const queryString = params.toString();
+      const endpoint = queryString ? `${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMERS}?${queryString}` : API_ENDPOINTS.CUSTOMERS.GET_CUSTOMERS;
+      
+      return await apiClient.get<CustomerListResponse>(endpoint);
+    } catch (error) {
+      logger.apiError('Failed to fetch customers', error, API_ENDPOINTS.CUSTOMERS.GET_CUSTOMERS);
+      throw error;
+    }
   }
 
-  private mockGetCustomerById(id: string): Promise<Customer | null> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // This would normally come from API
-        resolve(null); // Will be implemented with AppContext
-      }, 200);
-    });
+  static async getCustomerById(customerId: string): Promise<ApiResponse<Customer>> {
+    try {
+      return await apiClient.get<Customer>(`${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_BY_ID}/${customerId}`);
+    } catch (error) {
+      logger.apiError('Failed to fetch customer by ID', error, `${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_BY_ID}/${customerId}`);
+      throw error;
+    }
   }
 
-  private mockCreateCustomer(customerData: CreateCustomerRequest): Promise<Customer> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newCustomer: Customer = {
-          id: `CUST-${Date.now()}`,
-          name: customerData.name,
-          email: customerData.email,
-          phone: customerData.phone,
-          accountType: customerData.accountType,
-          kycStatus: customerData.kycStatus || 'Pending',
-          verificationLevel: customerData.verificationLevel || 'Level 1',
-          joinDate: new Date().toISOString().split('T')[0],
-          lastActivity: 'Just now',
-          accountBalance: customerData.accountBalance || '₹0',
-          status: customerData.status || 'Pending'
-        };
-        resolve(newCustomer);
-      }, 500);
-    });
+  static async createCustomer(customerData: CreateCustomerRequest): Promise<ApiResponse<Customer>> {
+    try {
+      return await apiClient.post<Customer>(API_ENDPOINTS.CUSTOMERS.CREATE_CUSTOMER, customerData);
+    } catch (error) {
+      logger.apiError('Failed to create customer', error, API_ENDPOINTS.CUSTOMERS.CREATE_CUSTOMER);
+      throw error;
+    }
   }
 
-  private mockUpdateCustomer(customerData: UpdateCustomerRequest): Promise<Customer> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Mock updated customer - would come from API response
-        const updatedCustomer: Customer = {
-          id: customerData.id,
-          name: customerData.name || 'Updated Customer',
-          email: customerData.email || 'updated@example.com',
-          phone: customerData.phone,
-          accountType: customerData.accountType || 'savings',
-          kycStatus: customerData.kycStatus || 'Pending',
-          verificationLevel: customerData.verificationLevel || 'Level 1',
-          joinDate: '2024-01-01',
-          lastActivity: 'Just now',
-          accountBalance: customerData.accountBalance || '₹0',
-          status: customerData.status || 'Active'
-        };
-        resolve(updatedCustomer);
-      }, 500);
-    });
+  static async updateCustomer(customerId: string, updates: UpdateCustomerRequest): Promise<ApiResponse<Customer>> {
+    try {
+      return await apiClient.put<Customer>(`${API_ENDPOINTS.CUSTOMERS.UPDATE_CUSTOMER}/${customerId}`, updates);
+    } catch (error) {
+      logger.apiError('Failed to update customer', error, `${API_ENDPOINTS.CUSTOMERS.UPDATE_CUSTOMER}/${customerId}`);
+      throw error;
+    }
   }
 
-  private mockDeleteCustomer(id: string): Promise<void> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(`Mock: Deleted customer ${id}`);
-        resolve();
-      }, 300);
-    });
+  static async deleteCustomer(customerId: string): Promise<ApiResponse<{ success: boolean }>> {
+    try {
+      return await apiClient.delete(`${API_ENDPOINTS.CUSTOMERS.DELETE_CUSTOMER}/${customerId}`);
+    } catch (error) {
+      logger.apiError('Failed to delete customer', error, `${API_ENDPOINTS.CUSTOMERS.DELETE_CUSTOMER}/${customerId}`);
+      throw error;
+    }
   }
 
-  private mockBulkAction(action: BulkCustomerAction): Promise<void> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(`Mock: Performed ${action.action} on ${action.customerIds.length} customers`);
-        resolve();
-      }, 1000);
-    });
+  // Customer Statistics
+  static async getCustomerStats(): Promise<ApiResponse<CustomerStats>> {
+    try {
+      return await apiClient.get<CustomerStats>(API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_STATS);
+    } catch (error) {
+      logger.apiError('Failed to fetch customer stats', error, API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_STATS);
+      throw error;
+    }
   }
 
-  private mockGetCustomerStats(): Promise<CustomerStats> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          totalCustomers: 0,
-          activeCustomers: 0,
-          newCustomersToday: 0,
-          newCustomersThisMonth: 0,
-          activeRate: 0,
-          kycVerificationRate: 0,
-          accountTypeDistribution: {},
-          kycStatusDistribution: {},
-          recentActivity: 0
+  // KYC Operations
+  static async getCustomerKYC(customerId: string): Promise<ApiResponse<CustomerKYC>> {
+    try {
+      return await apiClient.get<CustomerKYC>(`${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_KYC}/${customerId}`);
+    } catch (error) {
+      logger.apiError('Failed to fetch customer KYC', error, `${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_KYC}/${customerId}`);
+      throw error;
+    }
+  }
+
+  static async updateCustomerKYC(customerId: string, kycData: Partial<CustomerKYC>): Promise<ApiResponse<CustomerKYC>> {
+    try {
+      return await apiClient.put<CustomerKYC>(`${API_ENDPOINTS.CUSTOMERS.UPDATE_CUSTOMER_KYC}/${customerId}`, kycData);
+    } catch (error) {
+      logger.apiError('Failed to update customer KYC', error, `${API_ENDPOINTS.CUSTOMERS.UPDATE_CUSTOMER_KYC}/${customerId}`);
+      throw error;
+    }
+  }
+
+  static async verifyKYC(customerId: string, kycId: string): Promise<ApiResponse<{ verified: boolean }>> {
+    try {
+      return await apiClient.post(`${API_ENDPOINTS.CUSTOMERS.VERIFY_KYC}/${customerId}/${kycId}`);
+    } catch (error) {
+      logger.apiError('Failed to verify KYC', error, `${API_ENDPOINTS.CUSTOMERS.VERIFY_KYC}/${customerId}/${kycId}`);
+      throw error;
+    }
+  }
+
+  // Document Operations
+  static async getCustomerDocuments(customerId: string): Promise<ApiResponse<CustomerDocument[]>> {
+    try {
+      return await apiClient.get<CustomerDocument[]>(`${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_DOCUMENTS}/${customerId}`);
+    } catch (error) {
+      logger.apiError('Failed to fetch customer documents', error, `${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_DOCUMENTS}/${customerId}`);
+      throw error;
+    }
+  }
+
+  static async uploadDocument(customerId: string, document: FormData): Promise<ApiResponse<CustomerDocument>> {
+    try {
+      return await apiClient.post<CustomerDocument>(`${API_ENDPOINTS.CUSTOMERS.UPLOAD_DOCUMENT}/${customerId}`, document, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    } catch (error) {
+      logger.apiError('Failed to upload document', error, `${API_ENDPOINTS.CUSTOMERS.UPLOAD_DOCUMENT}/${customerId}`);
+      throw error;
+    }
+  }
+
+  static async deleteDocument(customerId: string, documentId: string): Promise<ApiResponse<{ success: boolean }>> {
+    try {
+      return await apiClient.delete(`${API_ENDPOINTS.CUSTOMERS.DELETE_DOCUMENT}/${customerId}/${documentId}`);
+    } catch (error) {
+      logger.apiError('Failed to delete document', error, `${API_ENDPOINTS.CUSTOMERS.DELETE_DOCUMENT}/${customerId}/${documentId}`);
+      throw error;
+    }
+  }
+
+  // Address Operations
+  static async getCustomerAddresses(customerId: string): Promise<ApiResponse<CustomerAddress[]>> {
+    try {
+      return await apiClient.get<CustomerAddress[]>(`${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_ADDRESSES}/${customerId}`);
+    } catch (error) {
+      logger.apiError('Failed to fetch customer addresses', error, `${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_ADDRESSES}/${customerId}`);
+      throw error;
+    }
+  }
+
+  static async addCustomerAddress(customerId: string, address: Omit<CustomerAddress, 'addressId' | 'customerId' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<CustomerAddress>> {
+    try {
+      return await apiClient.post<CustomerAddress>(`${API_ENDPOINTS.CUSTOMERS.ADD_CUSTOMER_ADDRESS}/${customerId}`, address);
+    } catch (error) {
+      logger.apiError('Failed to add customer address', error, `${API_ENDPOINTS.CUSTOMERS.ADD_CUSTOMER_ADDRESS}/${customerId}`);
+      throw error;
+    }
+  }
+
+  static async updateCustomerAddress(customerId: string, addressId: string, updates: Partial<CustomerAddress>): Promise<ApiResponse<CustomerAddress>> {
+    try {
+      return await apiClient.put<CustomerAddress>(`${API_ENDPOINTS.CUSTOMERS.UPDATE_CUSTOMER_ADDRESS}/${customerId}/${addressId}`, updates);
+    } catch (error) {
+      logger.apiError('Failed to update customer address', error, `${API_ENDPOINTS.CUSTOMERS.UPDATE_CUSTOMER_ADDRESS}/${customerId}/${addressId}`);
+      throw error;
+    }
+  }
+
+  static async deleteCustomerAddress(customerId: string, addressId: string): Promise<ApiResponse<{ success: boolean }>> {
+    try {
+      return await apiClient.delete(`${API_ENDPOINTS.CUSTOMERS.DELETE_CUSTOMER_ADDRESS}/${customerId}/${addressId}`);
+    } catch (error) {
+      logger.apiError('Failed to delete customer address', error, `${API_ENDPOINTS.CUSTOMERS.DELETE_CUSTOMER_ADDRESS}/${customerId}/${addressId}`);
+      throw error;
+    }
+  }
+
+  // Nominee Operations
+  static async getCustomerNominees(customerId: string): Promise<ApiResponse<CustomerNominee[]>> {
+    try {
+      return await apiClient.get<CustomerNominee[]>(`${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_NOMINEES}/${customerId}`);
+    } catch (error) {
+      logger.apiError('Failed to fetch customer nominees', error, `${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_NOMINEES}/${customerId}`);
+      throw error;
+    }
+  }
+
+  static async addCustomerNominee(customerId: string, nominee: Omit<CustomerNominee, 'nomineeId' | 'customerId' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<CustomerNominee>> {
+    try {
+      return await apiClient.post<CustomerNominee>(`${API_ENDPOINTS.CUSTOMERS.ADD_CUSTOMER_NOMINEE}/${customerId}`, nominee);
+    } catch (error) {
+      logger.apiError('Failed to add customer nominee', error, `${API_ENDPOINTS.CUSTOMERS.ADD_CUSTOMER_NOMINEE}/${customerId}`);
+      throw error;
+    }
+  }
+
+  static async updateCustomerNominee(customerId: string, nomineeId: string, updates: Partial<CustomerNominee>): Promise<ApiResponse<CustomerNominee>> {
+    try {
+      return await apiClient.put<CustomerNominee>(`${API_ENDPOINTS.CUSTOMERS.UPDATE_CUSTOMER_NOMINEE}/${customerId}/${nomineeId}`, updates);
+    } catch (error) {
+      logger.apiError('Failed to update customer nominee', error, `${API_ENDPOINTS.CUSTOMERS.UPDATE_CUSTOMER_NOMINEE}/${customerId}/${nomineeId}`);
+      throw error;
+    }
+  }
+
+  static async deleteCustomerNominee(customerId: string, nomineeId: string): Promise<ApiResponse<{ success: boolean }>> {
+    try {
+      return await apiClient.delete(`${API_ENDPOINTS.CUSTOMERS.DELETE_CUSTOMER_NOMINEE}/${customerId}/${nomineeId}`);
+    } catch (error) {
+      logger.apiError('Failed to delete customer nominee', error, `${API_ENDPOINTS.CUSTOMERS.DELETE_CUSTOMER_NOMINEE}/${customerId}/${nomineeId}`);
+      throw error;
+    }
+  }
+
+  // Account Operations
+  static async getCustomerAccounts(customerId: string): Promise<ApiResponse<CustomerAccount[]>> {
+    try {
+      return await apiClient.get<CustomerAccount[]>(`${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_ACCOUNTS}/${customerId}`);
+    } catch (error) {
+      logger.apiError('Failed to fetch customer accounts', error, `${API_ENDPOINTS.CUSTOMERS.GET_CUSTOMER_ACCOUNTS}/${customerId}`);
+      throw error;
+    }
+  }
+
+  // Risk Assessment
+  static async assessCustomerRisk(customerId: string): Promise<ApiResponse<{ riskRating: RiskRating; riskScore: number; factors: string[] }>> {
+    try {
+      return await apiClient.post(`${API_ENDPOINTS.CUSTOMERS.ASSESS_CUSTOMER_RISK}/${customerId}`);
+    } catch (error) {
+      logger.apiError('Failed to assess customer risk', error, `${API_ENDPOINTS.CUSTOMERS.ASSESS_CUSTOMER_RISK}/${customerId}`);
+      throw error;
+    }
+  }
+
+  // Customer Status Management
+  static async updateCustomerStatus(customerId: string, status: CustomerStatus, reason?: string): Promise<ApiResponse<{ success: boolean }>> {
+    try {
+      return await apiClient.patch(`${API_ENDPOINTS.CUSTOMERS.UPDATE_CUSTOMER_STATUS}/${customerId}`, { status, reason });
+    } catch (error) {
+      logger.apiError('Failed to update customer status', error, `${API_ENDPOINTS.CUSTOMERS.UPDATE_CUSTOMER_STATUS}/${customerId}`);
+      throw error;
+    }
+  }
+
+  // Bulk Operations
+  static async bulkUpdateCustomers(updates: Array<{ customerId: string; updates: Partial<Customer> }>): Promise<ApiResponse<{ success: number; failed: number; errors: string[] }>> {
+    try {
+      return await apiClient.post(API_ENDPOINTS.CUSTOMERS.BULK_UPDATE_CUSTOMERS, { updates });
+    } catch (error) {
+      logger.apiError('Failed to bulk update customers', error, API_ENDPOINTS.CUSTOMERS.BULK_UPDATE_CUSTOMERS);
+      throw error;
+    }
+  }
+
+  static async exportCustomers(filters?: CustomerSearchFilters): Promise<ApiResponse<{ downloadUrl: string; expiresAt: string }>> {
+    try {
+      const params = new URLSearchParams();
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            params.append(key, value.toString());
+          }
         });
-      }, 400);
-    });
+      }
+      
+      const queryString = params.toString();
+      const endpoint = queryString ? `${API_ENDPOINTS.CUSTOMERS.EXPORT_CUSTOMERS}?${queryString}` : API_ENDPOINTS.CUSTOMERS.EXPORT_CUSTOMERS;
+      
+      return await apiClient.get(endpoint);
+    } catch (error) {
+      logger.apiError('Failed to export customers', error, API_ENDPOINTS.CUSTOMERS.EXPORT_CUSTOMERS);
+      throw error;
+    }
   }
 
-  private mockSendMessage(customerIds: string[], message: string): Promise<void> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(`Mock: Sent message to ${customerIds.length} customers: ${message}`);
-        resolve();
-      }, 800);
-    });
-  }
+  // Validation
+  static validateCustomerData(customerData: Partial<Customer>): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
 
-  private mockExportCustomers(filters: CustomerSearchFilters, format: 'csv' | 'excel'): Promise<Blob> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const mockData = `Customer ID,Name,Email,Status\nCUST-001,John Doe,john@example.com,Active`;
-        resolve(new Blob([mockData], { type: 'text/csv' }));
-      }, 1500);
-    });
+    // Required field validation
+    if (customerData.firstName && customerData.firstName.trim().length < 2) {
+      errors.push('First name must be at least 2 characters');
+    }
+
+    if (customerData.lastName && customerData.lastName.trim().length < 2) {
+      errors.push('Last name must be at least 2 characters');
+    }
+
+    if (customerData.primaryEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerData.primaryEmail)) {
+      errors.push('Invalid email format');
+    }
+
+    if (customerData.primaryMobile && !/^\+?[\d\s\-\(\)]+$/.test(customerData.primaryMobile)) {
+      errors.push('Invalid mobile number format');
+    }
+
+    if (customerData.dateOfBirth) {
+      const birthDate = new Date(customerData.dateOfBirth);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      
+      if (age < 18) {
+        errors.push('Customer must be at least 18 years old');
+      }
+      
+      if (age > 100) {
+        errors.push('Invalid birth date');
+      }
+    }
+
+    if (customerData.annualIncome && customerData.annualIncome < 0) {
+      errors.push('Annual income cannot be negative');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
   }
 }
 
-// Create and export a singleton instance
-export const customerService = new CustomerService();
+// Customer Cache Management
+export class CustomerCache {
+  private static readonly CACHE_KEY = 'fivopay_customers_cache';
+  private static readonly CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 
-// Export the class for testing or custom instantiation
-export { CustomerService };
+  static set(customers: Customer[]): void {
+    if (typeof window === 'undefined') return;
+
+    const cacheData = {
+      customers,
+      timestamp: Date.now(),
+      expiresAt: Date.now() + this.CACHE_DURATION
+    };
+
+    try {
+      localStorage.setItem(this.CACHE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+      console.warn('Failed to cache customers:', error);
+    }
+  }
+
+  static get(): Customer[] | null {
+    if (typeof window === 'undefined') return null;
+
+    try {
+      const cached = localStorage.getItem(this.CACHE_KEY);
+      if (!cached) return null;
+
+      const cacheData = JSON.parse(cached);
+      
+      if (Date.now() > cacheData.expiresAt) {
+        this.clear();
+        return null;
+      }
+
+      return cacheData.customers;
+    } catch (error) {
+      console.warn('Failed to read customers cache:', error);
+      this.clear();
+      return null;
+    }
+  }
+
+  static clear(): void {
+    if (typeof window === 'undefined') return;
+    
+    try {
+      localStorage.removeItem(this.CACHE_KEY);
+    } catch (error) {
+      console.warn('Failed to clear customers cache:', error);
+    }
+  }
+
+  static isExpired(): boolean {
+    if (typeof window === 'undefined') return true;
+
+    try {
+      const cached = localStorage.getItem(this.CACHE_KEY);
+      if (!cached) return true;
+
+      const cacheData = JSON.parse(cached);
+      return Date.now() > cacheData.expiresAt;
+    } catch (error) {
+      return true;
+    }
+  }
+}
+
+export default CustomerService;

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -12,25 +12,29 @@ export default function LoginPage() {
   const [password, setPassword] = useState("password");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { login, isAuthenticated } = useAuth();
   const router = useRouter();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    const result = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
+    const success = await login(email, password);
 
     setLoading(false);
 
-    if (result?.error) {
-      setError("Invalid email or password. Please try again.");
-    } else if (result?.ok) {
+    if (success) {
       router.push("/dashboard");
+    } else {
+      setError("Invalid email or password. Please try again.");
     }
   };
 

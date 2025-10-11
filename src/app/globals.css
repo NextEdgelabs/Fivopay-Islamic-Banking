@@ -37,15 +37,35 @@ a {
 
 /* Stripe-style buttons */
 .btn {
-  @apply px-4 py-2 rounded-stripe font-medium text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200;
+  @apply px-6 py-2.5 rounded-stripe font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 inline-flex items-center justify-center gap-2;
 }
 
 .btn-primary {
-  @apply bg-stripe-primary text-white hover:bg-stripe-primary-dark focus:ring-stripe-primary shadow-stripe-sm;
+  @apply bg-stripe-primary text-white hover:bg-stripe-primary-dark active:bg-[#4C44DB] focus:ring-stripe-primary shadow-stripe disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-stripe-primary;
 }
 
 .btn-secondary {
-  @apply bg-white text-stripe-text border border-stripe-border hover:bg-gray-50 focus:ring-stripe-primary shadow-stripe-sm;
+  @apply bg-white text-stripe-text border-2 border-stripe-border hover:bg-stripe-background hover:border-stripe-text-secondary active:bg-gray-100 focus:ring-stripe-primary shadow-stripe-sm;
+}
+
+.btn-danger {
+  @apply bg-stripe-error text-white hover:bg-[#E8442E] active:bg-[#D63C26] focus:ring-stripe-error shadow-stripe disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-icon {
+  @apply p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1;
+}
+
+.btn-icon-view {
+  @apply btn-icon text-stripe-primary hover:bg-stripe-info-light focus:ring-stripe-primary;
+}
+
+.btn-icon-edit {
+  @apply btn-icon text-stripe-warning hover:bg-stripe-warning-light focus:ring-stripe-warning;
+}
+
+.btn-icon-delete {
+  @apply btn-icon text-stripe-error hover:bg-stripe-error-light focus:ring-stripe-error;
 }
 
 /* Stripe-style cards */

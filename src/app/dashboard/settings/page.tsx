@@ -15,6 +15,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   XMarkIcon,
+  BanknotesIcon,
 } from '@heroicons/react/24/outline';
 import { useSettings } from './context/SettingsContext';
 import { SettingsCategory } from './types';
@@ -29,6 +30,7 @@ import DashboardSettings from './components/DashboardSettings';
 import SystemSettings from './components/SystemSettings';
 import OrganizationSettings from './components/OrganizationSettings';
 import ImportExportSettings from './components/ImportExportSettings';
+import ProductSettings from './components/ProductSettings';
 
 // Settings categories configuration
 const SETTINGS_CATEGORIES: Array<{
@@ -90,6 +92,12 @@ const SETTINGS_CATEGORIES: Array<{
     label: 'Data Management',
     icon: ArrowDownTrayIcon,
     description: 'Import, export, and backup settings'
+  },
+  {
+    id: 'products',
+    label: 'Product Configuration',
+    icon: BanknotesIcon,
+    description: 'Manage banking products and services'
   }
 ];
 
@@ -175,6 +183,8 @@ export default function SettingsPage() {
         );
       case 'import-export':
         return <ImportExportSettings onToast={addToast} />;
+      case 'products':
+        return <ProductSettings />;
       default:
         return <GeneralSettings />;
     }
