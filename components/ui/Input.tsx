@@ -19,6 +19,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       rightIcon,
       className,
       id,
+      value,
       ...props
     },
     ref
@@ -56,6 +57,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               rightIcon && 'pr-10',
               className
             )}
+            value={value ?? ''}
             {...props}
           />
           {rightIcon && (

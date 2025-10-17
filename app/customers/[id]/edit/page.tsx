@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -24,64 +24,144 @@ import {
   FileText,
   Shield,
   ArrowLeft,
+  Loader,
+  TrendingUp,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
+import { useCustomer } from '@/hooks/useCustomer';
+import { useCustomerMutations } from '@/hooks/useCustomerMutations';
+import { validateFile, convertToBase64 } from '@/lib/fileUpload';
+import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
+import SharePurchaseHistory from '@/components/customers/SharePurchaseHistory';
 
 export default function EditCustomerPage() {
   const router = useRouter();
   const params = useParams();
   const customerId = params?.id as string;
   const { addToast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mock customer data - in real app, fetch from API
-  const initialData = {
-    // Primary Details
-    fullName: 'Ahmed Hassan',
-    email: 'ahmed.hassan@email.com',
-    phone: '+91 98765 43210',
-    alternatePhone: '+91 98765 43211',
-    dateOfBirth: '1988-05-15',
-    gender: 'Male',
-    maritalStatus: 'Married',
-    fatherName: 'Mohammed Hassan',
-    motherName: 'Fatima Hassan',
-    occupation: 'Business Owner',
-    annualIncome: '1200000',
-    addressLine1: '123, MG Road',
-    addressLine2: 'Andheri West',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    postalCode: '400058',
+  // Fetch customer data
+  const { customer, loading: fetchLoading } = useCustomer(customerId);
+  const { updateCustomer, loading: isSubmitting } = useCustomerMutations();
+  const { isEthicalBanking } = useOrganizationSettings();
+
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    alternatePhone: '',
+    dateOfBirth: '',
+    gender: '',
+    maritalStatus: '',
+    fatherName: '',
+    motherName: '',
+    occupation: '',
+    annualIncome: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    postalCode: '',
     country: 'India',
-    accountType: 'Savings',
-    branch: 'Mumbai Central',
-    status: 'Active',
-    nomineeName: 'Fatima Hassan',
-    nomineeRelation: 'Spouse',
-    nomineePhone: '+91 98765 43211',
-    nomineeAddress: '123, MG Road, Andheri West, Mumbai, Maharashtra - 400058',
+    accountType: '',
+    branch: '',
+    status: '',
+    nomineeName: '',
+    nomineeRelation: '',
+    nomineePhone: '',
+    nomineeAddress: '',
+    aadhaarNumber: '',
+    panNumber: '',
+    passportNumber: '',
+    drivingLicenseNumber: '',
+    voterIdNumber: '',
+    addressProofType: '',
+    addressProofNumber: '',
+    kycStatus: 'Pending',
+    kycNotes: '',
+  });
 
-    // KYC Details
-    aadhaarNumber: '123456789012',
-    panNumber: 'ABCDE1234F',
-    passportNumber: 'A1234567',
-    drivingLicenseNumber: 'MH1234567890123',
-    voterIdNumber: 'ABC1234567',
-    addressProofType: 'Utility Bill',
-    addressProofNumber: 'UB123456',
-    kycStatus: 'Verified',
-    kycNotes: 'All documents verified successfully',
-  };
-
-  const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleChange = (
+  // Populate form when customer data loads
+  useEffect(() => {
+    if (customer) {
+      setFormData({
+        fullName: customer.fullName || '',
+        email: customer.email || '',
+        phone: customer.phone || '',
+        alternatePhone: customer.alternatePhone || '',
+        dateOfBirth: customer.dateOfBirth || '',
+        gender: customer.gender || '',
+        maritalStatus: customer.maritalStatus || '',
+        fatherName: customer.fatherName || '',
+        motherName: customer.motherName || '',
+        occupation: customer.occupation || '',
+        annualIncome: customer.annualIncome?.toString() || '',
+        addressLine1: customer.addressLine1 || '',
+        addressLine2: customer.addressLine2 || '',
+        city: customer.city || '',
+        state: customer.state || '',
+        postalCode: customer.postalCode || '',
+        country: customer.country || 'India',
+        accountType: customer.accountType || '',
+        branch: customer.branch || '',
+        status: customer.status || '',
+        nomineeName: customer.nomineeName || '',
+        nomineeRelation: customer.nomineeRelation || '',
+        nomineePhone: customer.nomineePhone || '',
+        nomineeAddress: customer.nomineeAddress || '',
+        aadhaarNumber: customer.aadhaarNumber || '',
+        panNumber: customer.panNumber || '',
+        passportNumber: customer.passportNumber || '',
+        drivingLicenseNumber: customer.drivingLicenseNumber || '',
+        voterIdNumber: customer.voterIdNumber || '',
+        addressProofType: customer.addressProofType || '',
+        addressProofNumber: customer.addressProofNumber || '',
+        kycStatus: customer.kycStatus || 'Pending',
+        kycNotes: customer.kycNotes || '',
+      });
+    }
+  }, [customer]);
+
+  const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+
+    // Handle file uploads
+    if (type === 'file') {
+      const input = e.target as HTMLInputElement;
+      const file = input.files?.[0];
+
+      if (file) {
+        const validation = validateFile(file, {
+          maxSize: 5 * 1024 * 1024, // 5MB
+          allowedTypes: ['image/*', 'application/pdf'],
+        });
+
+        if (!validation.valid) {
+          addToast({
+            type: 'error',
+            message: validation.error || 'Invalid file',
+          });
+          return;
+        }
+
+        try {
+          const base64 = await convertToBase64(file);
+          setFormData((prev) => ({ ...prev, [name]: base64 }));
+        } catch (err) {
+          addToast({
+            type: 'error',
+            message: 'Failed to process file',
+          });
+        }
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -126,17 +206,25 @@ export default function EditCustomerPage() {
       return;
     }
 
-    setIsSubmitting(true);
+    try {
+      // Transform form data to match UpdateCustomerDto
+      const customerData = {
+        ...formData,
+        annualIncome: formData.annualIncome ? parseFloat(formData.annualIncome) : undefined,
+      } as any;
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+      await updateCustomer(customerId, customerData);
       addToast({
         type: 'success',
         message: `Customer ${formData.fullName} has been updated successfully!`,
       });
       router.push(`/customers/${customerId}`);
-    }, 1500);
+    } catch (err) {
+      addToast({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Failed to update customer',
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -685,6 +773,18 @@ export default function EditCustomerPage() {
     </div>
   );
 
+  // Loading state
+  if (fetchLoading) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 max-w-5xl mx-auto space-y-6 animate-pulse">
+          <div className="h-8 bg-neutral-200 rounded w-1/4"></div>
+          <div className="h-96 bg-neutral-200 rounded"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -720,6 +820,17 @@ export default function EditCustomerPage() {
                   icon: <Shield className="h-4 w-4" />,
                   content: kycDocumentsContent,
                 },
+                // Conditionally add Share Purchase tab for Ethical Banking
+                ...(isEthicalBanking
+                  ? [
+                      {
+                        id: 'shares',
+                        label: 'Share Purchase History',
+                        icon: <TrendingUp className="h-4 w-4" />,
+                        content: <SharePurchaseHistory customerId={customerId} mode="edit" />,
+                      },
+                    ]
+                  : []),
               ]}
               defaultTab="primary"
             />

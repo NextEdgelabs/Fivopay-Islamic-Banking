@@ -1,14 +1,21 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-export interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label: string;
+export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+  label?: string;
   helperText?: string;
+  onCheckedChange?: (checked: boolean) => void;
 }
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ label, helperText, className, id, ...props }, ref) => {
-    const checkboxId = id || label.toLowerCase().replace(/\s+/g, '-');
+  ({ label, helperText, className, id, onCheckedChange, ...props }, ref) => {
+    const checkboxId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : React.useId());
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (onCheckedChange) {
+        onCheckedChange(event.target.checked);
+      }
+    };
 
     return (
       <div className="flex items-start">
@@ -23,20 +30,23 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
               'disabled:cursor-not-allowed disabled:opacity-50',
               className
             )}
+            onChange={handleChange}
             {...props}
           />
         </div>
-        <div className="ml-3 text-sm">
-          <label
-            htmlFor={checkboxId}
-            className="font-medium text-neutral-700 cursor-pointer"
-          >
-            {label}
-          </label>
-          {helperText && (
-            <p className="text-neutral-500 mt-0.5">{helperText}</p>
-          )}
-        </div>
+        {label && (
+          <div className="ml-3 text-sm">
+            <label
+              htmlFor={checkboxId}
+              className="font-medium text-neutral-700 cursor-pointer"
+            >
+              {label}
+            </label>
+            {helperText && (
+              <p className="text-neutral-500 mt-0.5">{helperText}</p>
+            )}
+          </div>
+        )}
       </div>
     );
   }

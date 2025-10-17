@@ -19,6 +19,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       className,
       id,
       placeholder,
+      value,
       ...props
     },
     ref
@@ -48,6 +49,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             'disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed',
             className
           )}
+          value={value ?? ''}
           {...props}
         >
           {placeholder && (

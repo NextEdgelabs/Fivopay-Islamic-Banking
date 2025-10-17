@@ -23,13 +23,19 @@ import {
   CreditCard,
   FileText,
   Shield,
+  TrendingUp,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
+import { useCustomerMutations } from '@/hooks/useCustomerMutations';
+import { validateFile, convertToBase64 } from '@/lib/fileUpload';
+import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
+import SharePurchaseHistory from '@/components/customers/SharePurchaseHistory';
 
 export default function AddCustomerPage() {
   const router = useRouter();
   const { addToast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createCustomer, loading: isSubmitting } = useCustomerMutations();
+  const { isEthicalBanking } = useOrganizationSettings();
 
   const [formData, setFormData] = useState({
     // Primary Details
@@ -72,11 +78,44 @@ export default function AddCustomerPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleChange = (
+  const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+
+    // Handle file uploads
+    if (type === 'file') {
+      const input = e.target as HTMLInputElement;
+      const file = input.files?.[0];
+
+      if (file) {
+        const validation = validateFile(file, {
+          maxSize: 5 * 1024 * 1024, // 5MB
+          allowedTypes: ['image/*', 'application/pdf'],
+        });
+
+        if (!validation.valid) {
+          addToast({
+            type: 'error',
+            message: validation.error || 'Invalid file',
+          });
+          return;
+        }
+
+        try {
+          const base64 = await convertToBase64(file);
+          setFormData((prev) => ({ ...prev, [name]: base64 }));
+        } catch (err) {
+          addToast({
+            type: 'error',
+            message: 'Failed to process file',
+          });
+        }
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -138,17 +177,26 @@ export default function AddCustomerPage() {
       return;
     }
 
-    setIsSubmitting(true);
+    try {
+      // Transform form data to match CreateCustomerDto
+      const customerData = {
+        ...formData,
+        annualIncome: formData.annualIncome ? parseFloat(formData.annualIncome) : undefined,
+        initialDeposit: parseFloat(formData.initialDeposit),
+      } as any;
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+      await createCustomer(customerData);
       addToast({
         type: 'success',
         message: `Customer ${formData.fullName} has been added successfully!`,
       });
       router.push('/customers');
-    }, 1500);
+    } catch (err) {
+      addToast({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Failed to create customer',
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -742,6 +790,17 @@ export default function AddCustomerPage() {
                   icon: <Shield className="h-4 w-4" />,
                   content: kycDocumentsContent,
                 },
+                // Conditionally add Share Purchase tab for Ethical Banking
+                ...(isEthicalBanking
+                  ? [
+                      {
+                        id: 'shares',
+                        label: 'Share Purchase History',
+                        icon: <TrendingUp className="h-4 w-4" />,
+                        content: <SharePurchaseHistory customerId="" mode="add" />,
+                      },
+                    ]
+                  : []),
               ]}
               defaultTab="primary"
             />

@@ -15,6 +15,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       helperText,
       className,
       id,
+      value,
       ...props
     },
     ref
@@ -44,6 +45,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             'disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed',
             className
           )}
+          value={value ?? ''}
           {...props}
         />
         {(error || helperText) && (

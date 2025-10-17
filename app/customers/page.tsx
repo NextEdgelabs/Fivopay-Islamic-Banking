@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -26,128 +26,56 @@ import {
   Mail,
   Phone,
   UserCircle,
+  Loader,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
+import { useCustomers } from '@/hooks/useCustomers';
+import { useCustomerMutations } from '@/hooks/useCustomerMutations';
+import { Customer } from '@/services/customers';
+import { useBranches } from '@/hooks/useBranches';
+import { INDIAN_STATES, CITIES_BY_STATE } from '@/lib/indiaData';
 
 export default function CustomersPage() {
   const router = useRouter();
+  const { customers, loading, error, refetch, setFilters } = useCustomers();
+  const { branches } = useBranches(); // Fetch branches for the filter dropdown
+  const { deleteCustomer, loading: isDeleting } = useCustomerMutations();
   const { addToast } = useToast();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedState, setSelectedState] = useState('');
   const itemsPerPage = 10;
 
-  // Sample customer data
-  const allCustomers = [
-    {
-      id: 'CUS001',
-      name: 'Ahmed Hassan',
-      email: 'ahmed.hassan@email.com',
-      phone: '+91 98765 43210',
-      accountType: 'Savings',
-      balance: 348000,
-      status: 'Active',
-      joinedDate: '2024-01-15',
-      address: 'Mumbai, Maharashtra',
-      occupation: 'Business Owner',
-    },
-    {
-      id: 'CUS002',
-      name: 'Fatima Ali',
-      email: 'fatima.ali@email.com',
-      phone: '+91 98765 43211',
-      accountType: 'Current',
-      balance: 950000,
-      status: 'Active',
-      joinedDate: '2024-02-20',
-      address: 'Delhi, Delhi',
-      occupation: 'Software Engineer',
-    },
-    {
-      id: 'CUS003',
-      name: 'Mohammed Khan',
-      email: 'mohammed.khan@email.com',
-      phone: '+91 98765 43212',
-      accountType: 'Savings',
-      balance: 607000,
-      status: 'Inactive',
-      joinedDate: '2023-11-10',
-      address: 'Bangalore, Karnataka',
-      occupation: 'Doctor',
-    },
-    {
-      id: 'CUS004',
-      name: 'Aisha Rahman',
-      email: 'aisha.rahman@email.com',
-      phone: '+91 98765 43213',
-      accountType: 'Business',
-      balance: 1806000,
-      status: 'Active',
-      joinedDate: '2024-03-05',
-      address: 'Hyderabad, Telangana',
-      occupation: 'Entrepreneur',
-    },
-    {
-      id: 'CUS005',
-      name: 'Omar Yusuf',
-      email: 'omar.yusuf@email.com',
-      phone: '+91 98765 43214',
-      accountType: 'Savings',
-      balance: 437000,
-      status: 'Active',
-      joinedDate: '2024-04-12',
-      address: 'Pune, Maharashtra',
-      occupation: 'Teacher',
-    },
-    {
-      id: 'CUS006',
-      name: 'Sarah Ahmed',
-      email: 'sarah.ahmed@email.com',
-      phone: '+91 98765 43215',
-      accountType: 'Current',
-      balance: 725000,
-      status: 'Active',
-      joinedDate: '2024-05-18',
-      address: 'Chennai, Tamil Nadu',
-      occupation: 'Architect',
-    },
-    {
-      id: 'CUS007',
-      name: 'Bilal Hussain',
-      email: 'bilal.hussain@email.com',
-      phone: '+91 98765 43216',
-      accountType: 'Savings',
-      balance: 298000,
-      status: 'Pending',
-      joinedDate: '2024-06-22',
-      address: 'Kolkata, West Bengal',
-      occupation: 'Accountant',
-    },
-    {
-      id: 'CUS008',
-      name: 'Zainab Malik',
-      email: 'zainab.malik@email.com',
-      phone: '+91 98765 43217',
-      accountType: 'Business',
-      balance: 1425000,
-      status: 'Active',
-      joinedDate: '2024-07-08',
-      address: 'Ahmedabad, Gujarat',
-      occupation: 'Consultant',
-    },
-  ];
+  useEffect(() => {
+    // ... existing useEffect for search debounce
+  }, [searchTerm, setFilters]);
+
+  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const state = e.target.value;
+    setSelectedState(state);
+    setFilters(prev => ({ ...prev, state, city: '' })); // Reset city when state changes
+  };
+
+  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   // Filter customers
-  const filteredCustomers = allCustomers.filter((customer) => {
-    const matchesSearch =
-      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.id.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredCustomers = useMemo(() => {
+    return customers.filter((customer) => {
+      const matchesSearch =
+        customer.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.customerId.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === 'all' || customer.status === statusFilter;
+      const matchesStatus = customer.status === 'Active'; // Assuming 'Active' is the default status filter
+      const matchesBranch = customer.branch === 'All Branches' || customer.branch === 'All Cities' || customer.branch === 'All States'; // Assuming 'All Branches' is the default branch filter
+      const matchesState = customer.state === 'All States' || customer.state === 'All Cities'; // Assuming 'All States' is the default state filter
+      const matchesCity = customer.city === 'All Cities'; // Assuming 'All Cities' is the default city filter
 
-    return matchesSearch && matchesStatus;
-  });
+      return matchesSearch && matchesStatus && matchesBranch && matchesState && matchesCity;
+    });
+  }, [customers, searchTerm]);
 
   // Pagination
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
@@ -156,15 +84,15 @@ export default function CustomersPage() {
 
   const columns = [
     {
-      key: 'name',
+      key: 'fullName',
       header: 'Customer',
       sortable: true,
       render: (_: any, row: any) => (
         <div className="flex items-center gap-3">
-          <Avatar size="sm" fallback={row.name} />
+          <Avatar size="sm" fallback={row.fullName} />
           <div>
-            <p className="font-medium text-neutral-900">{row.name}</p>
-            <p className="text-sm text-neutral-500">{row.id}</p>
+            <p className="font-medium text-neutral-900">{row.fullName}</p>
+            <p className="text-sm text-neutral-500">{row.customerId}</p>
           </div>
         </div>
       ),
@@ -204,7 +132,7 @@ export default function CustomersPage() {
       ),
     },
     {
-      key: 'balance',
+      key: 'currentBalance',
       header: 'Balance',
       sortable: true,
       render: (value: number) => (
@@ -259,12 +187,21 @@ export default function CustomersPage() {
     },
   ];
 
-  const handleDelete = (customer: any) => {
-    if (confirm(`Are you sure you want to delete ${customer.name}?`)) {
-      addToast({
-        type: 'success',
-        message: `${customer.name} has been deleted`,
-      });
+  const handleDelete = async (customer: any) => {
+    if (confirm(`Are you sure you want to delete ${customer.fullName}?`)) {
+      try {
+        await deleteCustomer(customer.id);
+        addToast({
+          type: 'success',
+          message: `${customer.fullName} has been deleted successfully`,
+        });
+        refetch(); // Refresh the list
+      } catch (err) {
+        addToast({
+          type: 'error',
+          message: 'Failed to delete customer',
+        });
+      }
     }
   };
 
@@ -279,6 +216,41 @@ export default function CustomersPage() {
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Customers', href: '/customers' },
   ];
+
+  // Loading state
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 space-y-6 animate-pulse">
+          <div className="h-8 bg-neutral-200 rounded w-1/4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 bg-neutral-200 rounded"></div>
+            ))}
+          </div>
+          <div className="h-96 bg-neutral-200 rounded"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="p-6">
+          <Card>
+            <div className="p-12 text-center">
+              <p className="text-error-500 mb-4">Error: {error}</p>
+              <Button variant="primary" onClick={() => refetch()}>
+                Try Again
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -307,7 +279,7 @@ export default function CustomersPage() {
               <div>
                 <p className="text-sm text-neutral-600">Total Customers</p>
                 <p className="text-2xl font-bold text-neutral-900 mt-1">
-                  {allCustomers.length}
+                  {customers.length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-primary-100 rounded-stripe flex items-center justify-center">
@@ -322,7 +294,7 @@ export default function CustomersPage() {
               <div>
                 <p className="text-sm text-neutral-600">Active Accounts</p>
                 <p className="text-2xl font-bold text-neutral-900 mt-1">
-                  {allCustomers.filter((c) => c.status === 'Active').length}
+                  {customers.filter((c) => c.status === 'Active').length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center">
@@ -330,7 +302,7 @@ export default function CustomersPage() {
               </div>
             </div>
             <p className="text-xs text-success-600 mt-2">
-              {((allCustomers.filter((c) => c.status === 'Active').length / allCustomers.length) * 100).toFixed(0)}% active rate
+              {((customers.filter((c) => c.status === 'Active').length / customers.length) * 100).toFixed(0)}% active rate
             </p>
           </Card>
 
@@ -367,20 +339,39 @@ export default function CustomersPage() {
             <div className="flex-1">
               <Input
                 placeholder="Search by name, email, or ID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>
             <div className="w-full md:w-48">
               <Select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                value={customer.branch}
+                onChange={handleFilterChange}
                 options={[
-                  { value: 'all', label: 'All Status' },
-                  { value: 'Active', label: 'Active' },
-                  { value: 'Inactive', label: 'Inactive' },
-                  { value: 'Pending', label: 'Pending' },
+                  { value: 'All Branches', label: 'All Branches' },
+                  ...branches.map(b => ({ value: b.branchName, label: b.branchName }))
+                ]}
+              />
+            </div>
+            <div className="w-full md:w-48">
+              <Select
+                value={selectedState}
+                onChange={handleStateChange}
+                options={[
+                  { value: 'All States', label: 'All States' },
+                  ...INDIAN_STATES.map(s => ({ value: s, label: s }))
+                ]}
+              />
+            </div>
+            <div className="w-full md:w-48">
+              <Select
+                value={customer.city}
+                onChange={handleFilterChange}
+                disabled={!selectedState}
+                options={[
+                  { value: 'All Cities', label: 'All Cities' },
+                  ...(CITIES_BY_STATE[selectedState] || []).map(c => ({ value: c, label: c }))
                 ]}
               />
             </div>
