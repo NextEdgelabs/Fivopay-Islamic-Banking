@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -15,44 +15,27 @@ import {
   Skeleton,
   Breadcrumbs,
 } from '@/components/ui';
-import { Search, Plus, Edit, Trash2, DollarSign, Check, X } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, DollarSign, Users, TrendingUp, AlertCircle, Eye, Download } from 'lucide-react';
 import { useLoans } from '@/hooks/useLoans';
 import { useLoanMutations } from '@/hooks/useLoanMutations';
 import { useToast } from '@/components/ui/Toast';
 
 export default function LoansPage() {
   const router = useRouter();
-  const { loans: allLoans, loading, error, refetch } = useLoans();
+  const { loans, loading, error, refetch, filters, setFilters } = useLoans();
   const { deleteLoan } = useLoanMutations();
   const { addToast } = useToast();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  // Filter loans
-  const filteredLoans = useMemo(() => {
-    return allLoans.filter((loan) => {
-      const matchesSearch =
-        loan.loanId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        loan.applicationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        loan.customerName.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesStatus = statusFilter ? loan.status === statusFilter : true;
-      const matchesType = typeFilter ? loan.loanType === typeFilter : true;
-
-      return matchesSearch && matchesStatus && matchesType;
-    });
-  }, [allLoans, searchTerm, statusFilter, typeFilter]);
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredLoans.length / itemsPerPage);
-  const paginatedLoans = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredLoans.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredLoans, currentPage]);
+  const totalPages = Math.ceil(loans.length / itemsPerPage);
+  const paginatedLoans = loans.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleDelete = async (loan: any) => {
     if (confirm(`Are you sure you want to delete loan ${loan.loanId}?`)) {
@@ -91,7 +74,10 @@ export default function LoansPage() {
       <DashboardLayout>
         <div className="p-6 space-y-6">
           <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-64 w-full" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24" />)}
+          </div>
+          <Skeleton className="h-96 w-full" />
         </div>
       </DashboardLayout>
     );
@@ -121,94 +107,68 @@ export default function LoansPage() {
     {
       key: 'loanId',
       header: 'Loan ID',
-      render: (loan: any) => (
-        <div className="font-medium text-neutral-900">{loan.loanId}</div>
+      render: (value: string, row: any) => (
+        <div>
+          <p className="font-medium text-neutral-900">{row.loanId}</p>
+          <p className="text-sm text-neutral-500">{row.applicationNumber}</p>
+        </div>
       ),
     },
     {
       key: 'customer',
       header: 'Customer',
-      render: (loan: any) => (
+      render: (value: string, row: any) => (
         <div>
           <Link
-            href={`/customers/${loan.customerId}`}
+            href={`/customers/${row.customerId}`}
             className="font-medium text-primary-600 hover:text-primary-700"
           >
-            {loan.customerName}
+            {row.customerName}
           </Link>
-          <div className="text-sm text-neutral-500">{loan.customerPhone}</div>
+          <div className="text-sm text-neutral-500">{row.customerPhone}</div>
         </div>
       ),
     },
     {
       key: 'loanType',
       header: 'Type',
-      render: (loan: any) => (
-        loan ? <Badge variant="neutral">{loan.loanType}</Badge> : null
-      ),
+      render: (value: string) => <Badge variant="neutral">{value}</Badge>,
     },
     {
-      key: 'amount',
+      key: 'loanAmount',
       header: 'Amount',
-      render: (loan: any) => (
-        <div className="font-semibold text-neutral-900">
-          ₹{loan.loanAmount.toLocaleString('en-IN')}
-        </div>
-      ),
+      render: (value: number) => <div className="font-semibold">₹{value.toLocaleString('en-IN')}</div>,
     },
     {
-      key: 'emi',
+      key: 'emiAmount',
       header: 'EMI',
-      render: (loan: any) => (
-        <div className="text-neutral-700">
-          ₹{loan.emiAmount.toLocaleString('en-IN')}
-        </div>
-      ),
+      render: (value: number) => <div>₹{value.toLocaleString('en-IN')}</div>,
     },
     {
       key: 'tenure',
       header: 'Tenure',
-      render: (loan: any) => (
-        <div className="text-neutral-700">{loan.tenure} months</div>
-      ),
+      render: (value: number) => <div>{value} months</div>,
     },
     {
       key: 'status',
       header: 'Status',
-      render: (loan: any) => getStatusBadge(loan.status),
+      render: (value: string) => getStatusBadge(value),
     },
     {
       key: 'actions',
       header: 'Actions',
-      render: (loan: any) => (
+      render: (_: any, row: any) => (
         <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push(`/loans/${loan.id}`)}
-          >
-            View
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            icon={<Edit className="h-4 w-4" />}
-            onClick={() => router.push(`/loans/${loan.id}/edit`)}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            icon={<Trash2 className="h-4 w-4" />}
-            onClick={() => handleDelete(loan)}
-          >
-            Delete
-          </Button>
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/loans/${row.id}`)}}><Eye className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/loans/${row.id}/edit`)}}><Edit className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(row)}}><Trash2 className="h-4 w-4" /></Button>
         </div>
       ),
     },
   ];
+  
+  const totalLoanValue = loans.reduce((acc, loan) => acc + loan.loanAmount, 0);
+  const activeLoans = loans.filter(l => l.status === 'Active');
 
   return (
     <DashboardLayout>
@@ -222,30 +182,67 @@ export default function LoansPage() {
               Manage all loan applications and disbursements
             </p>
           </div>
-          <Button
-            icon={<Plus className="h-5 w-5" />}
-            onClick={() => router.push('/loans/add')}
-          >
+          <Button onClick={() => router.push('/loans/add')}>
+            <Plus className="mr-2 h-4 w-4" />
             Add Loan
           </Button>
         </div>
 
-        <Card className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="md:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card padding="sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-neutral-600">Total Loans</p>
+                <p className="text-2xl font-bold">{loans.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-primary-100 rounded-stripe flex items-center justify-center"><Users className="h-6 w-6 text-primary-600" /></div>
+            </div>
+          </Card>
+          <Card padding="sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-neutral-600">Total Value</p>
+                <p className="text-2xl font-bold">₹{totalLoanValue.toLocaleString('en-IN')}</p>
+              </div>
+              <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center"><DollarSign className="h-6 w-6 text-success-600" /></div>
+            </div>
+          </Card>
+          <Card padding="sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-neutral-600">Active Loans</p>
+                <p className="text-2xl font-bold">{activeLoans.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-info-100 rounded-stripe flex items-center justify-center"><TrendingUp className="h-6 w-6 text-info-600" /></div>
+            </div>
+          </Card>
+           <Card padding="sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-neutral-600">Defaulted Loans</p>
+                <p className="text-2xl font-bold">{loans.filter(l => l.status === 'Defaulted').length}</p>
+              </div>
+              <div className="w-12 h-12 bg-error-100 rounded-stripe flex items-center justify-center"><AlertCircle className="h-6 w-6 text-error-600" /></div>
+            </div>
+          </Card>
+        </div>
+
+        <Card>
+          <div className="p-4 flex flex-col md:flex-row gap-4">
+            <div className="w-full md:w-1/3">
               <Input
-                placeholder="Search loans..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search loans by ID, App No, or Customer..."
+                value={filters.search || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>
             <Select
-              placeholder="Filter by status"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              name="status"
+              value={filters.status || ''}
+              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
               options={[
-                { value: '', label: 'All Status' },
+                { value: '', label: 'All Statuses' },
                 { value: 'Pending', label: 'Pending' },
                 { value: 'Under Review', label: 'Under Review' },
                 { value: 'Approved', label: 'Approved' },
@@ -253,12 +250,13 @@ export default function LoansPage() {
                 { value: 'Disbursed', label: 'Disbursed' },
                 { value: 'Active', label: 'Active' },
                 { value: 'Closed', label: 'Closed' },
+                { value: 'Defaulted', label: 'Defaulted' },
               ]}
             />
             <Select
-              placeholder="Filter by type"
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
+              name="loanType"
+              value={filters.loanType || ''}
+              onChange={(e) => setFilters(prev => ({ ...prev, loanType: e.target.value }))}
               options={[
                 { value: '', label: 'All Types' },
                 { value: 'Personal Loan', label: 'Personal Loan' },
@@ -269,25 +267,26 @@ export default function LoansPage() {
                 { value: 'Gold Loan', label: 'Gold Loan' },
               ]}
             />
+             <Button variant="outline" onClick={() => { /* Implement Export */ }}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
           </div>
 
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-sm text-neutral-600">
-              Showing {paginatedLoans.length} of {filteredLoans.length} loans
-            </p>
-          </div>
-
-          {filteredLoans.length === 0 ? (
+          {loans.length === 0 ? (
             <div className="text-center py-12">
               <DollarSign className="h-12 w-12 mx-auto text-neutral-400 mb-3" />
-              <p className="text-neutral-500">No loans found</p>
+              <p className="text-neutral-500">No loans found for the current filters.</p>
             </div>
           ) : (
             <>
-              <Table columns={columns} data={paginatedLoans} />
+              <Table columns={columns} data={paginatedLoans} onRowClick={(row) => router.push(`/loans/${row.id}`)} />
 
               {totalPages > 1 && (
-                <div className="mt-6">
+                <div className="p-4 border-t flex items-center justify-between">
+                   <p className="text-sm text-neutral-600">
+                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, loans.length)} of {loans.length} loans
+                  </p>
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}

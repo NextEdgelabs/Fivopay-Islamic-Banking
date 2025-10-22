@@ -12,6 +12,7 @@ import PendingLoanApplications from '@/components/dashboard/PendingLoanApplicati
 import QuickActions from '@/components/dashboard/QuickActions';
 import ShareholdersWidget from '@/components/dashboard/ShareholdersWidget';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import ProductKpiWidget from '@/components/dashboard/ProductKpiWidget';
 
 const tabs = [
   {
@@ -40,6 +41,10 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <TotalCustomersCard />
           {/* Add more stats cards here for Branches, Loans, Deposits later */}
+        </div>
+        
+        <div className="mb-8">
+          <ProductKpiWidget />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

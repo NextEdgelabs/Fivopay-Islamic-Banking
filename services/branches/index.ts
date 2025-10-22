@@ -247,14 +247,16 @@ export const branchService = {
   },
 
   async getBranchTransactions(branchName: string): Promise<CustomerTransaction[]> {
-    return new Promise((resolve) => {
-      setTimeout(async () => {
+    return new Promise(async (resolve, reject) => {
+      try {
         const allTransactions = await customerService.getAllTransactions();
         const branchTransactions = allTransactions.filter(
-          (t) => t.branchName.toLowerCase() === branchName.toLowerCase()
+          t => t.branchName.toLowerCase() === branchName.toLowerCase()
         );
         resolve(branchTransactions);
-      }, 500);
+      } catch (error) {
+        reject(error);
+      }
     });
   },
 };

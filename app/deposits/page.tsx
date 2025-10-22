@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -15,42 +15,26 @@ import {
   Skeleton,
   Breadcrumbs,
 } from '@/components/ui';
-import { Search, Plus, Edit, Trash2, Wallet } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Wallet, Users, Banknote, Shield, Download, Eye } from 'lucide-react';
 import { useDeposits } from '@/hooks/useDeposits';
 import { useDepositMutations } from '@/hooks/useDepositMutations';
 import { useToast } from '@/components/ui/Toast';
 
 export default function DepositsPage() {
   const router = useRouter();
-  const { deposits: allDeposits, loading, error, refetch } = useDeposits();
+  const { deposits, loading, error, refetch, filters, setFilters } = useDeposits();
   const { deleteDeposit } = useDepositMutations();
   const { addToast } = useToast();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const filteredDeposits = useMemo(() => {
-    return allDeposits.filter((deposit) => {
-      const matchesSearch =
-        deposit.depositId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        deposit.accountNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        deposit.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
-      const matchesStatus = statusFilter ? deposit.status === statusFilter : true;
-      const matchesType = typeFilter ? deposit.depositType === typeFilter : true;
-
-      return matchesSearch && matchesStatus && matchesType;
-    });
-  }, [allDeposits, searchTerm, statusFilter, typeFilter]);
-
-  const totalPages = Math.ceil(filteredDeposits.length / itemsPerPage);
-  const paginatedDeposits = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredDeposits.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredDeposits, currentPage]);
+  const totalPages = Math.ceil(deposits.length / itemsPerPage);
+  const paginatedDeposits = deposits.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleDelete = async (deposit: any) => {
     if (confirm(`Are you sure you want to delete deposit ${deposit.depositId}?`)) {
@@ -85,7 +69,10 @@ export default function DepositsPage() {
       <DashboardLayout>
         <div className="p-6 space-y-6">
           <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-64 w-full" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24" />)}
+          </div>
+          <Skeleton className="h-96 w-full" />
         </div>
       </DashboardLayout>
     );
@@ -115,85 +102,62 @@ export default function DepositsPage() {
     {
       key: 'depositId',
       header: 'Deposit ID',
-      render: (deposit: any) => (
-        <div className="font-medium text-neutral-900">{deposit.depositId}</div>
+      render: (value: string, row: any) => (
+        <div>
+          <p className="font-medium text-neutral-900">{row.depositId}</p>
+          <p className="text-sm text-neutral-500">{row.accountNumber}</p>
+        </div>
       ),
     },
     {
       key: 'customer',
       header: 'Customer',
-      render: (deposit: any) => (
+      render: (value: string, row: any) => (
         <div>
           <Link
-            href={`/customers/${deposit.customerId}`}
+            href={`/customers/${row.customerId}`}
             className="font-medium text-primary-600 hover:text-primary-700"
           >
-            {deposit.customerName}
+            {row.customerName}
           </Link>
-          <div className="text-sm text-neutral-500">{deposit.accountNumber}</div>
         </div>
       ),
     },
     {
       key: 'depositType',
       header: 'Type',
-      render: (deposit: any) => (
-        deposit ? <Badge variant="neutral">{deposit.depositType}</Badge> : null
-      ),
+      render: (value: string) => <Badge variant="neutral">{value}</Badge>,
     },
     {
-      key: 'amount',
+      key: 'currentBalance',
       header: 'Balance',
-      render: (deposit: any) => (
-        <div className="font-semibold text-neutral-900">
-          ₹{deposit.currentBalance.toLocaleString('en-IN')}
-        </div>
-      ),
+      render: (value: number) => <div className="font-semibold">₹{value.toLocaleString('en-IN')}</div>,
     },
     {
-      key: 'interest',
-      header: 'Interest',
-      render: (deposit: any) => (
-        <div className="text-neutral-700">{deposit.interestRate}%</div>
-      ),
+      key: 'interestRate',
+      header: 'Interest Rate',
+      render: (value: number) => <div>{value}%</div>,
     },
     {
       key: 'status',
       header: 'Status',
-      render: (deposit: any) => getStatusBadge(deposit.status),
+      render: (value: string) => getStatusBadge(value),
     },
     {
       key: 'actions',
       header: 'Actions',
-      render: (deposit: any) => (
+      render: (_: any, row: any) => (
         <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push(`/deposits/${deposit.id}`)}
-          >
-            View
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            icon={<Edit className="h-4 w-4" />}
-            onClick={() => router.push(`/deposits/${deposit.id}/edit`)}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            icon={<Trash2 className="h-4 w-4" />}
-            onClick={() => handleDelete(deposit)}
-          >
-            Delete
-          </Button>
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/deposits/${row.id}`)}}><Eye className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/deposits/${row.id}/edit`)}}><Edit className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(row)}}><Trash2 className="h-4 w-4" /></Button>
         </div>
       ),
     },
   ];
+
+  const totalDepositValue = deposits.reduce((acc, deposit) => acc + deposit.currentBalance, 0);
+  const activeDeposits = deposits.filter(d => d.status === 'Active');
 
   return (
     <DashboardLayout>
@@ -207,30 +171,58 @@ export default function DepositsPage() {
               Manage all deposit accounts and investments
             </p>
           </div>
-          <Button
-            icon={<Plus className="h-5 w-5" />}
-            onClick={() => router.push('/deposits/add')}
-          >
+          <Button onClick={() => router.push('/deposits/add')}>
+            <Plus className="mr-2 h-4 w-4" />
             Add Deposit
           </Button>
         </div>
 
-        <Card className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="md:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+           <Card padding="sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-neutral-600">Total Deposits</p>
+                <p className="text-2xl font-bold">{deposits.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-primary-100 rounded-stripe flex items-center justify-center"><Users className="h-6 w-6 text-primary-600" /></div>
+            </div>
+          </Card>
+          <Card padding="sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-neutral-600">Total Value</p>
+                <p className="text-2xl font-bold">₹{totalDepositValue.toLocaleString('en-IN')}</p>
+              </div>
+              <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center"><Banknote className="h-6 w-6 text-success-600" /></div>
+            </div>
+          </Card>
+          <Card padding="sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-neutral-600">Active Accounts</p>
+                <p className="text-2xl font-bold">{activeDeposits.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-info-100 rounded-stripe flex items-center justify-center"><Shield className="h-6 w-6 text-info-600" /></div>
+            </div>
+          </Card>
+        </div>
+
+        <Card>
+          <div className="p-4 flex flex-col md:flex-row gap-4">
+            <div className="w-full md:w-1/3">
               <Input
                 placeholder="Search deposits..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={filters.search || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>
             <Select
-              placeholder="Filter by status"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              name="status"
+              value={filters.status || ''}
+              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
               options={[
-                { value: '', label: 'All Status' },
+                { value: '', label: 'All Statuses' },
                 { value: 'Active', label: 'Active' },
                 { value: 'Closed', label: 'Closed' },
                 { value: 'Matured', label: 'Matured' },
@@ -238,9 +230,9 @@ export default function DepositsPage() {
               ]}
             />
             <Select
-              placeholder="Filter by type"
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
+              name="depositType"
+              value={filters.depositType || ''}
+              onChange={(e) => setFilters(prev => ({ ...prev, depositType: e.target.value }))}
               options={[
                 { value: '', label: 'All Types' },
                 { value: 'Savings Account', label: 'Savings Account' },
@@ -249,25 +241,26 @@ export default function DepositsPage() {
                 { value: 'Current Account', label: 'Current Account' },
               ]}
             />
+            <Button variant="outline" onClick={() => { /* Implement Export */ }}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
           </div>
 
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-sm text-neutral-600">
-              Showing {paginatedDeposits.length} of {filteredDeposits.length} deposits
-            </p>
-          </div>
-
-          {filteredDeposits.length === 0 ? (
+          {deposits.length === 0 ? (
             <div className="text-center py-12">
               <Wallet className="h-12 w-12 mx-auto text-neutral-400 mb-3" />
-              <p className="text-neutral-500">No deposits found</p>
+              <p className="text-neutral-500">No deposits found for the current filters.</p>
             </div>
           ) : (
             <>
-              <Table columns={columns} data={paginatedDeposits} />
+              <Table columns={columns} data={paginatedDeposits} onRowClick={(row) => router.push(`/deposits/${row.id}`)} />
 
               {totalPages > 1 && (
-                <div className="mt-6">
+                <div className="p-4 border-t flex items-center justify-between">
+                  <p className="text-sm text-neutral-600">
+                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, deposits.length)} of {deposits.length} deposits
+                  </p>
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}

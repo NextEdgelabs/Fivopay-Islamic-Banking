@@ -341,7 +341,17 @@ export const loanService = {
           filtered = filtered.filter((l) => l.customerId === filters.customerId);
         }
 
-        resolve(filtered);
+        // Ensure all returned loans have customer info
+        const result = filtered.map(loan => {
+          const customer = mockCustomers.find(c => c.id === loan.customerId);
+          return {
+            ...loan,
+            customerName: customer?.fullName || 'N/A',
+            customerId: loan.customerId || 'N/A',
+          };
+        });
+
+        resolve(result);
       }, 500);
     });
   },

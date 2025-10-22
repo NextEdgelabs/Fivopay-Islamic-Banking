@@ -6,21 +6,22 @@ interface UseCustomersResult {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-  setFilters: (filters: CustomerFilters) => void;
 }
 
-export function useCustomers(initialFilters?: CustomerFilters): UseCustomersResult {
+export function useCustomers(filters?: CustomerFilters): UseCustomersResult {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<CustomerFilters>(initialFilters || {});
 
   const fetchCustomers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       setLoading(true);
       setError(null);
-      const response = await customerService.getAll(filters);
-      setCustomers(response.data.users);
+      const data = await customerService.getCustomers(filters);
+      setCustomers(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch customers');
     } finally {
@@ -37,7 +38,6 @@ export function useCustomers(initialFilters?: CustomerFilters): UseCustomersResu
     loading,
     error,
     refetch: fetchCustomers,
-    setFilters,
   };
 }
 

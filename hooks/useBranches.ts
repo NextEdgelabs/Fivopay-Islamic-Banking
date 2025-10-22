@@ -24,6 +24,6 @@ export const useBranches = (initialFilters?: BranchFilters) => {
     fetchBranches();
   }, [fetchBranches]);
 
-  return { branches, loading, error, refetch: fetchBranches, setFilters };
+  return { branches, loading, error, refetch: fetchBranches, filters, setFilters };
 };
 

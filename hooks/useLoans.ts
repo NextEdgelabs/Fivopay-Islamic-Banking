@@ -29,6 +29,7 @@ export const useLoans = (initialFilters?: LoanFilters) => {
     loading,
     error,
     refetch: fetchLoans,
+    filters,
     setFilters,
   };
 };

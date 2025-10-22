@@ -14,11 +14,9 @@ const BranchCustomersList: React.FC<BranchCustomersListProps> = ({ branchName })
   const { customers, loading, error, setFilters } = useCustomers({ branch: branchName });
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 10;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
     setFilters(prev => ({ ...prev, search: e.target.value }));
   };
 
@@ -51,7 +49,6 @@ const BranchCustomersList: React.FC<BranchCustomersListProps> = ({ branchName })
       <div className="mb-4">
         <Input
           placeholder="Search customers..."
-          value={searchTerm}
           onChange={handleSearchChange}
           leftIcon={<Search className="h-4 w-4 text-neutral-400" />}
         />

@@ -21,10 +21,14 @@
   },
   "homepage": "https://github.com/NextEdgelabs/Fivopay-Islamic-Banking#readme",
   "dependencies": {
-    "axios": "^1.12.2",
+    "@radix-ui/react-popover": "^1.1.15",
+    "date-fns": "^4.1.0",
     "next": "^15.5.4",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-day-picker": "^9.11.1",
+    "react-dom": "^19.2.0",
+    "recharts": "^3.3.0",
+    "recharts-scale": "^0.4.5"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",

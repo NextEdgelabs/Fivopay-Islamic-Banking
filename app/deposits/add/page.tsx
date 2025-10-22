@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, Button, Input, Select, Breadcrumbs } from '@/components/ui';
@@ -8,22 +8,86 @@ import { Save, X } from 'lucide-react';
 import { useDepositMutations } from '@/hooks/useDepositMutations';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useBranches } from '@/hooks/useBranches';
+import { useProducts } from '@/hooks/useProducts';
 import { useToast } from '@/components/ui/Toast';
+import { TermDepositProduct, EligibilityRule } from '@/services/products';
+import { Customer } from '@/services/customers';
+import { Alert } from '@/components/ui';
+
+const checkEligibility = (customer: Customer, rules: EligibilityRule[]): string[] => {
+  const warnings = [];
+  const customerAge = new Date().getFullYear() - new Date(customer.dateOfBirth).getFullYear();
+
+  for (const rule of rules) {
+    let customerValue: any;
+    switch (rule.field) {
+      case 'age': customerValue = customerAge; break;
+      case 'annualIncome': customerValue = customer.annualIncome; break;
+      case 'occupation': customerValue = customer.occupation; break;
+    }
+
+    let isEligible = false;
+    switch (rule.operator) {
+      case '==': isEligible = customerValue == rule.value; break;
+      case '!=': isEligible = customerValue != rule.value; break;
+      case '>=': isEligible = customerValue >= rule.value; break;
+      case '<=': isEligible = customerValue <= rule.value; break;
+      case '>': isEligible = customerValue > rule.value; break;
+      case '<': isEligible = customerValue < rule.value; break;
+    }
+    
+    if (!isEligible) {
+      warnings.push(`Customer does not meet the rule: ${rule.field} ${rule.operator} ${rule.value}`);
+    }
+  }
+  return warnings;
+};
+
 
 export default function AddDepositPage() {
   const router = useRouter();
   const { createDeposit, loading: isSubmitting } = useDepositMutations();
   const { customers } = useCustomers();
   const { branches } = useBranches();
+  const { products: depositProducts } = useProducts({ type: 'Term Deposit', status: 'Active' });
   const { addToast } = useToast();
+  
+  const [selectedProduct, setSelectedProduct] = useState<TermDepositProduct | null>(null);
+  const [eligibilityWarnings, setEligibilityWarnings] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     customerId: '',
     depositType: 'Savings Account' as any,
     depositAmount: '',
     tenure: '',
+    interestRate: '',
     branchId: '',
   });
+  
+  const selectedCustomer = useMemo(() => {
+    return customers.find(c => c.id === formData.customerId);
+  }, [formData.customerId, customers]);
+
+  useEffect(() => {
+    if (selectedProduct && selectedCustomer) {
+      const warnings = checkEligibility(selectedCustomer, selectedProduct.eligibilityRules);
+      setEligibilityWarnings(warnings);
+    } else {
+      setEligibilityWarnings([]);
+    }
+  }, [selectedProduct, selectedCustomer]);
+  
+  useEffect(() => {
+    if (selectedProduct) {
+      setFormData(prev => ({
+        ...prev,
+        depositType: selectedProduct.subType,
+        depositAmount: '',
+        tenure: '',
+        interestRate: '',
+      }));
+    }
+  }, [selectedProduct]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -39,6 +103,7 @@ export default function AddDepositPage() {
         depositType: formData.depositType,
         depositAmount: parseFloat(formData.depositAmount),
         tenure: formData.tenure ? parseInt(formData.tenure) : undefined,
+        interestRate: formData.interestRate ? parseFloat(formData.interestRate) : undefined,
         branchId: formData.branchId,
       });
       addToast({ type: 'success', message: 'Deposit created successfully!' });
@@ -71,30 +136,48 @@ export default function AddDepositPage() {
           <Card className="p-6 space-y-6">
             <h2 className="text-xl font-semibold text-neutral-900">Deposit Details</h2>
 
-            <Select
-              label="Customer"
-              name="customerId"
-              value={formData.customerId}
-              onChange={handleChange}
-              options={[
-                { value: '', label: 'Select Customer' },
-                ...customers.map((c: any) => ({ value: c._id || c.id || '', label: `${c.fullName} - ${c.phone}` })),
-              ]}
-              required
-            />
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Select
+                label="Select Product (Optional)"
+                name="productId"
+                value={selectedProduct?.id || ''}
+                onChange={(e) => {
+                  const product = depositProducts.find(p => p.id === e.target.value) as TermDepositProduct | undefined;
+                  setSelectedProduct(product || null);
+                }}
+                options={[
+                  { value: '', label: 'Select a deposit product' },
+                  ...depositProducts.map((p) => ({ value: p.id, label: p.name })),
+                ]}
+              />
+              <Select
+                label="Customer"
+                name="customerId"
+                value={formData.customerId}
+                onChange={handleChange}
+                options={[
+                  { value: '', label: 'Select Customer' },
+                  ...customers.map((c) => ({ value: c.id, label: `${c.fullName} - ${c.phone}` })),
+                ]}
+                required
+              />
+            </div>
+            
+            {eligibilityWarnings.length > 0 && (
+              <Alert type="warning" title="Eligibility Warnings">
+                <ul className="list-disc pl-5">
+                  {eligibilityWarnings.map((warning, i) => <li key={i}>{warning}</li>)}
+                </ul>
+              </Alert>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Input
                 label="Deposit Type"
                 name="depositType"
                 value={formData.depositType}
                 onChange={handleChange}
-                options={[
-                  { value: 'Savings Account', label: 'Savings Account' },
-                  { value: 'Fixed Deposit', label: 'Fixed Deposit' },
-                  { value: 'Recurring Deposit', label: 'Recurring Deposit' },
-                  { value: 'Current Account', label: 'Current Account' },
-                ]}
+                disabled={!!selectedProduct}
                 required
               />
               <Select
@@ -118,15 +201,25 @@ export default function AddDepositPage() {
                 required
               />
               {(formData.depositType === 'Fixed Deposit' || formData.depositType === 'Recurring Deposit') && (
-                <Input
-                  label="Tenure (months)"
-                  name="tenure"
-                  type="number"
-                  value={formData.tenure}
-                  onChange={handleChange}
-                  placeholder="e.g., 36"
-                  required
-                />
+                <>
+                  <Select
+                    label="Tenure (months)"
+                    name="tenure"
+                    value={formData.tenure}
+                    onChange={handleChange}
+                    placeholder="Select Tenure"
+                    options={selectedProduct ? Object.keys(selectedProduct.interestRates).map(t => ({ label: `${t} months`, value: t })) : []}
+                    disabled={!selectedProduct}
+                    required
+                  />
+                  <Input
+                    label="Interest Rate (% p.a.)"
+                    name="interestRate"
+                    type="number"
+                    value={selectedProduct?.interestRates[parseInt(formData.tenure)] || ''}
+                    disabled
+                  />
+                </>
               )}
             </div>
           </Card>

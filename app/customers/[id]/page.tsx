@@ -31,6 +31,8 @@ import {
   Clock,
   Download,
   Trash2,
+  Users,
+  UploadCloud,
 } from 'lucide-react';
 import { useCustomer } from '@/hooks/useCustomer';
 import { useCustomerMutations } from '@/hooks/useCustomerMutations';
@@ -40,10 +42,21 @@ import SharePurchaseHistory from '@/components/customers/SharePurchaseHistory';
 import { loanService } from '@/services/loans';
 import { depositService } from '@/services/deposits';
 import Link from 'next/link';
-import { customerService, getAllCustomers } from '@/services/customers.service';
+import { customerService, CustomerDocument } from '@/services/customers';
+import { useProducts } from '@/hooks/useProducts';
 
 // NOTE: The individual tab content components (overviewContent, transactionsContent, etc.)
 // will be moved into their own separate components within this file to clean up the main function.
+
+const InfoItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | undefined | null }) => {
+  if (!value) return null;
+  return (
+    <div>
+      <span className="text-sm font-medium text-neutral-600 flex items-center mb-1">{icon} {label}</span>
+      <p className="text-neutral-800">{value}</p>
+    </div>
+  );
+};
 
 export default function ViewCustomerPage() {
   const router = useRouter();
@@ -153,6 +166,12 @@ export default function ViewCustomerPage() {
       icon: <Shield className="h-4 w-4" />,
       content: <CustomerKycTab customer={customer} />,
     },
+    {
+      id: 'documents',
+      label: 'Documents',
+      icon: <FileText className="h-4 w-4" />,
+      content: <CustomerDocumentsTab customer={customer} loans={customerLoans} deposits={customerDeposits} onDocumentUpload={refetch} />,
+    },
     ...(isEthicalBanking ? [{
       id: 'shares',
       label: 'Share Purchase History',
@@ -260,7 +279,57 @@ const CustomerOverviewTab = ({ customer }: { customer: any }) => (
          </div>
        </Card>
     </div>
-    {/* All other detailed info cards will go here */}
+    
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Card>
+        <h2 className="text-xl font-semibold p-6 border-b">Personal Information</h2>
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <InfoItem icon={<User className="h-4 w-4 mr-2" />} label="Gender" value={customer.gender} />
+          <InfoItem icon={<Calendar className="h-4 w-4 mr-2" />} label="Date of Birth" value={customer.dateOfBirth} />
+          <InfoItem icon={<Briefcase className="h-4 w-4 mr-2" />} label="Occupation" value={customer.occupation} />
+          <InfoItem icon={<TrendingUp className="h-4 w-4 mr-2" />} label="Annual Income" value={customer.annualIncome?.toLocaleString('en-IN')} />
+          <InfoItem icon={<User className="h-4 w-4 mr-2" />} label="Father's Name" value={customer.fatherName} />
+          <InfoItem icon={<User className="h-4 w-4 mr-2" />} label="Mother's Name" value={customer.motherName} />
+        </div>
+      </Card>
+      
+      <Card>
+        <h2 className="text-xl font-semibold p-6 border-b">Address & Contact</h2>
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <InfoItem 
+            icon={<MapPin className="h-4 w-4 mr-2" />} 
+            label="Address" 
+            value={`${customer.addressLine1}, ${customer.addressLine2 ? customer.addressLine2 + ', ' : ''}${customer.city}, ${customer.state} - ${customer.postalCode}`} 
+          />
+          <InfoItem icon={<Phone className="h-4 w-4 mr-2" />} label="Alternate Phone" value={customer.alternatePhone} />
+        </div>
+      </Card>
+
+      <Card>
+        <h2 className="text-xl font-semibold p-6 border-b">Account Details</h2>
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <InfoItem icon={<CreditCard className="h-4 w-4 mr-2" />} label="Account Number" value={customer.accountNumber} />
+          <InfoItem icon={<Briefcase className="h-4 w-4 mr-2" />} label="Branch" value={customer.branch} />
+          <InfoItem icon={<Calendar className="h-4 w-4 mr-2" />} label="Joined Date" value={customer.joinedDate} />
+        </div>
+      </Card>
+
+      {customer.nomineeName && (
+        <Card>
+          <h2 className="text-xl font-semibold p-6 border-b">Nominee Information</h2>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <InfoItem icon={<User className="h-4 w-4 mr-2" />} label="Nominee Name" value={customer.nomineeName} />
+            <InfoItem icon={<Users className="h-4 w-4 mr-2" />} label="Relation" value={customer.nomineeRelation} />
+            <InfoItem icon={<Phone className="h-4 w-4 mr-2" />} label="Nominee Phone" value={customer.nomineePhone} />
+            <InfoItem 
+              icon={<MapPin className="h-4 w-4 mr-2" />} 
+              label="Nominee Address" 
+              value={customer.nomineeAddress} 
+            />
+          </div>
+        </Card>
+      )}
+    </div>
   </div>
 );
 
@@ -565,6 +634,122 @@ const CustomerKycTab = ({ customer }: { customer: any }) => (
     </div>
   </div>
 );
+
+const CustomerDocumentsTab = ({ customer, loans, deposits, onDocumentUpload }: { customer: any, loans: any[], deposits: any[], onDocumentUpload: () => void }) => {
+  const { products: loanProducts } = useProducts({ type: 'Loan' });
+  const { products: depositProducts } = useProducts({ type: 'Term Deposit' });
+  const { addToast } = useToast();
+  const [uploading, setUploading] = React.useState<string | null>(null);
+
+  const requiredDocs = React.useMemo(() => {
+    const docs = new Set<string>();
+    
+    loans.forEach(loan => {
+      const product = loanProducts.find(p => p.subType === loan.loanType);
+      product?.requiredDocuments.forEach(doc => docs.add(doc));
+    });
+    
+    deposits.forEach(deposit => {
+      const product = depositProducts.find(p => p.subType === deposit.depositType);
+      product?.requiredDocuments.forEach(doc => docs.add(doc));
+    });
+
+    return Array.from(docs);
+  }, [loans, deposits, loanProducts, depositProducts]);
+
+  const allDocumentItems = React.useMemo(() => {
+    const items: (CustomerDocument & { isRequired: boolean })[] = [];
+    const customerDocsMap = new Map(customer.documents.map((d: CustomerDocument) => [d.type, d]));
+
+    requiredDocs.forEach(docType => {
+      const existingDoc = customerDocsMap.get(docType);
+      if (existingDoc) {
+        items.push({ ...existingDoc, isRequired: true });
+        customerDocsMap.delete(docType);
+      } else {
+        items.push({ id: `missing-${docType}`, type: docType, status: 'Missing', isRequired: true });
+      }
+    });
+
+    customerDocsMap.forEach(doc => {
+      items.push({ ...doc, isRequired: false });
+    });
+
+    return items;
+  }, [requiredDocs, customer.documents]);
+  
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, docType: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(docType);
+    try {
+      await customerService.uploadCustomerDocument(customer.id, docType, file);
+      addToast({ type: 'success', message: `${docType} uploaded successfully.` });
+      onDocumentUpload();
+    } catch (error) {
+      addToast({ type: 'error', message: `Failed to upload ${docType}.` });
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Verified': return <Badge variant="success">{status}</Badge>;
+      case 'Uploaded': return <Badge variant="primary">{status}</Badge>;
+      case 'Rejected': return <Badge variant="danger">{status}</Badge>;
+      case 'Missing': return <Badge variant="neutral">{status}</Badge>;
+      default: return <Badge>{status}</Badge>;
+    }
+  };
+
+  return (
+    <Card>
+      <div className="p-6">
+        <h2 className="text-xl font-semibold">Document Center</h2>
+        <p className="text-neutral-600 mt-1">Manage and verify customer documents.</p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full">
+          <thead className="bg-neutral-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Document Type</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">File</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-neutral-200">
+            {allDocumentItems.map(doc => (
+              <tr key={doc.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
+                  {doc.type} {doc.isRequired && <span className="text-error-500">*</span>}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">{getStatusBadge(doc.status)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{doc.fileName || 'N/A'}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  {doc.status === 'Missing' || doc.status === 'Rejected' ? (
+                     <Button as="label" variant="outline" size="sm" loading={uploading === doc.type}>
+                       <UploadCloud className="mr-2 h-4 w-4" />
+                       Upload
+                       <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, doc.type)} />
+                     </Button>
+                  ) : (
+                    <Button variant="ghost" size="sm">
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
+                    </Button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+};
 
 const CustomerLoansTab = ({ loans }: { loans: any[] }) => (
   <div className="p-6">

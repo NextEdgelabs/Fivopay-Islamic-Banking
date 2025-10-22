@@ -2,7 +2,7 @@
 import { useRouter, useParams } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, Button, Badge, Breadcrumbs, Skeleton, Tabs, Table, Pagination } from '@/components/ui';
-import { Edit, Trash2, MapPin, Phone, Mail, Clock, Users, Calendar, Award, Star, Building, DollarSign, CreditCard, TrendingUp } from 'lucide-react';
+import { Edit, Trash2, MapPin, Phone, Mail, Clock, Users, Calendar, Award, Star, Building, DollarSign, CreditCard, TrendingUp, BarChart2, AlertCircle } from 'lucide-react';
 import { useBranch } from '@/hooks/useBranch';
 import { useBranchMutations } from '@/hooks/useBranchMutations';
 import { useToast } from '@/components/ui/Toast';
@@ -14,6 +14,13 @@ import { branchService } from '@/services/branches';
 import { CustomerTransaction } from '@/services/customers.service';
 import { loanService, Loan } from '@/services/loans';
 import { depositService, Deposit } from '@/services/deposits';
+import { analyticsService, PerformanceData } from '@/services/analytics';
+import { DateRange as DayPickerDateRange } from 'react-day-picker';
+import { addDays } from 'date-fns';
+import DateRangeFilter from '@/components/analytics/DateRangeFilter';
+import KpiCardWithTrend from '@/components/analytics/KpiCardWithTrend';
+import PerformanceChart from '@/components/analytics/PerformanceChart';
+import ProductPerformance from '@/components/analytics/ProductPerformance';
 
 export default function ViewBranchPage() {
   const router = useRouter();
@@ -77,7 +84,13 @@ export default function ViewBranchPage() {
       label: 'Deposits',
       icon: <CreditCard className="h-4 w-4" />,
       content: <BranchDepositsTab branchId={branch.id} />,
-    }
+    },
+    {
+      id: 'analytics',
+      label: 'Analytics',
+      icon: <BarChart2 className="h-4 w-4" />,
+      content: <BranchAnalyticsTab branchId={branch.id} />,
+    },
   ];
 
   return (
@@ -175,6 +188,61 @@ const InfoItem = ({ icon, label, value }: { icon: React.ReactNode, label: string
     <p className="text-neutral-800">{value}</p>
   </div>
 );
+
+const BranchAnalyticsTab = ({ branchId }: { branchId: string }) => {
+  const [range, setRange] = useState<DayPickerDateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 30),
+  });
+  const [data, setData] = useState<PerformanceData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      // The analytics service will need to be updated to handle the new date range object
+      const performanceData = await analyticsService.getBranchPerformanceData(branchId, range);
+      setData(performanceData);
+      setLoading(false);
+    };
+    fetchData();
+  }, [branchId, range]);
+
+  if (loading) return <div className="p-6"><Skeleton className="h-96 w-full" /></div>;
+  if (!data) return <div className="p-6 text-center">No analytics data available.</div>;
+
+  const trendLabel = 'vs previous period'; // This will need to be made dynamic
+
+  return (
+    <div className="space-y-6 mt-4">
+      <DateRangeFilter selectedRange={range} onChange={setRange} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <KpiCardWithTrend title="New Customers" value={data.newCustomers.value.toString()} trend={data.newCustomers.trend} icon={<Users className="h-6 w-6 text-primary-600" />} trendLabel={trendLabel} />
+        <KpiCardWithTrend title="Total Deposits" value={`₹${data.totalDeposits.value.toLocaleString()}`} trend={data.totalDeposits.trend} icon={<CreditCard className="h-6 w-6 text-success-600" />} trendLabel={trendLabel} />
+        <KpiCardWithTrend title="Total Loans" value={`₹${data.totalLoans.value.toLocaleString()}`} trend={data.totalLoans.trend} icon={<DollarSign className="h-6 w-6 text-info-600" />} trendLabel={trendLabel} />
+        <KpiCardWithTrend title="Loan Recovery" value={`₹${data.loanRecovery.value.toLocaleString()}`} trend={data.loanRecovery.trend} icon={<TrendingUp className="h-6 w-6 text-warning-600" />} trendLabel={trendLabel} />
+        <KpiCardWithTrend title="CASA Ratio" value={`${data.casaRatio.value.toFixed(2)}%`} trend={data.casaRatio.trend} icon={<Building className="h-6 w-6 text-error-600" />} trendLabel={trendLabel} />
+        <KpiCardWithTrend title="Portfolio at Risk" value={`${data.portfolioAtRisk.value.toFixed(2)}%`} trend={data.portfolioAtRisk.trend} icon={<AlertCircle className="h-6 w-6 text-red-600" />} trendLabel={trendLabel} />
+      </div>
+      <PerformanceChart data={data.trendChartData} chartType="line" />
+      <div className="mt-6">
+        <ProductPerformance data={data.productPerformance} />
+      </div>
+      <Card>
+        <h3 className="text-lg font-semibold p-6 border-b">Detailed Performance Data</h3>
+        <Table
+          columns={[
+            { header: 'Month', key: 'name' },
+            { header: 'New Customers', key: 'customers' },
+            { header: 'Total Deposits', key: 'deposits', render: (val: number) => `₹${val.toLocaleString()}` },
+            { header: 'Total Loans', key: 'loans', render: (val: number) => `₹${val.toLocaleString()}` },
+          ]}
+          data={data.trendChartData}
+        />
+      </Card>
+    </div>
+  );
+};
 
 const BranchTransactionsTab = ({ branchName }: { branchName: string }) => {
   const [transactions, setTransactions] = useState<CustomerTransaction[]>([]);

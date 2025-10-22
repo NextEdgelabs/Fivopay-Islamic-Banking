@@ -29,6 +29,7 @@ export const useDeposits = (initialFilters?: DepositFilters) => {
     loading,
     error,
     refetch: fetchDeposits,
+    filters,
     setFilters,
   };
 };

@@ -15,7 +15,7 @@ import {
   Breadcrumbs,
   Pagination,
   Avatar,
-  Modal,
+  Skeleton,
 } from '@/components/ui';
 import {
   Search,
@@ -27,8 +27,10 @@ import {
   Mail,
   Phone,
   UserCircle,
-  Loader,
-  AlertTriangle,
+  Users,
+  CreditCard,
+  CheckCircle,
+  DollarSign,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -39,112 +41,34 @@ import { INDIAN_STATES, CITIES_BY_STATE } from '@/lib/indiaData';
 
 export default function CustomersPage() {
   const router = useRouter();
-  const [customers, setCustomers] = useState<any>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<any>({});
-
-  const refetch = async () => {
-    await getAllUsers();
-  };
+  const { customers, loading, error, refetch, filters, setFilters } = useCustomers();
   const { branches } = useBranches(); // Fetch branches for the filter dropdown
   const { addToast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedState, setSelectedState] = useState('');
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [customerToDelete, setCustomerToDelete] = useState<any>(null);
   const itemsPerPage = 10;
 
   useEffect(() => {
-    getAllUsers();
-  }, []);
+    // Reset page to 1 when filters change
+    setCurrentPage(1);
+  }, [filters]);
 
-  // Handle keyboard shortcuts for delete modal
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (showDeleteModal) {
-        if (event.key === 'Escape') {
-          cancelDelete();
-        } else if (event.key === 'Enter') {
-          confirmDelete();
-        }
-      }
-    };
-
-    if (showDeleteModal) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [showDeleteModal]);
-
-  const getAllUsers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await getAllCustomers();
-      console.log('Full response:', response);
-      
-      if(response.success && response.data && response.data.users){
-        console.log('Setting customers:', response.data.users);
-        setCustomers(response.data.users);
-      } else {
-        console.log('Response structure issue:', response);
-        setError('Invalid response structure from server');
-      }
-    } catch (error) {
-      console.error('Error fetching customers:', error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch customers');
-    } finally {
-      setLoading(false);
-    }
-  }
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters(prev => ({ ...prev, search: e.target.value }));
+  };
+  
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const state = e.target.value;
-    setSelectedState(state);
-    setFilters({ state, city: '' }); // Reset city when state changes
+    setFilters(prev => ({ ...prev, state, city: '' })); // Reset city when state changes
   };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilters({ [e.target.name]: e.target.value });
   };
 
-  // Filter customers
-  const filteredCustomers = useMemo(() => {
-    console.log('Filtering customers:', customers.length, 'customers');
-    console.log('Search term:', searchTerm);
-    console.log('Filters:', filters);
-    
-    const filtered = customers.filter((customer: any) => {
-      // Search filter
-      const matchesSearch = !searchTerm || 
-        customer.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (customer.memberId || customer._id || customer.id || '').toLowerCase().includes(searchTerm.toLowerCase());
-
-      // Status filter - be more permissive
-      const matchesStatus = !filters.status || !customer.kycStatus || customer.kycStatus === filters.status;
-      
-      // Branch filter
-      const matchesBranch = !filters.branch || !customer.branch || customer.branch === filters.branch;
-      
-      // State filter
-      const matchesState = !filters.state || !customer.state || customer.state === filters.state;
-      
-      // City filter
-      const matchesCity = !filters.city || !customer.city || customer.city === filters.city;
-
-      return matchesSearch && matchesStatus && matchesBranch && matchesState && matchesCity;
-    });
-    
-    console.log('Filtered customers:', filtered.length);
-    return filtered;
-  }, [customers, searchTerm, filters]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  // Pagination is now calculated based on the customers array from the hook
+  const totalPages = Math.ceil(customers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedCustomers = customers.slice(startIndex, startIndex + itemsPerPage);
 
   const columns = [
     {
@@ -234,21 +158,21 @@ export default function CustomersPage() {
             icon={<Eye className="h-4 w-4" />}
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/customers/${row.memberId || row._id || row.id}`)}
+            onClick={(e) => { e.stopPropagation(); router.push(`/customers/${row.id}`)}}
             ariaLabel="View customer"
           />
           <IconButton
             icon={<Edit className="h-4 w-4" />}
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/customers/${row.memberId || row._id || row.id}/edit`)}
+            onClick={(e) => { e.stopPropagation(); router.push(`/customers/${row.id}/edit`)}}
             ariaLabel="Edit customer"
           />
           <IconButton
             icon={<Trash2 className="h-4 w-4" />}
             variant="ghost"
             size="sm"
-            onClick={() => handleDelete(row)}
+            onClick={(e) => { e.stopPropagation(); handleDelete(row)}}
             ariaLabel="Delete customer"
           />
         </div>
@@ -365,10 +289,9 @@ export default function CustomersPage() {
                 </p>
               </div>
               <div className="w-12 h-12 bg-primary-100 rounded-stripe flex items-center justify-center">
-                <UserCircle className="h-6 w-6 text-primary-600" />
+                <Users className="h-6 w-6 text-primary-600" />
               </div>
             </div>
-            <p className="text-xs text-neutral-500 mt-2">All registered customers</p>
           </Card>
 
           <Card padding="sm">
@@ -380,90 +303,81 @@ export default function CustomersPage() {
                 </p>
               </div>
               <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center">
-                <UserCircle className="h-6 w-6 text-success-600" />
+                <CheckCircle className="h-6 w-6 text-success-600" />
               </div>
             </div>
             <p className="text-xs text-success-600 mt-2">
-              {((customers.filter((c: any) => c.kycStatus === 'Completed').length / customers.length) * 100).toFixed(0)}% completion rate
+              {customers.length > 0 ? ((customers.filter((c) => c.status === 'Active').length / customers.length) * 100).toFixed(0) : 0}% active rate
             </p>
           </Card>
 
           <Card padding="sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Total Initial Deposits</p>
-                <p className="text-2xl font-bold text-neutral-900 mt-1">
-                  ₹{customers.reduce((sum: number, c: any) => sum + (c.initialDeposit || 0), 0).toLocaleString('en-IN')}
-                </p>
+                <p className="text-sm text-neutral-600">Total Loans</p>
+                <p className="text-2xl font-bold text-neutral-900 mt-1">50</p>
               </div>
               <div className="w-12 h-12 bg-warning-100 rounded-stripe flex items-center justify-center">
-                <UserCircle className="h-6 w-6 text-warning-600" />
+                <DollarSign className="h-6 w-6 text-warning-600" />
               </div>
             </div>
-            <p className="text-xs text-primary-600 mt-2">
-              Avg: ₹{customers.length > 0 ? Math.round(customers.reduce((sum: number, c: any) => sum + (c.initialDeposit || 0), 0) / customers.length).toLocaleString('en-IN') : '0'}
-            </p>
           </Card>
 
           <Card padding="sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">New This Month</p>
-                <p className="text-2xl font-bold text-neutral-900 mt-1">
-                  {customers.filter((c: any) => {
-                    const createdAt = new Date(c.createdAt);
-                    const now = new Date();
-                    return createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear();
-                  }).length}
-                </p>
+                <p className="text-sm text-neutral-600">Total Deposits</p>
+                <p className="text-2xl font-bold text-neutral-900 mt-1">75</p>
               </div>
-              <div className="w-12 h-12 bg-error-100 rounded-stripe flex items-center justify-center">
-                <UserCircle className="h-6 w-6 text-error-600" />
+              <div className="w-12 h-12 bg-info-100 rounded-stripe flex items-center justify-center">
+                <CreditCard className="h-6 w-6 text-info-600" />
               </div>
             </div>
-            <p className="text-xs text-success-600 mt-2">This month's registrations</p>
           </Card>
         </div>
 
         {/* Filters and Search */}
         <Card>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
+          <div className="p-4 flex flex-col md:flex-row gap-4">
+            <div className="w-full md:w-1/3">
               <Input
                 placeholder="Search by name, email, or ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={filters.search || ''}
+                onChange={handleSearchChange}
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>
             <div className="w-full md:w-48">
               <Select
-                value={customers?.[0]?.branch}
-                onChange={(e: any) => handleFilterChange(e)}
+                name="branch"
+                value={filters.branch || ''}
+                onChange={handleFilterChange}
                 options={[
-                  { value: 'All Branches', label: 'All Branches' },
+                  { value: '', label: 'All Branches' },
                   ...branches.map(b => ({ value: b.branchName, label: b.branchName }))
                 ]}
               />
             </div>
             <div className="w-full md:w-48">
               <Select
-                value={selectedState}
+                name="state"
+                value={filters.state || ''}
                 onChange={handleStateChange}
                 options={[
-                  { value: 'All States', label: 'All States' },
+                  { value: '', label: 'All States' },
                   ...INDIAN_STATES.map(s => ({ value: s, label: s }))
                 ]}
               />
             </div>
             <div className="w-full md:w-48">
               <Select
-                value={customers?.[0]?.city}
+                name="city"
+                value={filters.city || ''}
                 onChange={handleFilterChange}
-                disabled={!selectedState}
+                disabled={!filters.state}
                 options={[
-                  { value: 'All Cities', label: 'All Cities' },
-                  ...(CITIES_BY_STATE[selectedState] || []).map(c => ({ value: c, label: c }))
+                  { value: '', label: 'All Cities' },
+                  ...(CITIES_BY_STATE[filters.state || ''] || []).map(c => ({ value: c, label: c }))
                 ]}
               />
             </div>
@@ -492,10 +406,10 @@ export default function CustomersPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-between">
+            <div className="p-4 border-t mt-6 flex items-center justify-between">
               <p className="text-sm text-neutral-600">
-                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredCustomers.length)} of{' '}
-                {filteredCustomers.length} customers
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, customers.length)} of{' '}
+                {customers.length} customers
               </p>
               <Pagination
                 currentPage={currentPage}
