@@ -1,7 +1,7 @@
 'use client';
 import { Card, Skeleton, Table } from '@/components/ui';
 import { useCustomer } from '@/hooks/useCustomer'; // Assuming this can fetch recent txns globally for now
-import { customerService } from '@/services/customers';
+import { customerService } from '@/services/customers.service';
 import React from 'react';
 
 export default function RecentTransactions() {

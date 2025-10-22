@@ -11,7 +11,7 @@ import BranchKpiCard from '@/components/branches/BranchKpiCard';
 import BranchCustomersList from '@/components/branches/BranchCustomersList';
 import { useEffect, useState } from 'react';
 import { branchService } from '@/services/branches';
-import { CustomerTransaction } from '@/services/customers';
+import { CustomerTransaction } from '@/services/customers.service';
 import { loanService, Loan } from '@/services/loans';
 import { depositService, Deposit } from '@/services/deposits';
 

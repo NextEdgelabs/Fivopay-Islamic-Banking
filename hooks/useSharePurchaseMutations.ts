@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { customerService, CreateSharePurchaseDto, UpdateSharePurchaseDto, SharePurchase } from '@/services/customers';
+import { customerService, CreateSharePurchaseDto, UpdateSharePurchaseDto, SharePurchase } from '@/services/customers.service';
 
 export const useSharePurchaseMutations = () => {
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,8 @@ export const useSharePurchaseMutations = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await customerService.updateSharePurchase(id, data);
+      const { id: _, ...updateData } = data;
+      const result = await customerService.updateSharePurchase({ id, ...updateData });
       return result;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update share purchase');

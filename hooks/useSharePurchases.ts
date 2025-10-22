@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { customerService, SharePurchase } from '@/services/customers';
+import { customerService, SharePurchase } from '@/services/customers.service';
 
 export const useSharePurchases = (customerId: string) => {
   const [sharePurchases, setSharePurchases] = useState<SharePurchase[]>([]);

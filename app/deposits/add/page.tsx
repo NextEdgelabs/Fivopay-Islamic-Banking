@@ -78,7 +78,7 @@ export default function AddDepositPage() {
               onChange={handleChange}
               options={[
                 { value: '', label: 'Select Customer' },
-                ...customers.map((c) => ({ value: c.id, label: `${c.fullName} - ${c.phone}` })),
+                ...customers.map((c: any) => ({ value: c._id || c.id || '', label: `${c.fullName} - ${c.phone}` })),
               ]}
               required
             />

@@ -6,7 +6,7 @@ import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import { Input, Select, Textarea, Button } from '@/components/ui';
 import { X, Save } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
-import { SharePurchase } from '@/services/customers';
+import { SharePurchase } from '@/services/customers.service';
 
 interface SharePurchaseModalProps {
   customerId: string;

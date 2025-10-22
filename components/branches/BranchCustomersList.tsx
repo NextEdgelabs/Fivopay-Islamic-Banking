@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useCustomers } from '@/hooks/useCustomers';
 import { Table, Pagination, Input, Skeleton, Badge } from '@/components/ui';
 import { Search, Eye } from 'lucide-react';
-import { Customer } from '@/services/customers';
+import { Customer } from '@/services/customers.service';
 
 interface BranchCustomersListProps {
   branchName: string;

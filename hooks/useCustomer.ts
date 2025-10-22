@@ -4,7 +4,7 @@ import {
   Customer,
   CustomerTransaction,
   CustomerActivity,
-} from '@/services/customers';
+} from '@/services/customers.service';
 
 interface UseCustomerResult {
   customer: Customer | null;
@@ -29,13 +29,13 @@ export function useCustomer(id: string): UseCustomerResult {
       setLoading(true);
       setError(null);
 
-      const [customerData, transactionsData, activitiesData] = await Promise.all([
-        customerService.getCustomerById(id),
+      const [customerResponse, transactionsData, activitiesData] = await Promise.all([
+        customerService.getById(id),
         customerService.getCustomerTransactions(id),
         customerService.getCustomerActivity(id),
       ]);
 
-      setCustomer(customerData);
+      setCustomer(customerResponse.data);
       setTransactions(transactionsData);
       setActivities(activitiesData);
     } catch (err) {

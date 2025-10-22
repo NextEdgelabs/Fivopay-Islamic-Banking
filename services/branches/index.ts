@@ -1,5 +1,6 @@
 // Import existing customer data for referential integrity
-import { mockCustomers, customerService, CustomerTransaction } from '@/services/customers';
+import { customerService, CustomerTransaction } from '@/services/customers.service';
+import { mockCustomers } from '@/services/mockData';
 import { mockLoans } from '@/services/loans';
 import { mockDeposits } from '@/services/deposits';
 

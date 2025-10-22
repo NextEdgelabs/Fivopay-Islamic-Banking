@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { customerService, ShareholderSummary } from '@/services/customers';
+import { customerService, ShareholderSummary } from '@/services/customers.service';
 
 export const useShareholders = () => {
   const [shareholders, setShareholders] = useState<ShareholderSummary[]>([]);

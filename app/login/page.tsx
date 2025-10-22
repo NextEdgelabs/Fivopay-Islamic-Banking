@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Input, Button, Checkbox, Alert } from '@/components/ui';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { employeeLogin } from '@/services/employee.service';
+import { isAuthenticated } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,6 +19,13 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
+
+  // Check if user is already logged in
+  React.useEffect(() => {
+    if (isAuthenticated()) {
+      router.push('/dashboard');
+    }
+  }, [router]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -45,18 +54,26 @@ export default function LoginPage() {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const response = await employeeLogin(formData.email, formData.password);
       
-      // Demo credentials check
-      if (formData.email === 'admin@fivopay.com' && formData.password === 'admin123') {
-        // Success - redirect to dashboard
+      if (response.success) {
+        // Store user data and tokens in localStorage
+        localStorage.setItem('user', JSON.stringify(response.data.employee));
+        localStorage.setItem('accessToken', response.data.accessToken);
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+        
+        // Redirect to dashboard
         router.push('/dashboard');
       } else {
-        setLoginError('Invalid email or password. Try admin@fivopay.com / admin123');
+        setLoginError(response.message || 'Login failed');
       }
-    }, 1500);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setLoginError(error.message || 'Invalid email or password');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,13 +118,6 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Demo Credentials Info */}
-          <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-stripe">
-            <p className="text-sm text-primary-800 font-medium mb-2">Demo Credentials:</p>
-            <p className="text-sm text-primary-700">
-              <span className="font-mono">admin@fivopay.com</span> / <span className="font-mono">admin123</span>
-            </p>
-          </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Input */}
@@ -157,7 +167,7 @@ export default function LoginPage() {
                 label="Remember me"
                 name="rememberMe"
                 checked={formData.rememberMe}
-                onChange={handleChange}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, rememberMe: checked }))}
               />
               <Link
                 href="/forgot-password"

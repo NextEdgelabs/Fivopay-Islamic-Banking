@@ -7,7 +7,7 @@ import { Table, Button, Badge, Card } from '@/components/ui';
 import { Plus, Edit, Trash2, Check, X, TrendingUp } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import SharePurchaseModal from './SharePurchaseModal';
-import { SharePurchase } from '@/services/customers';
+import { SharePurchase } from '@/services/customers.service';
 
 interface SharePurchaseHistoryProps {
   customerId: string;

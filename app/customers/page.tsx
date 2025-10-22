@@ -15,6 +15,7 @@ import {
   Breadcrumbs,
   Pagination,
   Avatar,
+  Modal,
 } from '@/components/ui';
 import {
   Search,
@@ -27,55 +28,118 @@ import {
   Phone,
   UserCircle,
   Loader,
+  AlertTriangle,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useCustomerMutations } from '@/hooks/useCustomerMutations';
-import { Customer } from '@/services/customers';
+import { Customer, customerService, getAllCustomers } from '@/services/customers.service';
 import { useBranches } from '@/hooks/useBranches';
 import { INDIAN_STATES, CITIES_BY_STATE } from '@/lib/indiaData';
 
 export default function CustomersPage() {
   const router = useRouter();
-  const { customers, loading, error, refetch, setFilters } = useCustomers();
+  const [customers, setCustomers] = useState<any>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<any>({});
+
+  const refetch = async () => {
+    await getAllUsers();
+  };
   const { branches } = useBranches(); // Fetch branches for the filter dropdown
-  const { deleteCustomer, loading: isDeleting } = useCustomerMutations();
   const { addToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedState, setSelectedState] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState<any>(null);
   const itemsPerPage = 10;
 
   useEffect(() => {
-    // ... existing useEffect for search debounce
-  }, [searchTerm, setFilters]);
+    getAllUsers();
+  }, []);
 
+  // Handle keyboard shortcuts for delete modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (showDeleteModal) {
+        if (event.key === 'Escape') {
+          cancelDelete();
+        } else if (event.key === 'Enter') {
+          confirmDelete();
+        }
+      }
+    };
+
+    if (showDeleteModal) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [showDeleteModal]);
+
+  const getAllUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getAllCustomers();
+      console.log('Full response:', response);
+      
+      if(response.success && response.data && response.data.users){
+        console.log('Setting customers:', response.data.users);
+        setCustomers(response.data.users);
+      } else {
+        console.log('Response structure issue:', response);
+        setError('Invalid response structure from server');
+      }
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch customers');
+    } finally {
+      setLoading(false);
+    }
+  }
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const state = e.target.value;
     setSelectedState(state);
-    setFilters(prev => ({ ...prev, state, city: '' })); // Reset city when state changes
+    setFilters({ state, city: '' }); // Reset city when state changes
   };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setFilters({ [e.target.name]: e.target.value });
   };
 
   // Filter customers
   const filteredCustomers = useMemo(() => {
-    return customers.filter((customer) => {
-      const matchesSearch =
-        customer.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.customerId.toLowerCase().includes(searchTerm.toLowerCase());
+    console.log('Filtering customers:', customers.length, 'customers');
+    console.log('Search term:', searchTerm);
+    console.log('Filters:', filters);
+    
+    const filtered = customers.filter((customer: any) => {
+      // Search filter
+      const matchesSearch = !searchTerm || 
+        customer.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (customer.memberId || customer._id || customer.id || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus = customer.status === 'Active'; // Assuming 'Active' is the default status filter
-      const matchesBranch = customer.branch === 'All Branches' || customer.branch === 'All Cities' || customer.branch === 'All States'; // Assuming 'All Branches' is the default branch filter
-      const matchesState = customer.state === 'All States' || customer.state === 'All Cities'; // Assuming 'All States' is the default state filter
-      const matchesCity = customer.city === 'All Cities'; // Assuming 'All Cities' is the default city filter
+      // Status filter - be more permissive
+      const matchesStatus = !filters.status || !customer.kycStatus || customer.kycStatus === filters.status;
+      
+      // Branch filter
+      const matchesBranch = !filters.branch || !customer.branch || customer.branch === filters.branch;
+      
+      // State filter
+      const matchesState = !filters.state || !customer.state || customer.state === filters.state;
+      
+      // City filter
+      const matchesCity = !filters.city || !customer.city || customer.city === filters.city;
 
       return matchesSearch && matchesStatus && matchesBranch && matchesState && matchesCity;
     });
-  }, [customers, searchTerm]);
+    
+    console.log('Filtered customers:', filtered.length);
+    return filtered;
+  }, [customers, searchTerm, filters]);
 
   // Pagination
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
@@ -92,7 +156,7 @@ export default function CustomersPage() {
           <Avatar size="sm" fallback={row.fullName} />
           <div>
             <p className="font-medium text-neutral-900">{row.fullName}</p>
-            <p className="text-sm text-neutral-500">{row.customerId}</p>
+            <p className="text-sm text-neutral-500">{row.memberId || row._id || row.id || 'N/A'}</p>
           </div>
         </div>
       ),
@@ -132,29 +196,34 @@ export default function CustomersPage() {
       ),
     },
     {
-      key: 'currentBalance',
-      header: 'Balance',
+      key: 'initialDeposit',
+      header: 'Initial Deposit',
       sortable: true,
       render: (value: number) => (
         <span className="font-semibold text-neutral-900">
-          ₹{value.toLocaleString('en-IN')}
+          ₹{value ? value.toLocaleString('en-IN') : '0'}
         </span>
       ),
     },
     {
-      key: 'status',
-      header: 'Status',
+      key: 'kycStatus',
+      header: 'KYC Status',
       sortable: true,
       render: (value: string) => (
-        <Badge variant={value === 'Active' ? 'success' : value === 'Pending' ? 'warning' : 'error'}>
+        <Badge variant={value === 'Completed' ? 'success' : value === 'Pending' ? 'warning' : 'error'}>
           {value}
         </Badge>
       ),
     },
     {
-      key: 'joinedDate',
+      key: 'createdAt',
       header: 'Joined Date',
       sortable: true,
+      render: (value: string) => (
+        <span className="text-sm text-neutral-600">
+          {new Date(value).toLocaleDateString('en-IN')}
+        </span>
+      ),
     },
     {
       key: 'actions',
@@ -165,14 +234,14 @@ export default function CustomersPage() {
             icon={<Eye className="h-4 w-4" />}
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/customers/${row.id}`)}
+            onClick={() => router.push(`/customers/${row.memberId || row._id || row.id}`)}
             ariaLabel="View customer"
           />
           <IconButton
             icon={<Edit className="h-4 w-4" />}
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/customers/${row.id}/edit`)}
+            onClick={() => router.push(`/customers/${row.memberId || row._id || row.id}/edit`)}
             ariaLabel="Edit customer"
           />
           <IconButton
@@ -187,22 +256,35 @@ export default function CustomersPage() {
     },
   ];
 
-  const handleDelete = async (customer: any) => {
-    if (confirm(`Are you sure you want to delete ${customer.fullName}?`)) {
-      try {
-        await deleteCustomer(customer.id);
-        addToast({
-          type: 'success',
-          message: `${customer.fullName} has been deleted successfully`,
-        });
-        refetch(); // Refresh the list
-      } catch (err) {
-        addToast({
-          type: 'error',
-          message: 'Failed to delete customer',
-        });
-      }
+  const handleDelete = (customer: any) => {
+    setCustomerToDelete(customer);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!customerToDelete) return;
+    
+    try {
+      await customerService.delete(customerToDelete.memberId || customerToDelete._id || customerToDelete.id);
+      addToast({
+        type: 'success',
+        message: `${customerToDelete.fullName} has been deleted successfully`,
+      });
+      refetch(); // Refresh the list
+    } catch (err) {
+      addToast({
+        type: 'error',
+        message: 'Failed to delete customer',
+      });
+    } finally {
+      setShowDeleteModal(false);
+      setCustomerToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setCustomerToDelete(null);
   };
 
   const handleExport = () => {
@@ -292,9 +374,9 @@ export default function CustomersPage() {
           <Card padding="sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Active Accounts</p>
+                <p className="text-sm text-neutral-600">KYC Completed</p>
                 <p className="text-2xl font-bold text-neutral-900 mt-1">
-                  {customers.filter((c) => c.status === 'Active').length}
+                  {customers.filter((c: any) => c.kycStatus === 'Completed').length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center">
@@ -302,34 +384,44 @@ export default function CustomersPage() {
               </div>
             </div>
             <p className="text-xs text-success-600 mt-2">
-              {((customers.filter((c) => c.status === 'Active').length / customers.length) * 100).toFixed(0)}% active rate
+              {((customers.filter((c: any) => c.kycStatus === 'Completed').length / customers.length) * 100).toFixed(0)}% completion rate
             </p>
           </Card>
 
           <Card padding="sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Total Deposits</p>
-                <p className="text-2xl font-bold text-neutral-900 mt-1">₹18.5 Cr</p>
+                <p className="text-sm text-neutral-600">Total Initial Deposits</p>
+                <p className="text-2xl font-bold text-neutral-900 mt-1">
+                  ₹{customers.reduce((sum: number, c: any) => sum + (c.initialDeposit || 0), 0).toLocaleString('en-IN')}
+                </p>
               </div>
               <div className="w-12 h-12 bg-warning-100 rounded-stripe flex items-center justify-center">
                 <UserCircle className="h-6 w-6 text-warning-600" />
               </div>
             </div>
-            <p className="text-xs text-primary-600 mt-2">Avg: ₹48,000</p>
+            <p className="text-xs text-primary-600 mt-2">
+              Avg: ₹{customers.length > 0 ? Math.round(customers.reduce((sum: number, c: any) => sum + (c.initialDeposit || 0), 0) / customers.length).toLocaleString('en-IN') : '0'}
+            </p>
           </Card>
 
           <Card padding="sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600">New This Month</p>
-                <p className="text-2xl font-bold text-neutral-900 mt-1">3</p>
+                <p className="text-2xl font-bold text-neutral-900 mt-1">
+                  {customers.filter((c: any) => {
+                    const createdAt = new Date(c.createdAt);
+                    const now = new Date();
+                    return createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear();
+                  }).length}
+                </p>
               </div>
               <div className="w-12 h-12 bg-error-100 rounded-stripe flex items-center justify-center">
                 <UserCircle className="h-6 w-6 text-error-600" />
               </div>
             </div>
-            <p className="text-xs text-success-600 mt-2">+8.2% growth</p>
+            <p className="text-xs text-success-600 mt-2">This month's registrations</p>
           </Card>
         </div>
 
@@ -346,8 +438,8 @@ export default function CustomersPage() {
             </div>
             <div className="w-full md:w-48">
               <Select
-                value={customer.branch}
-                onChange={handleFilterChange}
+                value={customers?.[0]?.branch}
+                onChange={(e: any) => handleFilterChange(e)}
                 options={[
                   { value: 'All Branches', label: 'All Branches' },
                   ...branches.map(b => ({ value: b.branchName, label: b.branchName }))
@@ -366,7 +458,7 @@ export default function CustomersPage() {
             </div>
             <div className="w-full md:w-48">
               <Select
-                value={customer.city}
+                value={customers?.[0]?.city}
                 onChange={handleFilterChange}
                 disabled={!selectedState}
                 options={[
@@ -384,13 +476,19 @@ export default function CustomersPage() {
 
         {/* Customer Table */}
         <Card>
-          <div className="overflow-x-auto">
-            <Table
-              data={paginatedCustomers}
-              columns={columns}
-              onRowClick={(row) => router.push(`/customers/${row.id}`)}
-            />
-          </div>
+          {customers.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-neutral-500 mb-4">No customers found</p>
+              <p className="text-sm text-neutral-400">Check console for debugging information</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table
+                data={paginatedCustomers}
+                columns={columns}
+              />
+            </div>
+          )}
 
           {/* Pagination */}
           {totalPages > 1 && (
@@ -408,6 +506,46 @@ export default function CustomersPage() {
           )}
         </Card>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={cancelDelete}
+        title="Confirm Delete Customer"
+        size="sm"
+      >
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 bg-error-100 rounded-full flex items-center justify-center">
+              <AlertTriangle className="h-6 w-6 text-error-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-neutral-900">
+                Delete {customerToDelete?.fullName}?
+              </h3>
+              <p className="text-sm text-neutral-600 mt-1">
+                This action cannot be undone. All customer data, transactions, and related records will be permanently deleted.
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={cancelDelete}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={confirmDelete}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Customer
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 }

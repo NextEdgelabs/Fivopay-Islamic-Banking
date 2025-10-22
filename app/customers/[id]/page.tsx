@@ -40,6 +40,7 @@ import SharePurchaseHistory from '@/components/customers/SharePurchaseHistory';
 import { loanService } from '@/services/loans';
 import { depositService } from '@/services/deposits';
 import Link from 'next/link';
+import { customerService, getAllCustomers } from '@/services/customers.service';
 
 // NOTE: The individual tab content components (overviewContent, transactionsContent, etc.)
 // will be moved into their own separate components within this file to clean up the main function.
@@ -63,6 +64,7 @@ export default function ViewCustomerPage() {
       depositService.getCustomerDeposits(customerId).then(setCustomerDeposits);
     }
   }, [customerId]);
+
 
   const handleDelete = async () => {
     if (!customer) return;
@@ -187,7 +189,7 @@ export default function ViewCustomerPage() {
               <Avatar size="lg" fallback={customer.fullName} />
               <div>
                 <h1 className="text-3xl font-bold text-neutral-900">{customer.fullName}</h1>
-                <p className="text-neutral-600 mt-1">{customer.customerId} • {customer.email}</p>
+                <p className="text-neutral-600 mt-1">{customer.memberId || customer.customerId || customer._id} • {customer.email}</p>
               </div>
             </div>
             <div className="flex gap-2 flex-shrink-0">
@@ -216,7 +218,7 @@ const CustomerOverviewTab = ({ customer }: { customer: any }) => (
            <div>
              <p className="text-sm text-neutral-600">Current Balance</p>
              <p className="text-2xl font-bold text-neutral-900 mt-1">
-               ₹{customer.currentBalance.toLocaleString('en-IN')}
+               ₹{customer?.currentBalance?.toLocaleString('en-IN')}
              </p>
            </div>
            <div className="w-12 h-12 bg-primary-100 rounded-stripe flex items-center justify-center">
@@ -566,13 +568,13 @@ const CustomerKycTab = ({ customer }: { customer: any }) => (
 
 const CustomerLoansTab = ({ loans }: { loans: any[] }) => (
   <div className="p-6">
-    {customerLoans.length === 0 ? (
+    {loans.length === 0 ? (
       <div className="text-center py-8 text-neutral-500">
         <p>No loans found for this customer</p>
       </div>
     ) : (
       <div className="space-y-4">
-        {customerLoans.map((loan) => (
+        {loans.map((loan: any) => (
           <Link key={loan.id} href={`/loans/${loan.id}`}>
             <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
               <div className="flex justify-between items-start">
@@ -606,13 +608,13 @@ const CustomerLoansTab = ({ loans }: { loans: any[] }) => (
 
 const CustomerDepositsTab = ({ deposits }: { deposits: any[] }) => (
   <div className="p-6">
-    {customerDeposits.length === 0 ? (
+    {deposits.length === 0 ? (
       <div className="text-center py-8 text-neutral-500">
         <p>No deposits found for this customer</p>
       </div>
     ) : (
       <div className="space-y-4">
-        {customerDeposits.map((deposit) => (
+        {deposits.map((deposit: any) => (
           <Link key={deposit.id} href={`/deposits/${deposit.id}`}>
             <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
               <div className="flex justify-between items-start">

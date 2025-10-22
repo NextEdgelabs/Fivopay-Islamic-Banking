@@ -30,11 +30,12 @@ import { useCustomerMutations } from '@/hooks/useCustomerMutations';
 import { validateFile, convertToBase64 } from '@/lib/fileUpload';
 import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import SharePurchaseHistory from '@/components/customers/SharePurchaseHistory';
+import { createCustomer, saveUserBasicInformation } from '@/services/customers.service';
 
 export default function AddCustomerPage() {
   const router = useRouter();
   const { addToast } = useToast();
-  const { createCustomer, loading: isSubmitting } = useCustomerMutations();
+  const { loading: isSubmitting } = useCustomerMutations();
   const { isEthicalBanking } = useOrganizationSettings();
 
   const [formData, setFormData] = useState({

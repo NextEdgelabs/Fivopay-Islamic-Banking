@@ -4,7 +4,7 @@ import {
   Customer,
   CreateCustomerDto,
   UpdateCustomerDto,
-} from '@/services/customers';
+} from '@/services/customers.service';
 
 interface UseCustomerMutationsResult {
   createCustomer: (data: CreateCustomerDto) => Promise<Customer>;
@@ -22,8 +22,8 @@ export function useCustomerMutations(): UseCustomerMutationsResult {
     try {
       setLoading(true);
       setError(null);
-      const customer = await customerService.createCustomer(data);
-      return customer;
+      const response = await customerService.create(data);
+      return response.data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create customer';
       setError(errorMessage);
@@ -37,8 +37,9 @@ export function useCustomerMutations(): UseCustomerMutationsResult {
     try {
       setLoading(true);
       setError(null);
-      const customer = await customerService.updateCustomer(id, data);
-      return customer;
+      const { id: _, ...updateData } = data;
+      const response = await customerService.update({ id, ...updateData });
+      return response.data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update customer';
       setError(errorMessage);
@@ -52,7 +53,7 @@ export function useCustomerMutations(): UseCustomerMutationsResult {
     try {
       setLoading(true);
       setError(null);
-      await customerService.deleteCustomer(id);
+      await customerService.delete(id);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete customer';
       setError(errorMessage);

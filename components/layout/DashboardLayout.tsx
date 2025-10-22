@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Button, Avatar } from '@/components/ui';
+import { usePathname, useRouter } from 'next/navigation';
+import { Button, Avatar, Modal } from '@/components/ui';
+import { getCurrentUser, isAuthenticated, clearAuth } from '@/lib/auth';
 import {
   Menu,
   Home,
@@ -16,10 +17,78 @@ import {
   LogOut,
   Bell,
   Search,
+  AlertTriangle,
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is logged in
+    if (!isAuthenticated()) {
+      router.push('/login');
+      return;
+    }
+    
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+    setIsLoading(false);
+  }, [router]);
+
+  // Handle keyboard shortcuts for logout modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (showLogoutModal) {
+        if (event.key === 'Escape') {
+          setShowLogoutModal(false);
+        } else if (event.key === 'Enter') {
+          clearAuth();
+          setShowLogoutModal(false);
+          router.push('/login');
+        }
+      }
+    };
+
+    if (showLogoutModal) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [showLogoutModal, router]);
+
+  const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
+    // Clear authentication data
+    clearAuth();
+    
+    // Close modal and redirect to login page
+    setShowLogoutModal(false);
+    router.push('/login');
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutModal(false);
+  };
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-primary-500 rounded-stripe flex items-center justify-center mx-auto mb-4">
+            <span className="text-sm font-bold text-white">FP</span>
+          </div>
+          <p className="text-neutral-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-neutral-50 flex">
@@ -94,21 +163,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* User Profile */}
         <div className="p-4 border-t border-border-light">
           <div className="flex items-center gap-3">
-            <Avatar size="md" fallback="Admin User" />
+            <Avatar size="md" fallback={user?.fullName || "User"} />
             {sidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-neutral-900 truncate">Admin User</p>
-                <p className="text-xs text-neutral-500 truncate">admin@fivopay.com</p>
+                <p className="text-sm font-medium text-neutral-900 truncate">
+                  {user?.fullName || "User"}
+                </p>
+                <p className="text-xs text-neutral-500 truncate">
+                  {user?.email || "user@fivopay.com"}
+                </p>
+                <p className="text-xs text-neutral-400 truncate">
+                  {user?.designation || user?.role || ""}
+                </p>
               </div>
             )}
           </div>
           {sidebarOpen && (
-            <Link href="/login">
-              <Button variant="outline" size="sm" fullWidth className="mt-3">
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              fullWidth 
+              className="mt-3"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
           )}
         </div>
       </aside>
@@ -147,6 +227,44 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        isOpen={showLogoutModal}
+        onClose={cancelLogout}
+        title="Confirm Logout"
+        size="sm"
+      >
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 bg-warning-100 rounded-full flex items-center justify-center">
+              <AlertTriangle className="h-6 w-6 text-warning-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-neutral-900">Are you sure you want to logout?</h3>
+              <p className="text-sm text-neutral-600 mt-1">
+                You will need to sign in again to access your account.
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={cancelLogout}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={confirmLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
