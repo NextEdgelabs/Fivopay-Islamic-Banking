@@ -14,7 +14,7 @@ import {
   Skeleton,
   Breadcrumbs,
 } from '@/components/ui';
-import { Search, Plus, Edit, Trash2, Eye, UploadCloud } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, UploadCloud, FolderOpen } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useProducts } from '@/hooks/useProducts';
 import { useProductMutations } from '@/hooks/useProductMutations';
@@ -128,9 +128,14 @@ export default function ProductsPage() {
         <Breadcrumbs items={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Products' }]} />
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Products</h1>
-          <Button onClick={() => router.push('/products/add')}>
-            <Plus className="mr-2 h-4 w-4" /> Add Product
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => router.push('/products/categories')}>
+              <FolderOpen className="mr-2 h-4 w-4" /> Loan Categories
+            </Button>
+            <Button onClick={() => router.push('/products/add')}>
+              <Plus className="mr-2 h-4 w-4" /> Add Product
+            </Button>
+          </div>
         </div>
 
         <Card>

@@ -9,7 +9,8 @@ export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputE
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   ({ label, helperText, className, id, onCheckedChange, ...props }, ref) => {
-    const checkboxId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : React.useId());
+    const generatedId = React.useId();
+    const checkboxId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : generatedId);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (onCheckedChange) {

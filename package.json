@@ -22,6 +22,7 @@
   "homepage": "https://github.com/NextEdgelabs/Fivopay-Islamic-Banking#readme",
   "dependencies": {
     "@radix-ui/react-popover": "^1.1.15",
+    "axios": "^1.12.2",
     "date-fns": "^4.1.0",
     "next": "^15.5.4",
     "react": "^19.2.0",

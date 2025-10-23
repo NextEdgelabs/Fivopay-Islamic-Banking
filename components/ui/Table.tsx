@@ -66,7 +66,7 @@ function Table<T extends Record<string, any>>({
     );
   }
 
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     return (
       <div className="bg-white rounded-stripe border border-border-light">
         <EmptyState title={emptyMessage} />
@@ -120,7 +120,7 @@ function Table<T extends Record<string, any>>({
             </tr>
           </thead>
           <tbody className="divide-y divide-border-light">
-            {sortedData.map((row, rowIndex) => (
+            {sortedData?.map((row, rowIndex) => (
               <tr
                 key={rowIndex}
                 onClick={() => onRowClick?.(row, rowIndex)}

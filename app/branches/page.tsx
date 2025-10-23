@@ -2,13 +2,13 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, Button, Table, Input, Select, Pagination, Badge, Skeleton, Breadcrumbs } from '@/components/ui';
+import { Card, Button, Table, Input, Select, Pagination, Badge, Skeleton, Breadcrumbs, Modal } from '@/components/ui';
 import { Search, Plus, Edit, Trash2, Download, Users, Building, AlertCircle, Eye } from 'lucide-react';
 import { useBranches } from '@/hooks/useBranches';
 import { useBranchMutations } from '@/hooks/useBranchMutations';
 import { useToast } from '@/components/ui/Toast';
 import { INDIAN_STATES } from '@/lib/indiaData';
-import { Branch } from '@/services/branches';
+import { Branch } from '@/services/branch.service';
 
 export default function BranchesPage() {
   const router = useRouter();
@@ -18,6 +18,8 @@ export default function BranchesPage() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
   
   useEffect(() => {
     setCurrentPage(1);
@@ -28,16 +30,29 @@ export default function BranchesPage() {
     return branches.slice(startIndex, startIndex + itemsPerPage);
   }, [branches, currentPage]);
 
-  const handleDelete = async (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete ${name}?`)) {
-      try {
-        await deleteBranch(id);
-        addToast({ type: 'success', message: 'Branch deleted successfully' });
-        refetch();
-      } catch (err) {
-        addToast({ type: 'error', message: 'Failed to delete branch' });
-      }
+  const handleDelete = (branch: Branch) => {
+    setBranchToDelete(branch);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!branchToDelete) return;
+    
+    try {
+      await deleteBranch(branchToDelete.id || branchToDelete._id || '');
+      addToast({ type: 'success', message: 'Branch deleted successfully' });
+      refetch();
+    } catch (err) {
+      addToast({ type: 'error', message: 'Failed to delete branch' });
+    } finally {
+      setShowDeleteModal(false);
+      setBranchToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setBranchToDelete(null);
   };
 
   const getStatusBadge = (status: 'Active' | 'Inactive' | 'Under Maintenance') => {
@@ -61,9 +76,9 @@ export default function BranchesPage() {
       key: 'actions',
       render: (_: any, item: Branch) => (
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/branches/${item.id}`)}}><Eye className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/branches/${item.id}/edit`)}}><Edit className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(item.id, item.branchName)}} disabled={isDeleting}><Trash2 className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/branches/${item.id || item._id}`)}}><Eye className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/branches/${item.id || item._id}/edit`)}}><Edit className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(item)}} disabled={isDeleting}><Trash2 className="h-4 w-4" /></Button>
         </div>
       ),
     },
@@ -153,7 +168,7 @@ export default function BranchesPage() {
               Export
             </Button>
           </div>
-          <Table data={paginatedBranches} columns={columns} onRowClick={(row) => router.push(`/branches/${row.id}`)} />
+          <Table data={paginatedBranches} columns={columns} onRowClick={(row) => router.push(`/branches/${row.id || row._id}`)} />
           {branches.length > itemsPerPage && (
             <div className="p-4 border-t flex items-center justify-between">
                <p className="text-sm text-neutral-600">
@@ -164,6 +179,47 @@ export default function BranchesPage() {
           )}
         </Card>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={cancelDelete}
+        title="Confirm Delete Branch"
+        size="sm"
+      >
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 bg-error-100 rounded-full flex items-center justify-center">
+              <Trash2 className="h-6 w-6 text-error-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-neutral-900">
+                Delete {branchToDelete?.branchName}?
+              </h3>
+              <p className="text-sm text-neutral-600 mt-1">
+                This action cannot be undone. All branch data, customer records, and related information will be permanently deleted.
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={cancelDelete}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={confirmDelete}
+              loading={isDeleting}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Branch
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 }

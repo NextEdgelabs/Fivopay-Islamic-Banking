@@ -14,7 +14,7 @@ export default function TotalCustomersCard() {
         </div>
         <div className="ml-4">
           <p className="text-sm font-medium text-neutral-500">Total Customers</p>
-          <p className="text-2xl font-bold text-neutral-900">{customers.length}</p>
+          <p className="text-2xl font-bold text-neutral-900">{customers?.length || 0}</p>
         </div>
       </div>
     </Card>

@@ -16,6 +16,7 @@ import {
   Pagination,
   Avatar,
   Skeleton,
+  Modal,
 } from '@/components/ui';
 import {
   Search,
@@ -46,6 +47,8 @@ export default function CustomersPage() {
   const { addToast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState<any>(null);
 
   useEffect(() => {
     // Reset page to 1 when filters change
@@ -66,9 +69,9 @@ export default function CustomersPage() {
   };
 
   // Pagination is now calculated based on the customers array from the hook
-  const totalPages = Math.ceil(customers.length / itemsPerPage);
+  const totalPages = Math.ceil(customers?.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedCustomers = customers.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedCustomers = customers?.slice(startIndex, startIndex + itemsPerPage);
 
   const columns = [
     {
@@ -285,7 +288,7 @@ export default function CustomersPage() {
               <div>
                 <p className="text-sm text-neutral-600">Total Customers</p>
                 <p className="text-2xl font-bold text-neutral-900 mt-1">
-                  {customers.length}
+                  {customers?.length || 0}
                 </p>
               </div>
               <div className="w-12 h-12 bg-primary-100 rounded-stripe flex items-center justify-center">
@@ -299,7 +302,7 @@ export default function CustomersPage() {
               <div>
                 <p className="text-sm text-neutral-600">KYC Completed</p>
                 <p className="text-2xl font-bold text-neutral-900 mt-1">
-                  {customers.filter((c: any) => c.kycStatus === 'Completed').length}
+                  {customers?.filter((c: any) => c.kycStatus === 'Completed').length || 0}
                 </p>
               </div>
               <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center">
@@ -307,7 +310,7 @@ export default function CustomersPage() {
               </div>
             </div>
             <p className="text-xs text-success-600 mt-2">
-              {customers.length > 0 ? ((customers.filter((c) => c.status === 'Active').length / customers.length) * 100).toFixed(0) : 0}% active rate
+              { customers?.length > 0 ? ((customers?.filter((c) => c.status === 'Active').length / customers?.length) * 100).toFixed(0) : 0}% active rate
             </p>
           </Card>
 
@@ -390,7 +393,7 @@ export default function CustomersPage() {
 
         {/* Customer Table */}
         <Card>
-          {customers.length === 0 ? (
+          {customers?.length === 0 ? (
             <div className="p-12 text-center">
               <p className="text-neutral-500 mb-4">No customers found</p>
               <p className="text-sm text-neutral-400">Check console for debugging information</p>
@@ -408,8 +411,8 @@ export default function CustomersPage() {
           {totalPages > 1 && (
             <div className="p-4 border-t mt-6 flex items-center justify-between">
               <p className="text-sm text-neutral-600">
-                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, customers.length)} of{' '}
-                {customers.length} customers
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, customers?.length)} of{' '}
+                {customers?.length} customers
               </p>
               <Pagination
                 currentPage={currentPage}
@@ -431,7 +434,7 @@ export default function CustomersPage() {
         <div className="p-6">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-12 h-12 bg-error-100 rounded-full flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-error-600" />
+              <Trash2 className="h-6 w-6 text-error-600" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-neutral-900">

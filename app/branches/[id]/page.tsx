@@ -10,7 +10,7 @@ import Link from 'next/link';
 import BranchKpiCard from '@/components/branches/BranchKpiCard';
 import BranchCustomersList from '@/components/branches/BranchCustomersList';
 import { useEffect, useState } from 'react';
-import { branchService } from '@/services/branches';
+import { branchService } from '@/services/branch.service';
 import { CustomerTransaction } from '@/services/customers.service';
 import { loanService, Loan } from '@/services/loans';
 import { depositService, Deposit } from '@/services/deposits';
@@ -21,6 +21,7 @@ import DateRangeFilter from '@/components/analytics/DateRangeFilter';
 import KpiCardWithTrend from '@/components/analytics/KpiCardWithTrend';
 import PerformanceChart from '@/components/analytics/PerformanceChart';
 import ProductPerformance from '@/components/analytics/ProductPerformance';
+import { customerService } from '@/services/customers.service';
 
 export default function ViewBranchPage() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function ViewBranchPage() {
     if (!branch) return;
     if (confirm(`Are you sure you want to delete ${branch.branchName}?`)) {
       try {
-        await deleteBranch(branch.id);
+        await deleteBranch(branch.id || branch._id || '');
         addToast({ type: 'success', message: 'Branch deleted successfully' });
         router.push('/branches');
       } catch (err) {
@@ -77,19 +78,19 @@ export default function ViewBranchPage() {
       id: 'loans',
       label: 'Loans',
       icon: <DollarSign className="h-4 w-4" />,
-      content: <BranchLoansTab branchId={branch.id} />,
+      content: <BranchLoansTab branchId={branch.id || branch._id || ''} />,
     },
     {
       id: 'deposits',
       label: 'Deposits',
       icon: <CreditCard className="h-4 w-4" />,
-      content: <BranchDepositsTab branchId={branch.id} />,
+      content: <BranchDepositsTab branchId={branch.id || branch._id || ''} />,
     },
     {
       id: 'analytics',
       label: 'Analytics',
       icon: <BarChart2 className="h-4 w-4" />,
-      content: <BranchAnalyticsTab branchId={branch.id} />,
+      content: <BranchAnalyticsTab branchId={branch.id || branch._id || ''} />,
     },
   ];
 
@@ -106,7 +107,7 @@ export default function ViewBranchPage() {
               <div className="mt-2">{getStatusBadge(branch.status)}</div>
             </div>
             <div className="flex gap-2 flex-shrink-0">
-              <Button variant="outline" onClick={() => router.push(`/branches/${branch.id}/edit`)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
+              <Button variant="outline" onClick={() => router.push(`/branches/${branch.id || branch._id}/edit`)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
               <Button variant="danger" onClick={handleDelete} loading={isDeleting}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
             </div>
           </div>
@@ -120,7 +121,7 @@ export default function ViewBranchPage() {
 
 const BranchOverviewTab = ({ branch }: { branch: any }) => (
   <div className="space-y-6 mt-4">
-    <BranchKpiCard branchId={branch.id} />
+    <BranchKpiCard branchId={branch.id || branch._id} />
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
         <Card>
@@ -254,7 +255,7 @@ const BranchTransactionsTab = ({ branchName }: { branchName: string }) => {
     const fetchTransactions = async () => {
       setLoading(true);
       try {
-        const data = await branchService.getBranchTransactions(branchName);
+        const data = await customerService.getAllTransactions();
         setTransactions(data);
       } catch (error) {
         console.error("Failed to fetch branch transactions", error);

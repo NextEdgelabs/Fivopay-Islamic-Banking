@@ -184,6 +184,17 @@ export interface ShareholderSummary {
   status: 'Active' | 'Inactive';
 }
 
+export interface CustomerDocument {
+  id: string;
+  type: string;
+  fileName?: string;
+  status: 'Missing' | 'Uploaded' | 'Verified' | 'Rejected';
+  uploadedAt?: string;
+  verifiedAt?: string;
+  verifiedBy?: string;
+  notes?: string;
+}
+
 export interface SharePurchase {
   id: string;
   customerId: string;
@@ -504,6 +515,12 @@ export const getAllTransactions = async (): Promise<CustomerTransaction[]> => {
   return [];
 };
 
+export const uploadCustomerDocument = async (customerId: string, docType: string, file: File): Promise<void> => {
+  // This would be implemented based on your backend API
+  // For now, just a placeholder
+  return;
+};
+
 // Customer Service Object (for easier imports)
 export const customerService = {
   create: createCustomer,
@@ -523,4 +540,5 @@ export const customerService = {
   approveSharePurchase,
   rejectSharePurchase,
   getAllTransactions,
+  uploadCustomerDocument,
 };

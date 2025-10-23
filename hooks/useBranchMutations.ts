@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { branchService, CreateBranchDto, UpdateBranchDto, Branch } from '@/services/branches';
+import { branchService, CreateBranchDto, UpdateBranchDto, Branch } from '@/services/branch.service';
 
 export const useBranchMutations = () => {
   const [loading, setLoading] = useState(false);
@@ -9,8 +9,8 @@ export const useBranchMutations = () => {
     setLoading(true);
     setError(null);
     try {
-      const newBranch = await branchService.createBranch(data);
-      return newBranch;
+      const response = await branchService.create(data);
+      return response.data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create branch');
       throw err;
@@ -19,12 +19,12 @@ export const useBranchMutations = () => {
     }
   };
 
-  const updateBranch = async (id: string, data: UpdateBranchDto): Promise<Branch> => {
+  const updateBranch = async (data: UpdateBranchDto): Promise<Branch> => {
     setLoading(true);
     setError(null);
     try {
-      const updatedBranch = await branchService.updateBranch(id, data);
-      return updatedBranch;
+      const response = await branchService.update(data);
+      return response.data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update branch');
       throw err;
@@ -37,7 +37,7 @@ export const useBranchMutations = () => {
     setLoading(true);
     setError(null);
     try {
-      await branchService.deleteBranch(id);
+      await branchService.delete(id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete branch');
       throw err;

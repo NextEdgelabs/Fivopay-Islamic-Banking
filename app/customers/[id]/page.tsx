@@ -42,7 +42,7 @@ import SharePurchaseHistory from '@/components/customers/SharePurchaseHistory';
 import { loanService } from '@/services/loans';
 import { depositService } from '@/services/deposits';
 import Link from 'next/link';
-import { customerService, CustomerDocument } from '@/services/customers';
+import { customerService, CustomerDocument } from '@/services/customers.service';
 import { useProducts } from '@/hooks/useProducts';
 
 // NOTE: The individual tab content components (overviewContent, transactionsContent, etc.)
@@ -664,7 +664,7 @@ const CustomerDocumentsTab = ({ customer, loans, deposits, onDocumentUpload }: {
     requiredDocs.forEach(docType => {
       const existingDoc = customerDocsMap.get(docType);
       if (existingDoc) {
-        items.push({ ...existingDoc, isRequired: true });
+        items.push({ ...existingDoc, isRequired: true } as CustomerDocument & { isRequired: boolean });
         customerDocsMap.delete(docType);
       } else {
         items.push({ id: `missing-${docType}`, type: docType, status: 'Missing', isRequired: true });
@@ -672,7 +672,9 @@ const CustomerDocumentsTab = ({ customer, loans, deposits, onDocumentUpload }: {
     });
 
     customerDocsMap.forEach(doc => {
-      items.push({ ...doc, isRequired: false });
+      if (doc && (doc as any).id && (doc as any).type && (doc as any).status) {
+        items.push({ ...doc, isRequired: false } as CustomerDocument & { isRequired: boolean });
+      }
     });
 
     return items;
@@ -698,7 +700,7 @@ const CustomerDocumentsTab = ({ customer, loans, deposits, onDocumentUpload }: {
     switch (status) {
       case 'Verified': return <Badge variant="success">{status}</Badge>;
       case 'Uploaded': return <Badge variant="primary">{status}</Badge>;
-      case 'Rejected': return <Badge variant="danger">{status}</Badge>;
+      case 'Rejected': return <Badge variant="error">{status}</Badge>;
       case 'Missing': return <Badge variant="neutral">{status}</Badge>;
       default: return <Badge>{status}</Badge>;
     }
@@ -730,7 +732,7 @@ const CustomerDocumentsTab = ({ customer, loans, deposits, onDocumentUpload }: {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{doc.fileName || 'N/A'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   {doc.status === 'Missing' || doc.status === 'Rejected' ? (
-                     <Button as="label" variant="outline" size="sm" loading={uploading === doc.type}>
+                     <Button variant="outline" size="sm" loading={uploading === doc.type}>
                        <UploadCloud className="mr-2 h-4 w-4" />
                        Upload
                        <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, doc.type)} />
