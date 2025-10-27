@@ -8,19 +8,23 @@ import { Save, X, Plus, Trash2, GitCommit } from 'lucide-react';
 import { useProduct } from '@/hooks/useProduct';
 import { useProductMutations } from '@/hooks/useProductMutations';
 import { useToast } from '@/components/ui/Toast';
-import { UpdateProductDto, ProductType, EligibilityRule } from '@/services/products';
+import { UpdateLoanProductDto, CreateLoanProductDto, ProductType, EligibilityRule } from '@/services/products.service';
 
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
   const productId = params.id as string;
   
+  // Debug logging to help identify the issue
+  console.log('EditProductPage - params:', params);
+  console.log('EditProductPage - productId:', productId);
+  
   const { product, loading: fetchLoading } = useProduct(productId);
   const { updateProduct, createProduct, loading } = useProductMutations();
   const { addToast } = useToast();
   
   const [productType, setProductType] = useState<ProductType>('Term Deposit');
-  const [formData, setFormData] = useState<Partial<UpdateProductDto>>({});
+  const [formData, setFormData] = useState<Partial<UpdateLoanProductDto>>({});
 
   useEffect(() => {
     if (product) {
@@ -39,8 +43,18 @@ export default function EditProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!productId) {
+      addToast({ type: 'error', message: 'Product ID is missing' });
+      return;
+    }
+    
     try {
-      await updateProduct(productId, formData as UpdateProductDto);
+      const updateData = {
+        ...formData,
+        _id: productId
+      } as UpdateLoanProductDto;
+      await updateProduct(updateData);
       addToast({ type: 'success', message: 'Product updated successfully' });
       router.push(`/products/${productId}`);
     } catch (err) {
@@ -58,7 +72,7 @@ export default function EditProductPage() {
     delete newVersionData.id;
 
     try {
-      const newProduct = await createProduct(newVersionData as UpdateProductDto);
+      const newProduct = await createProduct(newVersionData as CreateLoanProductDto);
       addToast({ type: 'success', message: `Created new version ${newProduct.version}` });
       router.push(`/products/${newProduct.id}/edit`);
     } catch (err) {
