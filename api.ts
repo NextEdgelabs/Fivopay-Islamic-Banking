@@ -23,13 +23,23 @@ export const API = {
         deleteBranch: "/api/v1/branch/delete-branch",
 
         // loan categories
-        createLoanCategory: "/api/v1/loan-categories/create-loan-category",
+        createLoanCategory: "/api/v1/loan-category/create-loan-category",
         getAllLoanCategories: "/api/v1/loan-category/get-all-loan-categories",
-        getLoanCategoryById: "/api/v1/loan-categories/get-loan-category-by-id",
+        getLoanCategoryById: "/api/v1/loan-category/get-loan-category-by-id",
         updateLoanCategory: "/api/v1/loan-categories/update-loan-category",
-        deleteLoanCategory: "/api/v1/loan-categories/delete-loan-category",
+        deleteLoanCategory: "/api/v1/loan-category/delete-loan-category",
         createLoanSubCategory: "/api/v1/loan-subcategories/create-loan-subcategory",
         updateLoanSubCategory: "/api/v1/loan-subcategories/update-loan-subcategory",
         deleteLoanSubCategory: "/api/v1/loan-subcategories/delete-loan-subcategory",
+
+        // loan products
+        createLoanProduct: "/api/v1/loan-product/create-product",
+        getAllLoanProducts: "/api/v1/loan-product/get-all-products",
+        getLoanProductById: "/api/v1/loan-product/get-product",
+        updateLoanProduct: "/api/v1/loan-product/update-product",
+        deleteLoanProduct: "/api/v1/loan-product/delete-product",
+        getLoanProductsByType: "/api/v1/loan-product/get-products-by-type",
+        updateLoanProductStatus: "/api/v1/loan-product/update-product-status",
+        searchLoanProducts: "/api/v1/loan-product/search-products",
     }
 }

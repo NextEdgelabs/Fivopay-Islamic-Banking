@@ -20,7 +20,7 @@ export const useLoanCategory = (id: string): UseLoanCategoryResult => {
     setError(null);
     try {
       const data = await loanCategoryService.getById(id);
-      setCategory(data.data);
+      setCategory(data.result.loanCategory || data.result.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch loan category');
     } finally {

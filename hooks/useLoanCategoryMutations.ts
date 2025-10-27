@@ -10,7 +10,7 @@ export const useLoanCategoryMutations = () => {
     setError(null);
     try {
       const response = await loanCategoryService.create(data);
-      return response.data;
+      return response.result.loanCategory || response.result.data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create loan category');
       throw err;
@@ -24,7 +24,7 @@ export const useLoanCategoryMutations = () => {
     setError(null);
     try {
       const response = await loanCategoryService.update(data);
-      return response.data;
+      return response.result.loanCategory || response.result.data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update loan category');
       throw err;
@@ -51,7 +51,7 @@ export const useLoanCategoryMutations = () => {
     setError(null);
     try {
       const response = await loanCategoryService.createSubCategory(data);
-      return response.data;
+      return response.result.loanCategory || response.result.data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create loan sub-category');
       throw err;
@@ -65,7 +65,7 @@ export const useLoanCategoryMutations = () => {
     setError(null);
     try {
       const response = await loanCategoryService.updateSubCategory(data);
-      return response.data;
+      return response.result.loanCategory || response.result.data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update loan sub-category');
       throw err;

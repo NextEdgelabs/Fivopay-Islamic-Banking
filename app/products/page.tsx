@@ -13,45 +13,59 @@ import {
   Badge,
   Skeleton,
   Breadcrumbs,
+  Modal,
 } from '@/components/ui';
 import { Search, Plus, Edit, Trash2, Eye, UploadCloud, FolderOpen } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useProducts } from '@/hooks/useProducts';
 import { useProductMutations } from '@/hooks/useProductMutations';
-import { AnyProduct } from '@/services/products';
+import { LoanProductData, ProductType, ProductStatus } from '@/services/products.service';
 
 export default function ProductsPage() {
   const router = useRouter();
-  const { products, loading, error, refetch, filters, setFilters } = useProducts();
+  const { products, loading, error, refetch, filters, setFilters, pagination, setPage } = useProducts();
   const { deleteProduct, updateProduct, loading: isDeleting } = useProductMutations();
   const { addToast } = useToast();
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<LoanProductData | null>(null);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const paginatedProducts = products.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const handleDelete = (product: LoanProductData) => {
+    setProductToDelete(product);
+    setShowDeleteModal(true);
+  };
 
-  const handleDelete = async (product: AnyProduct) => {
-    if (confirm(`Are you sure you want to delete ${product.name}?`)) {
-      try {
-        await deleteProduct(product.id);
-        addToast({ type: 'success', message: 'Product deleted successfully' });
-        refetch();
-      } catch (err) {
-        addToast({ type: 'error', message: 'Failed to delete product' });
-      }
+  const confirmDelete = async () => {
+    if (!productToDelete) return;
+    
+    try {
+      await deleteProduct(productToDelete._id!);
+      addToast({ type: 'success', message: 'Product deleted successfully' });
+      refetch();
+    } catch (err) {
+      addToast({ type: 'error', message: 'Failed to delete product' });
+    } finally {
+      setShowDeleteModal(false);
+      setProductToDelete(null);
     }
   };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setProductToDelete(null);
+  };
   
-  const handleSubmitForApproval = async (product: AnyProduct) => {
+  const handleSubmitForApproval = async (product: LoanProductData) => {
     try {
-      await updateProduct(product.id, { ...product, status: 'Pending Approval' });
+      await updateProduct({ 
+        _id: product._id!, 
+        ...product, 
+        status: ProductStatus.PENDING_APPROVAL 
+      });
       addToast({ type: 'success', message: 'Product submitted for approval' });
       refetch();
     } catch (err) {
@@ -60,20 +74,29 @@ export default function ProductsPage() {
   };
 
   const columns = [
-    { header: 'Product ID', key: 'id' },
+    { header: 'Product ID', key: '_id' },
     { header: 'Name', key: 'name' },
     { header: 'Type', key: 'type' },
-    { header: 'Sub-Type', key: 'subType' },
+    { 
+      header: 'Sub-Type', 
+      key: 'subType',
+      render: (subType: string, item: LoanProductData) => {
+        if (item.type === ProductType.TERM_DEPOSIT && item.termDeposit) {
+          return item.termDeposit.subType;
+        }
+        return subType || 'N/A';
+      }
+    },
     {
       header: 'Status',
       key: 'status',
-      render: (status: string) => (
+      render: (status: ProductStatus) => (
         <Badge
           variant={
-            status === 'Active' ? 'success'
-            : status === 'Draft' ? 'warning'
-            : status === 'Pending Approval' ? 'primary'
-            : status === 'Retired' ? 'error'
+            status === ProductStatus.ACTIVE ? 'success'
+            : status === ProductStatus.DRAFT ? 'warning'
+            : status === ProductStatus.PENDING_APPROVAL ? 'primary'
+            : status === ProductStatus.RETIRED ? 'error'
             : 'neutral'
           }
         >
@@ -84,18 +107,18 @@ export default function ProductsPage() {
     {
       header: 'Actions',
       key: 'actions',
-      render: (_: any, item: AnyProduct) => (
+      render: (_: any, item: LoanProductData) => (
         <div className="flex gap-2">
-          {item.status === 'Draft' && (
+          {item.status === ProductStatus.DRAFT && (
             <Button variant="outline" size="sm" onClick={() => handleSubmitForApproval(item)}>
               <UploadCloud className="mr-2 h-4 w-4" />
               Submit for Approval
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={() => router.push(`/products/${item.id}`)}>
+          <Button variant="ghost" size="sm" onClick={() => router.push(`/products/${item._id}`)}>
             <Eye className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => router.push(`/products/${item.id}/edit`)}>
+          <Button variant="ghost" size="sm" onClick={() => router.push(`/products/${item._id}/edit`)}>
             <Edit className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="sm" onClick={() => handleDelete(item)} disabled={isDeleting}>
@@ -157,8 +180,8 @@ export default function ProductsPage() {
                 onChange={handleFilterChange}
                 options={[
                   { value: '', label: 'All Types' },
-                  { value: 'Term Deposit', label: 'Term Deposit' },
-                  { value: 'Loan', label: 'Loan' },
+                  { value: ProductType.TERM_DEPOSIT, label: 'Term Deposit' },
+                  { value: ProductType.LOAN, label: 'Loan' },
                 ]}
               />
             </div>
@@ -170,27 +193,61 @@ export default function ProductsPage() {
                 onChange={handleFilterChange}
                 options={[
                   { value: '', label: 'All Statuses' },
-                  { value: 'Active', label: 'Active' },
-                  { value: 'Inactive', label: 'Inactive' },
-                  { value: 'Draft', label: 'Draft' },
-                  { value: 'Pending Approval', label: 'Pending Approval' },
-                  { value: 'Retired', label: 'Retired' },
+                  { value: ProductStatus.ACTIVE, label: 'Active' },
+                  { value: ProductStatus.INACTIVE, label: 'Inactive' },
+                  { value: ProductStatus.DRAFT, label: 'Draft' },
+                  { value: ProductStatus.PENDING_APPROVAL, label: 'Pending Approval' },
+                  { value: ProductStatus.RETIRED, label: 'Retired' },
                 ]}
               />
             </div>
           </div>
-          <Table data={paginatedProducts} columns={columns} />
-          {products.length > itemsPerPage && (
+          <Table data={products} columns={columns} />
+          {pagination.totalPages > 1 && (
             <div className="p-4 border-t">
               <Pagination
-                currentPage={currentPage}
-                totalPages={Math.ceil(products.length / itemsPerPage)}
-                onPageChange={setCurrentPage}
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
               />
             </div>
           )}
         </Card>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={cancelDelete}
+        title="Confirm Delete Product"
+        size="sm"
+      >
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 bg-error-100 rounded-full flex items-center justify-center">
+              <Trash2 className="h-6 w-6 text-error-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-neutral-900">
+                Delete {productToDelete?.name}?
+              </h3>
+              <p className="text-sm text-neutral-600 mt-1">
+                This action cannot be undone. The product will be permanently deleted and removed from all related data.
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-end gap-3">
+            <Button variant="outline" onClick={cancelDelete}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={confirmDelete} loading={isDeleting}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Product
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 }

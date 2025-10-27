@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { productService, AnyProduct } from '@/services/products';
+import { 
+  getLoanProductById, 
+  LoanProductData 
+} from '@/services/products.service';
 
 export function useProduct(productId: string | null) {
-  const [product, setProduct] = useState<AnyProduct | null>(null);
+  const [product, setProduct] = useState<LoanProductData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,10 +18,15 @@ export function useProduct(productId: string | null) {
     try {
       setLoading(true);
       setError(null);
-      const data = await productService.getProductById(productId);
-      setProduct(data);
+      const response = await getLoanProductById(productId);
+      if (response.success && response.result.product) {
+        setProduct(response.result.product);
+      } else {
+        throw new Error('Product not found');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch product');
+      setProduct(null);
     } finally {
       setLoading(false);
     }

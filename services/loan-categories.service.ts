@@ -5,47 +5,21 @@ import { getAuthToken } from '@/lib/auth';
 // Loan Category Types
 export interface LoanCategory {
   _id: string;
-  categoryName: string;
+  name: string;
   description: string;
-  loanType: string;
-  minLoanAmount: number;
-  maxLoanAmount: number;
-  interestRate: number;
-  minTenureMonths: number;
-  maxTenureMonths: number;
-  status: 'active' | 'inactive';
-  eligibilityCriteria: {
-    minAge: number;
-    maxAge: number;
-    minIncome: number;
-    requiredDocuments: string[];
-    creditScoreMin: number;
-  };
-  processingFee: {
-    type: 'percentage' | 'fixed';
-    value: number;
-  };
-  prepaymentCharges: {
-    type: 'percentage' | 'fixed';
-    value: number;
-  };
-  latePaymentCharges: {
-    type: 'percentage' | 'fixed';
-    value: number;
-  };
-  features: string[];
-  termsAndConditions: string;
+  isActive: boolean;
+  displayOrder: number;
+  icon: string;
+  color: string;
+  subCategories: LoanSubCategory[];
   createdAt: string;
   updatedAt: string;
 }
 
-// Note: The API doesn't seem to have sub-categories in the current response
-// Keeping this interface for future use if sub-categories are added
 export interface LoanSubCategory {
-  _id: string;
+  _id?: string;
   name: string;
   description: string;
-  categoryId: string;
   isActive: boolean;
   displayOrder: number;
   interestRateRange: {
@@ -63,41 +37,18 @@ export interface LoanSubCategory {
   eligibilityCriteria: string[];
   requiredDocuments: string[];
   processingFee: number; // percentage
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateLoanCategoryDto {
-  categoryName: string;
+  name: string;
   description: string;
-  loanType: string;
-  minLoanAmount: number;
-  maxLoanAmount: number;
-  interestRate: number;
-  minTenureMonths: number;
-  maxTenureMonths: number;
-  status?: 'active' | 'inactive';
-  eligibilityCriteria: {
-    minAge: number;
-    maxAge: number;
-    minIncome: number;
-    requiredDocuments: string[];
-    creditScoreMin: number;
-  };
-  processingFee: {
-    type: 'percentage' | 'fixed';
-    value: number;
-  };
-  prepaymentCharges: {
-    type: 'percentage' | 'fixed';
-    value: number;
-  };
-  latePaymentCharges: {
-    type: 'percentage' | 'fixed';
-    value: number;
-  };
-  features: string[];
-  termsAndConditions: string;
+  isActive?: boolean;
+  displayOrder?: number;
+  icon: string;
+  color: string;
+  subCategories?: LoanSubCategory[];
 }
 
 export interface UpdateLoanCategoryDto extends Partial<CreateLoanCategoryDto> {
@@ -107,7 +58,6 @@ export interface UpdateLoanCategoryDto extends Partial<CreateLoanCategoryDto> {
 export interface CreateLoanSubCategoryDto {
   name: string;
   description: string;
-  categoryId: string;
   isActive?: boolean;
   displayOrder?: number;
   interestRateRange: {
@@ -133,14 +83,18 @@ export interface UpdateLoanSubCategoryDto extends Partial<CreateLoanSubCategoryD
 
 export interface LoanCategoryFilters {
   search?: string;
-  status?: 'active' | 'inactive';
-  loanType?: string;
+  isActive?: boolean;
+  page?: number;
+  limit?: number;
 }
 
 export interface LoanCategoryResponse {
   success: boolean;
-  message: string;
-  data: LoanCategory;
+  result: {
+    message?: string;
+    loanCategory?: LoanCategory;
+    data?: LoanCategory;
+  };
 }
 
 export interface LoanCategoriesListResponse {
@@ -266,7 +220,10 @@ export const deleteLoanCategory = async (id: string): Promise<{ success: boolean
   }
 };
 
-// Sub-category functions
+// Sub-category functions - Note: These are now handled within the main category
+// Sub-categories are embedded in the main category, so these functions may not be needed
+// Keeping them for backward compatibility or if separate sub-category endpoints are added later
+
 export const createLoanSubCategory = async (data: CreateLoanSubCategoryDto): Promise<{ success: boolean; message: string; data: LoanSubCategory }> => {
   try {
     const token = getAuthToken();

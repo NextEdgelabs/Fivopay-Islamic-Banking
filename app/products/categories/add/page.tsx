@@ -14,13 +14,12 @@ import {
 } from '@/components/ui';
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
-import { useLoanCategoryMutations } from '@/hooks/useLoanCategoryMutations';
-import { CreateLoanCategoryDto, LoanSubCategory } from '@/services/loan-categories.service';
+import { createLoanCategory, CreateLoanCategoryDto, LoanSubCategory } from '@/services/loan-categories.service';
 
 export default function AddLoanCategoryPage() {
   const router = useRouter();
-  const { createLoanCategory, loading } = useLoanCategoryMutations();
   const { addToast } = useToast();
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<CreateLoanCategoryDto>({
     name: '',
@@ -42,12 +41,6 @@ export default function AddLoanCategoryPage() {
     }));
   };
 
-  const handleToggleChange = (name: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: checked
-    }));
-  };
 
   const addSubCategory = () => {
     setSubCategories(prev => [...prev, {
@@ -116,19 +109,45 @@ export default function AddLoanCategoryPage() {
     e.preventDefault();
     
     try {
-      const categoryData = {
-        ...formData,
+      setLoading(true);
+      
+      const categoryData: CreateLoanCategoryDto = {
+        name: formData.name,
+        description: formData.description,
+        isActive: formData.isActive,
+        displayOrder: formData.displayOrder,
+        icon: formData.icon,
+        color: formData.color,
         subCategories: subCategories.map((sub, index) => ({
-          ...sub,
+          name: sub.name || '',
+          description: sub.description || '',
+          isActive: sub.isActive !== undefined ? sub.isActive : true,
           displayOrder: index + 1,
+          interestRateRange: sub.interestRateRange || { min: 0, max: 0 },
+          tenureRange: sub.tenureRange || { min: 0, max: 0 },
+          amountRange: sub.amountRange || { min: 0, max: 0 },
+          eligibilityCriteria: sub.eligibilityCriteria || [],
+          requiredDocuments: sub.requiredDocuments || [],
+          processingFee: sub.processingFee || 0,
         }))
       };
       
-      await createLoanCategory(categoryData);
-      addToast({ type: 'success', message: 'Loan category created successfully' });
-      router.push('/products/categories');
-    } catch (err) {
-      addToast({ type: 'error', message: 'Failed to create loan category' });
+      const response = await createLoanCategory(categoryData);
+      
+      if (response.success) {
+        addToast({ type: 'success', message: 'Loan category created successfully' });
+        router.push('/products/categories');
+      } else {
+        addToast({ type: 'error', message: 'Failed to create loan category' });
+      }
+    } catch (err: any) {
+      console.error('Error creating loan category:', err);
+      addToast({ 
+        type: 'error', 
+        message: err.message || 'Failed to create loan category' 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -236,8 +255,9 @@ export default function AddLoanCategoryPage() {
                 <div className="md:col-span-2">
                   <div className="flex items-center gap-2">
                     <Toggle
+                      id="category-active-toggle"
                       checked={formData.isActive}
-                      onCheckedChange={(checked) => handleToggleChange('isActive', checked)}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
                     />
                     <label className="text-sm font-medium text-neutral-700">
                       Active Category
@@ -494,8 +514,9 @@ export default function AddLoanCategoryPage() {
                   <div className="mt-4">
                     <div className="flex items-center gap-2">
                       <Toggle
+                        id={`subcategory-active-toggle-${index}`}
                         checked={subCategory.isActive || false}
-                        onCheckedChange={(checked) => updateSubCategory(index, 'isActive', checked)}
+                        onChange={(e) => updateSubCategory(index, 'isActive', e.target.checked)}
                       />
                       <label className="text-sm font-medium text-neutral-700">
                         Active Sub-category

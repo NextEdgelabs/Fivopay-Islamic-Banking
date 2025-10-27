@@ -36,6 +36,18 @@ import { useLoanCategories } from '@/hooks/useLoanCategories';
 import { useLoanCategoryMutations } from '@/hooks/useLoanCategoryMutations';
 import { LoanCategory, LoanSubCategory } from '@/services/loan-categories.service';
 
+// Utility function to safely format dates
+const formatDate = (dateString: string | undefined, format: 'date' | 'datetime' = 'date'): string => {
+  if (!dateString) return 'N/A';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    return format === 'datetime' ? date.toLocaleString() : date.toLocaleDateString();
+  } catch (error) {
+    return 'Invalid Date';
+  }
+};
+
 export default function LoanCategoriesPage() {
   const router = useRouter();
   const { categories, loading, error, refetch, filters, setFilters } = useLoanCategories();
@@ -67,7 +79,7 @@ export default function LoanCategoriesPage() {
     
     try {
       if (itemToDelete.type === 'category') {
-        await deleteLoanCategory(itemToDelete.item._id);
+        await deleteLoanCategory(itemToDelete.item._id || '');
       } else {
         await deleteLoanSubCategory(itemToDelete.item._id || '');
       }
@@ -107,51 +119,48 @@ export default function LoanCategoriesPage() {
   const columns = [
     {
       header: 'Category',
-      key: 'categoryName',
+      key: 'name',
       render: (_: any, row: LoanCategory) => (
         <div className="flex items-center gap-3">
           <div 
             className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold"
-            style={{ backgroundColor: '#6366f1' }}
+            style={{ backgroundColor: row.color || '#6366f1' }}
           >
-            {row.categoryName.charAt(0)}
+            {row.name?.charAt(0) || '?'}
           </div>
           <div>
-            <p className="font-medium text-neutral-900">{row.categoryName}</p>
+            <p className="font-medium text-neutral-900">{row.name}</p>
             <p className="text-sm text-neutral-500">{row.description}</p>
-            <p className="text-xs text-neutral-400 capitalize">{row.loanType} Loan</p>
+            <p className="text-xs text-neutral-400">Category #{row.displayOrder}</p>
           </div>
         </div>
       ),
     },
     {
-      header: 'Loan Details',
-      key: 'loanDetails',
+      header: 'Sub-categories',
+      key: 'subCategories',
       render: (_: any, row: LoanCategory) => (
         <div className="space-y-1">
-          <div className="flex items-center gap-4 text-sm">
-            <span className="text-neutral-600">Amount: ₹{row.minLoanAmount.toLocaleString()} - ₹{row.maxLoanAmount.toLocaleString()}</span>
+          <div className="text-sm text-neutral-600">
+            {row.subCategories?.length || 0} sub-categories
           </div>
-          <div className="flex items-center gap-4 text-sm">
-            <span className="text-neutral-600">Rate: {row.interestRate}%</span>
-            <span className="text-neutral-600">Tenure: {row.minTenureMonths} - {row.maxTenureMonths} months</span>
+          <div className="text-xs text-neutral-500">
+            Display Order: {row.displayOrder}
           </div>
         </div>
       ),
     },
     {
       header: 'Status',
-      key: 'status',
-      render: (status: string) => getStatusBadge(status === 'active'),
+      key: 'isActive',
+      render: (_: any, row: LoanCategory) => getStatusBadge(row.isActive),
     },
     {
-      header: 'Processing Fee',
-      key: 'processingFee',
+      header: 'Created',
+      key: 'createdAt',
       render: (_: any, row: LoanCategory) => (
         <span className="text-sm text-neutral-600">
-          {row.processingFee.type === 'percentage' 
-            ? `${row.processingFee.value}%` 
-            : `₹${row.processingFee.value.toLocaleString()}`}
+          {formatDate(row.createdAt)}
         </span>
       ),
     },
@@ -291,7 +300,7 @@ export default function LoanCategoriesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600">Active Categories</p>
-                <p className="text-2xl font-bold">{categories.filter(c => c.status === 'active').length}</p>
+                <p className="text-2xl font-bold">{categories.filter(c => c.isActive).length}</p>
               </div>
               <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center">
                 <CheckCircle className="h-6 w-6 text-success-600" />
@@ -302,9 +311,9 @@ export default function LoanCategoriesPage() {
           <Card padding="sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Loan Types</p>
+                <p className="text-sm text-neutral-600">Total Sub-categories</p>
                 <p className="text-2xl font-bold">
-                  {new Set(categories.map(c => c.loanType)).size}
+                  {categories.reduce((acc, c) => acc + (c.subCategories?.length || 0), 0)}
                 </p>
               </div>
               <div className="w-12 h-12 bg-warning-100 rounded-stripe flex items-center justify-center">
@@ -316,9 +325,9 @@ export default function LoanCategoriesPage() {
           <Card padding="sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Avg Interest Rate</p>
+                <p className="text-sm text-neutral-600">Avg Display Order</p>
                 <p className="text-2xl font-bold">
-                  {(categories.reduce((acc, c) => acc + c.interestRate, 0) / categories.length).toFixed(1)}%
+                  {categories.length > 0 ? (categories.reduce((acc, c) => acc + c.displayOrder, 0) / categories.length).toFixed(1) : '0'}
                 </p>
               </div>
               <div className="w-12 h-12 bg-info-100 rounded-stripe flex items-center justify-center">
@@ -341,34 +350,16 @@ export default function LoanCategoriesPage() {
             </div>
             <div className="w-full md:w-48">
               <Select
-                name="status"
-                value={filters.status || ''}
+                name="isActive"
+                value={filters.isActive !== undefined ? (filters.isActive ? 'active' : 'inactive') : ''}
                 onChange={e => setFilters(prev => ({ 
                   ...prev, 
-                  status: e.target.value === '' ? undefined : e.target.value as 'active' | 'inactive'
+                  isActive: e.target.value === '' ? undefined : e.target.value === 'active'
                 }))}
                 options={[
                   { label: 'All Status', value: '' },
                   { label: 'Active', value: 'active' },
                   { label: 'Inactive', value: 'inactive' },
-                ]}
-              />
-            </div>
-            <div className="w-full md:w-48">
-              <Select
-                name="loanType"
-                value={filters.loanType || ''}
-                onChange={e => setFilters(prev => ({ 
-                  ...prev, 
-                  loanType: e.target.value === '' ? undefined : e.target.value
-                }))}
-                options={[
-                  { label: 'All Types', value: '' },
-                  { label: 'Personal', value: 'personal' },
-                  { label: 'Home', value: 'home' },
-                  { label: 'Car', value: 'car' },
-                  { label: 'Business', value: 'business' },
-                  { label: 'Education', value: 'education' },
                 ]}
               />
             </div>
@@ -427,7 +418,7 @@ export default function LoanCategoriesPage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-neutral-900">
-                Delete {itemToDelete?.item.categoryName || itemToDelete?.item.name}?
+                Delete {itemToDelete?.item.name}?
               </h3>
               <p className="text-sm text-neutral-600 mt-1">
                 This action cannot be undone. All {itemToDelete?.type === 'category' ? 'sub-categories and ' : ''}related data will be permanently deleted.
