@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Button, Avatar, Modal } from '@/components/ui';
-import { getCurrentUser, isAuthenticated, clearAuth } from '@/lib/auth';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Button, Avatar, Modal } from "@/components/ui";
+import { getCurrentUser, isAuthenticated, clearAuth } from "@/lib/auth";
 import {
   Menu,
   Home,
@@ -18,9 +18,13 @@ import {
   Bell,
   Search,
   AlertTriangle,
-} from 'lucide-react';
+} from "lucide-react";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,10 +34,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     // Check if user is logged in
     if (!isAuthenticated()) {
-      router.push('/login');
+      router.push("/login");
       return;
     }
-    
+
     const currentUser = getCurrentUser();
     setUser(currentUser);
     setIsLoading(false);
@@ -43,19 +47,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (showLogoutModal) {
-        if (event.key === 'Escape') {
+        if (event.key === "Escape") {
           setShowLogoutModal(false);
-        } else if (event.key === 'Enter') {
+        } else if (event.key === "Enter") {
           clearAuth();
           setShowLogoutModal(false);
-          router.push('/login');
+          router.push("/login");
         }
       }
     };
 
     if (showLogoutModal) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
     }
   }, [showLogoutModal, router]);
 
@@ -66,10 +70,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const confirmLogout = () => {
     // Clear authentication data
     clearAuth();
-    
+
     // Close modal and redirect to login page
     setShowLogoutModal(false);
-    router.push('/login');
+    router.push("/login");
   };
 
   const cancelLogout = () => {
@@ -95,7 +99,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Sidebar */}
       <aside
         className={`${
-          sidebarOpen ? 'w-64' : 'w-20'
+          sidebarOpen ? "w-64" : "w-20"
         } bg-white border-r border-border-light transition-all duration-300 flex flex-col fixed h-screen z-30`}
       >
         {/* Logo */}
@@ -108,7 +112,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="font-bold text-neutral-900">FivoPay</span>
             </Link>
           ) : (
-            <Link href="/dashboard" className="w-8 h-8 bg-primary-500 rounded-stripe flex items-center justify-center mx-auto">
+            <Link
+              href="/dashboard"
+              className="w-8 h-8 bg-primary-500 rounded-stripe flex items-center justify-center mx-auto"
+            >
               <span className="text-sm font-bold text-white">FP</span>
             </Link>
           )}
@@ -121,6 +128,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             label="Dashboard"
             sidebarOpen={sidebarOpen}
             href="/dashboard"
+          />
+          <NavItem
+            icon={<Users className="h-5 w-5" />}
+            label="Employees"
+            sidebarOpen={sidebarOpen}
+            href="/employees"
           />
           <NavItem
             icon={<Users className="h-5 w-5" />}
@@ -179,10 +192,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </div>
           {sidebarOpen && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              fullWidth 
+            <Button
+              variant="outline"
+              size="sm"
+              fullWidth
               className="mt-3"
               onClick={handleLogout}
             >
@@ -194,7 +207,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main Content */}
-      <div className={`flex-1 flex flex-col ${sidebarOpen ? 'ml-64' : 'ml-20'} transition-all duration-300`}>
+      <div
+        className={`flex-1 flex flex-col ${
+          sidebarOpen ? "ml-64" : "ml-20"
+        } transition-all duration-300`}
+      >
         {/* Header */}
         <header className="h-16 bg-white border-b border-border-light flex items-center justify-between px-6 sticky top-0 z-20">
           <div className="flex items-center gap-4 flex-1">
@@ -241,24 +258,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <AlertTriangle className="h-6 w-6 text-warning-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-neutral-900">Are you sure you want to logout?</h3>
+              <h3 className="text-lg font-semibold text-neutral-900">
+                Are you sure you want to logout?
+              </h3>
               <p className="text-sm text-neutral-600 mt-1">
                 You will need to sign in again to access your account.
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-end gap-3">
-            <Button
-              variant="outline"
-              onClick={cancelLogout}
-            >
+            <Button variant="outline" onClick={cancelLogout}>
               Cancel
             </Button>
-            <Button
-              variant="danger"
-              onClick={confirmLogout}
-            >
+            <Button variant="danger" onClick={confirmLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout
             </Button>
@@ -289,13 +302,19 @@ function NavItem({
       href={href}
       className={`flex items-center gap-3 px-3 py-2 rounded-stripe transition-colors ${
         isActive
-          ? 'bg-primary-50 text-primary-600'
-          : 'text-neutral-700 hover:bg-neutral-100'
-      } ${!sidebarOpen ? 'justify-center' : ''}`}
+          ? "bg-primary-50 text-primary-600"
+          : "text-neutral-700 hover:bg-neutral-100"
+      } ${!sidebarOpen ? "justify-center" : ""}`}
     >
-      <span className={isActive ? 'text-primary-600' : 'text-neutral-600'}>{icon}</span>
+      <span className={isActive ? "text-primary-600" : "text-neutral-600"}>
+        {icon}
+      </span>
       {sidebarOpen && (
-        <span className={isActive ? 'text-primary-600 font-medium' : 'text-neutral-700'}>
+        <span
+          className={
+            isActive ? "text-primary-600 font-medium" : "text-neutral-700"
+          }
+        >
           {label}
         </span>
       )}
