@@ -1,8 +1,8 @@
 // Import existing customer data for referential integrity
 import { customerService, CustomerTransaction } from '@/services/customers.service';
 import { mockCustomers } from '@/services/mockData';
-import { mockLoans } from '@/services/loans';
-import { mockDeposits } from '@/services/deposits';
+import { loanService } from '@/services/loans';
+import { depositService } from '@/services/deposits';
 
 // Type Definitions
 export interface Branch {
@@ -217,24 +217,37 @@ export const branchService = {
   },
 
   async getBranchKpis(branchId: string): Promise<BranchKpi> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
+    return new Promise(async (resolve) => {
+      try {
         const branchCustomers = mockCustomers.filter(c => {
           const branch = mockBranches.find(b => b.id === branchId);
           return c.branch === branch?.branchName;
         });
 
-        const totalLoanValue = mockLoans
-          .filter(l => l.branchId === branchId && l.status === 'Active')
-          .reduce((sum, l) => sum + l.outstandingAmount, 0);
+        // Fetch real loan and deposit data
+        const loans = await loanService.getLoans();
+        const depositsResponse = await depositService.getAll();
 
-        const totalDepositValue = mockDeposits
-          .filter(d => d.branchId === branchId && d.status === 'Active')
-          .reduce((sum, d) => sum + d.currentBalance, 0);
+        const totalLoanValue = loans
+          .filter((l: any) => l.branchId === branchId && l.status === 'Active')
+          .reduce((sum: number, l: any) => sum + (l.outstandingAmount || l.amount || 0), 0);
+
+        const deposits = Array.isArray(depositsResponse) 
+          ? depositsResponse
+          : depositsResponse?.data || depositsResponse?.result || [];
+
+        const totalDepositValue = Array.isArray(deposits)
+          ? deposits
+              .filter((d: any) => d.branchId === branchId && d.status === 'Active')
+              .reduce((sum: number, d: any) => sum + (d.currentBalance || d.balanceAfter || 0), 0)
+          : 0;
 
         const oneMonthAgo = new Date();
         oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-        const newMembersThisMonth = branchCustomers.filter(c => new Date(c.dateOfJoining) >= oneMonthAgo).length;
+        const newMembersThisMonth = branchCustomers.filter((c: any) => {
+          const joinDate = c.dateOfJoining || c.createdAt || c.joinedDate;
+          return joinDate && new Date(joinDate) >= oneMonthAgo;
+        }).length;
 
         resolve({
           totalCustomers: branchCustomers.length,
@@ -242,7 +255,19 @@ export const branchService = {
           totalDepositValue,
           newMembersThisMonth,
         });
-      }, 700);
+      } catch (error) {
+        // Fallback to zero values if API calls fail
+        const branchCustomers = mockCustomers.filter(c => {
+          const branch = mockBranches.find(b => b.id === branchId);
+          return c.branch === branch?.branchName;
+        });
+        resolve({
+          totalCustomers: branchCustomers.length,
+          totalLoanValue: 0,
+          totalDepositValue: 0,
+          newMembersThisMonth: 0,
+        });
+      }
     });
   },
 

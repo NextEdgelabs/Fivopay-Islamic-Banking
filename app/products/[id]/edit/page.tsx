@@ -8,7 +8,7 @@ import { Save, X, Plus, Trash2, GitCommit } from 'lucide-react';
 import { useProduct } from '@/hooks/useProduct';
 import { useProductMutations } from '@/hooks/useProductMutations';
 import { useToast } from '@/components/ui/Toast';
-import { UpdateProductDto, ProductType, EligibilityRule } from '@/services/products';
+import { UpdateProductDto, ProductType, EligibilityRule, CreateProductDto } from '@/services/products';
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -55,10 +55,10 @@ export default function EditProductPage() {
       ...formData,
       version: product.version + 1,
     };
-    delete newVersionData.id;
+    delete (newVersionData as any).id;
 
     try {
-      const newProduct = await createProduct(newVersionData as UpdateProductDto);
+      const newProduct = await createProduct(newVersionData as CreateProductDto);
       addToast({ type: 'success', message: `Created new version ${newProduct.version}` });
       router.push(`/products/${newProduct.id}/edit`);
     } catch (err) {

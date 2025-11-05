@@ -161,7 +161,7 @@ export default function CustomersPage() {
             icon={<Eye className="h-4 w-4" />}
             variant="ghost"
             size="sm"
-            onClick={(e) => { e.stopPropagation(); router.push(`/customers/${row.id}`)}}
+            onClick={(e) => { e.stopPropagation(); router.push(`/customers/${row._id || row.id}`)}}
             ariaLabel="View customer"
           />
           <IconButton
@@ -310,7 +310,7 @@ export default function CustomersPage() {
               </div>
             </div>
             <p className="text-xs text-success-600 mt-2">
-              { customers?.length > 0 ? ((customers?.filter((c) => c.status === 'Active').length / customers?.length) * 100).toFixed(0) : 0}% active rate
+              { customers?.length > 0 ? ((customers?.filter((c) => c.isActive || c.status === 'Active').length / customers?.length) * 100).toFixed(0) : 0}% active rate
             </p>
           </Card>
 

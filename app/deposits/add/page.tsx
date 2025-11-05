@@ -11,7 +11,7 @@ import { useBranches } from '@/hooks/useBranches';
 import { useProducts } from '@/hooks/useProducts';
 import { useToast } from '@/components/ui/Toast';
 import { TermDepositProduct, EligibilityRule } from '@/services/products';
-import { Customer } from '@/services/customers';
+import { Customer } from '@/services/customers.service';
 import { Alert } from '@/components/ui';
 
 const checkEligibility = (customer: Customer, rules: EligibilityRule[]): string[] => {
@@ -103,7 +103,6 @@ export default function AddDepositPage() {
         depositType: formData.depositType,
         depositAmount: parseFloat(formData.depositAmount),
         tenure: formData.tenure ? parseInt(formData.tenure) : undefined,
-        interestRate: formData.interestRate ? parseFloat(formData.interestRate) : undefined,
         branchId: formData.branchId,
       });
       addToast({ type: 'success', message: 'Deposit created successfully!' });
@@ -157,18 +156,18 @@ export default function AddDepositPage() {
                 onChange={handleChange}
                 options={[
                   { value: '', label: 'Select Customer' },
-                  ...customers.map((c) => ({ value: c.id, label: `${c.fullName} - ${c.phone}` })),
+                  ...customers.map((c) => ({ value: c.id || '', label: `${c.fullName} - ${c.phone}` })),
                 ]}
                 required
               />
             </div>
             
             {eligibilityWarnings.length > 0 && (
-              <Alert type="warning" title="Eligibility Warnings">
-                <ul className="list-disc pl-5">
-                  {eligibilityWarnings.map((warning, i) => <li key={i}>{warning}</li>)}
-                </ul>
-              </Alert>
+              <Alert 
+                variant="warning" 
+                title="Eligibility Warnings"
+                message={eligibilityWarnings.map((warning, i) => `${i + 1}. ${warning}`).join(' • ')}
+              />
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -187,7 +186,7 @@ export default function AddDepositPage() {
                 onChange={handleChange}
                 options={[
                   { value: '', label: 'Select Branch' },
-                  ...branches.map((b) => ({ value: b.id, label: b.branchName })),
+                  ...branches.map((b) => ({ value: b.id || '', label: b.branchName })),
                 ]}
                 required
               />

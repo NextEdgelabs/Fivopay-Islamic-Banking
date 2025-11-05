@@ -30,7 +30,7 @@ export default function ViewLoanPage() {
 
     if (confirm(`Are you sure you want to delete loan ${loan.loanId}?`)) {
       try {
-        await deleteLoan(loan.id);
+        await deleteLoan(loan._id || '');
         addToast({
           type: 'success',
           message: `Loan ${loan.loanId} has been deleted successfully`,
@@ -50,7 +50,7 @@ export default function ViewLoanPage() {
     const rate = prompt('Enter interest rate (%):');
     if (rate) {
       try {
-        await approveLoan(loan.id, 'Admin', parseFloat(rate));
+        await approveLoan(loan._id || '', 'Admin', parseFloat(rate));
         addToast({ type: 'success', message: 'Loan approved successfully' });
         window.location.reload();
       } catch (err) {
@@ -64,7 +64,7 @@ export default function ViewLoanPage() {
     const reason = prompt('Enter rejection reason:');
     if (reason) {
       try {
-        await rejectLoan(loan.id, 'Admin', reason);
+        await rejectLoan(loan._id || '', 'Admin', reason);
         addToast({ type: 'success', message: 'Loan rejected' });
         window.location.reload();
       } catch (err) {
@@ -77,7 +77,7 @@ export default function ViewLoanPage() {
     if (!loan) return;
     if (confirm(`Disburse loan ${loan.loanId}?`)) {
       try {
-        await disburseLoan(loan.id);
+        await disburseLoan(loan._id || '');
         addToast({ type: 'success', message: 'Loan disbursed successfully' });
         window.location.reload();
       } catch (err) {
@@ -148,14 +148,14 @@ export default function ViewLoanPage() {
         <Breadcrumbs items={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Loans', href: '/loans' },
-          { label: loan.loanId },
+          { label: loan.loanId || '' },
         ]} />
 
         {/* Standard Header Card */}
         <Card className="p-6">
           <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
             <div>
-              <h1 className="text-3xl font-bold">{loan.loanId}</h1>
+              <h1 className="text-3xl font-bold">{loan.loanId || ''}</h1>
               <Link href={`/customers/${loan.customerId}`} className="text-primary-600 hover:underline">
                 {loan.customerName}
               </Link>
@@ -171,7 +171,7 @@ export default function ViewLoanPage() {
               {loan.status === 'Approved' && (
                 <Button variant="primary" onClick={handleDisburse}>Disburse</Button>
               )}
-              <Button variant="outline" onClick={() => router.push(`/loans/${loan.id}/edit`)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
+              <Button variant="outline" onClick={() => router.push(`/loans/${loan._id || ''}/edit`)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
               <Button variant="danger" onClick={handleDelete}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
             </div>
           </div>
@@ -194,7 +194,7 @@ const LoanOverviewTab = ({ loan, getStatusBadge }: { loan: any, getStatusBadge: 
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Loan Type</label>
-                  <p className="mt-1"><Badge variant="neutral">{loan.loanType}</Badge></p>
+                  <p className="mt-1"><Badge variant="neutral">{loan.loanType || ''}</Badge></p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Status</label>
@@ -203,22 +203,22 @@ const LoanOverviewTab = ({ loan, getStatusBadge }: { loan: any, getStatusBadge: 
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Loan Amount</label>
                   <p className="mt-1 text-2xl font-bold text-primary-600">
-                    ₹{loan.loanAmount.toLocaleString('en-IN')}
+                    ₹{loan.loanAmount?.toLocaleString('en-IN') || ''}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-neutral-700">EMI Amount</label>
                   <p className="mt-1 text-2xl font-bold text-neutral-900">
-                    ₹{loan.emiAmount.toLocaleString('en-IN')}
+                    ₹{loan.emiAmount?.toLocaleString('en-IN') || ''}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Interest Rate</label>
-                  <p className="mt-1 text-neutral-900">{loan.interestRate}% p.a.</p>
+                  <p className="mt-1 text-neutral-900">{loan.interestRate?.toString() || ''}% p.a.</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Tenure</label>
-                  <p className="mt-1 text-neutral-900">{loan.tenure} months</p>
+                  <p className="mt-1 text-neutral-900">{loan.tenure?.toString() || ''} months</p>
                 </div>
               </div>
             </Card>
@@ -239,11 +239,11 @@ const LoanOverviewTab = ({ loan, getStatusBadge }: { loan: any, getStatusBadge: 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-neutral-700">Phone</label>
-                    <p className="mt-1 text-neutral-900">{loan.customerPhone}</p>
+                    <p className="mt-1 text-neutral-900">{loan.phone || ''}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-neutral-700">Email</label>
-                    <p className="mt-1 text-neutral-900">{loan.customerEmail}</p>
+                    <p className="mt-1 text-neutral-900">{loan.email || ''}</p>
                   </div>
                 </div>
               </div>
@@ -256,19 +256,19 @@ const LoanOverviewTab = ({ loan, getStatusBadge }: { loan: any, getStatusBadge: 
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Principal</label>
                   <p className="mt-1 text-lg font-semibold text-neutral-900">
-                    ₹{loan.principalAmount.toLocaleString('en-IN')}
+                    ₹{loan.principalAmount?.toLocaleString('en-IN') || ''}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Outstanding</label>
                   <p className="mt-1 text-lg font-semibold text-warning-600">
-                    ₹{loan.outstandingAmount.toLocaleString('en-IN')}
+                    ₹{loan.outstandingAmount?.toLocaleString('en-IN') || ''}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Paid</label>
                   <p className="mt-1 text-lg font-semibold text-success-600">
-                    ₹{loan.paidAmount.toLocaleString('en-IN')}
+                    ₹{loan.paidAmount?.toLocaleString('en-IN') || ''}
                   </p>
                 </div>
               </div>

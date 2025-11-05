@@ -21,7 +21,7 @@ export default function PendingLoanApplications() {
                 <p className="font-medium">{loan.customerName}</p>
                 <p className="text-sm text-neutral-500">{loan.loanType}</p>
               </div>
-              <p className="font-semibold">₹{loan.loanAmount.toLocaleString('en-IN')}</p>
+              <p className="font-semibold">₹{loan.loanAmount?.toLocaleString('en-IN') || 0}</p>
             </div>
           </Link>
         ))}

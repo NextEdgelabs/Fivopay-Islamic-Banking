@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, Button, Input, Select, Breadcrumbs, Skeleton } from '@/components/ui';
+import { BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import { Save, X } from 'lucide-react';
 import { useLoan } from '@/hooks/useLoan';
 import { useLoanMutations } from '@/hooks/useLoanMutations';
@@ -27,9 +28,9 @@ export default function EditLoanPage() {
   useEffect(() => {
     if (loan) {
       setFormData({
-        loanAmount: loan.loanAmount.toString(),
-        tenure: loan.tenure.toString(),
-        interestRate: loan.interestRate.toString(),
+        loanAmount: loan?.loanAmount?.toString() || '',
+        tenure: loan?.tenure?.toString() || '',
+        interestRate: loan?.interestRate?.toString() || '',
         status: loan.status,
       });
     }
@@ -45,10 +46,10 @@ export default function EditLoanPage() {
 
     try {
       await updateLoan(loanId, {
-        loanAmount: parseFloat(formData.loanAmount),
+        amount: parseFloat(formData.loanAmount),
         tenure: parseInt(formData.tenure),
         interestRate: parseFloat(formData.interestRate),
-        status: formData.status,
+        status: formData.status as any,
       });
       addToast({ type: 'success', message: 'Loan updated successfully!' });
       router.push(`/loans/${loanId}`);
@@ -96,7 +97,7 @@ export default function EditLoanPage() {
   return (
     <DashboardLayout>
       <div className="p-6 max-w-4xl mx-auto space-y-6">
-        <Breadcrumbs items={breadcrumbItems} />
+        <Breadcrumbs items={breadcrumbItems as BreadcrumbItem[]} />
 
         <div className="flex items-center justify-between">
           <div>

@@ -8,7 +8,7 @@ import { useProduct } from '@/hooks/useProduct';
 import { useProductMutations } from '@/hooks/useProductMutations';
 import { useToast } from '@/components/ui/Toast';
 import { AnyProduct, TermDepositProduct, LoanProduct } from '@/services/products';
-import ProductAnalyticsTab from './analytics/page';
+import ProductAnalyticsTab from './components/ProductAnalyticsTab';
 
 export default function ViewProductPage() {
   const router = useRouter();
@@ -106,12 +106,12 @@ export default function ViewProductPage() {
             <div className="flex gap-2 flex-wrap">
               {product.status === 'Pending Approval' && (
                 <>
-                  <Button variant="success" onClick={() => handleStatusChange('Active')}><CheckCircle className="mr-2 h-4 w-4" /> Approve</Button>
+                  <Button variant="primary" onClick={() => handleStatusChange('Active')}><CheckCircle className="mr-2 h-4 w-4" /> Approve</Button>
                   <Button variant="danger" onClick={() => handleStatusChange('Draft')}><XCircle className="mr-2 h-4 w-4" /> Reject</Button>
                 </>
               )}
               {product.status === 'Inactive' && (
-                  <Button variant="warning" onClick={() => handleStatusChange('Retired')}><Archive className="mr-2 h-4 w-4" /> Retire</Button>
+                  <Button variant="primary" onClick={() => handleStatusChange('Retired')}><Archive className="mr-2 h-4 w-4" /> Retire</Button>
               )}
               <Button variant="outline" onClick={() => router.push(`/products/${product.id}/edit`)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
               <Button variant="danger" onClick={handleDelete} loading={isDeleting}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>

@@ -38,12 +38,14 @@ export default function LoansPage() {
   const paginatedLoans = loans.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleDelete = async (loan: any) => {
-    if (confirm(`Are you sure you want to delete loan ${loan.loanId}?`)) {
+    const loanId = loan.id || loan._id;
+    const loanIdentifier = loan.loanId || loan._id || loan.id || 'this loan';
+    if (confirm(`Are you sure you want to delete loan ${loanIdentifier}?`)) {
       try {
-        await deleteLoan(loan.id);
+        await deleteLoan(loanId);
         addToast({
           type: 'success',
-          message: `Loan ${loan.loanId} has been deleted successfully`,
+          message: `Loan ${loanIdentifier} has been deleted successfully`,
         });
         refetch();
       } catch (err) {
@@ -53,6 +55,16 @@ export default function LoansPage() {
         });
       }
     }
+  };
+
+  const mapApprovalStatus = (approvalStatus?: string): string => {
+    if (!approvalStatus) return 'Pending';
+    const statusMap: Record<string, string> = {
+      'pending': 'Pending',
+      'approved': 'Approved',
+      'rejected': 'Rejected',
+    };
+    return statusMap[approvalStatus.toLowerCase()] || 'Pending';
   };
 
   const getStatusBadge = (status: string) => {
@@ -109,66 +121,112 @@ export default function LoansPage() {
       header: 'Loan ID',
       render: (value: string, row: any) => (
         <div>
-          <p className="font-medium text-neutral-900">{row.loanId}</p>
-          <p className="text-sm text-neutral-500">{row.applicationNumber}</p>
+          <p className="font-medium text-neutral-900">{row.loanId || row._id || row.id || 'N/A'}</p>
+          <p className="text-sm text-neutral-500">{row.applicationNumber || '-'}</p>
         </div>
       ),
     },
     {
       key: 'customer',
       header: 'Customer',
-      render: (value: string, row: any) => (
-        <div>
-          <Link
-            href={`/customers/${row.customerId}`}
-            className="font-medium text-primary-600 hover:text-primary-700"
-          >
-            {row.customerName}
-          </Link>
-          <div className="text-sm text-neutral-500">{row.customerPhone}</div>
-        </div>
-      ),
+      render: (value: string, row: any) => {
+        // Ensure we get a string value, not an object
+        const customerId = typeof row.customerId === 'string' ? row.customerId 
+          : typeof row.customerId === 'object' && row.customerId?._id ? row.customerId._id
+          : typeof row.userId === 'string' ? row.userId
+          : typeof row.userId === 'object' && row.userId?._id ? row.userId._id
+          : row.customerId?.toString() || row.userId?.toString() || '';
+        
+        const customerName = typeof row.customerName === 'string' ? row.customerName
+          : typeof row.customerName === 'object' ? row.customerName?.fullName || row.customerName?.name || 'N/A'
+          : row.customerName || 'N/A';
+        
+        return (
+          <div>
+            <Link
+              href={`/customers/${customerId}`}
+              className="font-medium text-primary-600 hover:text-primary-700"
+            >
+              {customerName}
+            </Link>
+            <div className="text-sm text-neutral-500">{row.customerPhone || '-'}</div>
+          </div>
+        );
+      },
     },
     {
       key: 'loanType',
       header: 'Type',
-      render: (value: string) => <Badge variant="neutral">{value}</Badge>,
+      render: (value: string, row: any) => {
+        // Handle product as string or populated object
+        let loanType = value || row.loanType;
+        
+        if (!loanType && row.product) {
+          if (typeof row.product === 'string') {
+            loanType = row.product;
+          } else if (typeof row.product === 'object') {
+            // Extract product name from populated object
+            loanType = row.product.productName 
+              || row.product.name 
+              || row.product.productType 
+              || row.product.type
+              || 'N/A';
+          }
+        }
+        
+        return <Badge variant="neutral">{loanType || 'N/A'}</Badge>;
+      },
     },
     {
       key: 'loanAmount',
       header: 'Amount',
-      render: (value: number) => <div className="font-semibold">₹{value.toLocaleString('en-IN')}</div>,
+      render: (value: number, row: any) => {
+        const amount = value ?? row.amount ?? row.loanAmount ?? 0;
+        return <div className="font-semibold">₹{amount.toLocaleString('en-IN')}</div>;
+      },
     },
     {
       key: 'emiAmount',
       header: 'EMI',
-      render: (value: number) => <div>₹{value.toLocaleString('en-IN')}</div>,
+      render: (value: number, row: any) => {
+        const emi = value ?? row.emiAmount ?? 0;
+        return <div>₹{emi.toLocaleString('en-IN')}</div>;
+      },
     },
     {
       key: 'tenure',
       header: 'Tenure',
-      render: (value: number) => <div>{value} months</div>,
+      render: (value: number, row: any) => {
+        const tenure = value ?? row.tenure ?? 0;
+        return <div>{tenure} months</div>;
+      },
     },
     {
       key: 'status',
       header: 'Status',
-      render: (value: string) => getStatusBadge(value),
+      render: (value: string, row: any) => {
+        const status = value || row.status || mapApprovalStatus(row.approvalStatus) || 'Pending';
+        return getStatusBadge(status);
+      },
     },
     {
       key: 'actions',
       header: 'Actions',
-      render: (_: any, row: any) => (
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/loans/${row.id}`)}}><Eye className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/loans/${row.id}/edit`)}}><Edit className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(row)}}><Trash2 className="h-4 w-4" /></Button>
-        </div>
-      ),
+      render: (_: any, row: any) => {
+        const loanId = row.id || row._id || '';
+        return (
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/loans/${loanId}`)}}><Eye className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/loans/${loanId}/edit`)}}><Edit className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(row)}}><Trash2 className="h-4 w-4" /></Button>
+          </div>
+        );
+      },
     },
   ];
   
-  const totalLoanValue = loans.reduce((acc, loan) => acc + loan.loanAmount, 0);
-  const activeLoans = loans.filter(l => l.status === 'Active');
+  const totalLoanValue = loans.reduce((acc, loan) => acc + (loan.loanAmount || loan.amount || 0), 0);
+  const activeLoans = loans.filter(l => l.status === 'Active' || l.approvalStatus === 'approved');
 
   return (
     <DashboardLayout>
@@ -280,7 +338,7 @@ export default function LoansPage() {
             </div>
           ) : (
             <>
-              <Table columns={columns} data={paginatedLoans} onRowClick={(row) => router.push(`/loans/${row.id}`)} />
+              <Table columns={columns} data={paginatedLoans} onRowClick={(row) => router.push(`/loans/${row.id || row._id || ''}`)} />
 
               {totalPages > 1 && (
                 <div className="p-4 border-t flex items-center justify-between">

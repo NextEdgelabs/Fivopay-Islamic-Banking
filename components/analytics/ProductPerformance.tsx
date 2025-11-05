@@ -1,7 +1,7 @@
 'use client';
 import { Card, Table } from '@/components/ui';
 import { PerformanceData } from '@/services/analytics';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, PieLabelRenderProps } from 'recharts';
 
 interface ProductPerformanceProps {
   data: PerformanceData['productPerformance'];
@@ -26,7 +26,7 @@ const ProductPerformance: React.FC<ProductPerformanceProps> = ({ data }) => {
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }: PieLabelRenderProps) => `${name} ${((percent as number) * 100).toFixed(0)}%`}
               >
                 {data.loans.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -52,7 +52,7 @@ const ProductPerformance: React.FC<ProductPerformanceProps> = ({ data }) => {
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name} ${((percent as number) * 100).toFixed(0)}%`}
               >
                 {data.deposits.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

@@ -216,13 +216,14 @@ export const productService = {
   async createProduct(data: CreateProductDto): Promise<AnyProduct> {
     return new Promise(resolve => {
       setTimeout(() => {
+        const { version, ...productData } = data;
         const newProduct: AnyProduct = {
+          ...productData,
           id: `PROD_${data.type === 'Loan' ? 'LN' : 'TD'}_${String(mockProducts.length + 1).padStart(3, '0')}`,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           createdBy: 'Admin', // In a real app, this would be the logged-in user
-          version: data.version || 1,
-          ...data,
+          version: version || 1,
         } as AnyProduct;
         mockProducts.push(newProduct);
         resolve(newProduct);
@@ -238,12 +239,13 @@ export const productService = {
           reject(new Error('Product not found'));
           return;
         }
-        const updatedProduct = {
+        const { version, ...updateData } = data;
+        const updatedProduct: AnyProduct = {
           ...mockProducts[index],
-          ...data,
+          ...updateData,
           updatedAt: new Date().toISOString(),
-          version: mockProducts[index].version + 1,
-        };
+          version: (mockProducts[index].version || 0) + 1,
+        } as AnyProduct;
         mockProducts[index] = updatedProduct;
         resolve(updatedProduct);
       }, 500);

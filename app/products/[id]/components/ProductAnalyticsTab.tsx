@@ -3,6 +3,7 @@
 import React from 'react';
 import { Card } from '@/components/ui';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AnyProduct } from '@/services/products';
 
 const data = [
   { name: 'Jan', Applications: 40 },
@@ -14,7 +15,7 @@ const data = [
   { name: 'Jul', Applications: 34 },
 ];
 
-const ProductAnalyticsTab = ({ product }: { product: any }) => {
+const ProductAnalyticsTab = ({ product }: { product: AnyProduct }) => {
   return (
     <div className="space-y-6 mt-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -58,3 +59,4 @@ const ProductAnalyticsTab = ({ product }: { product: any }) => {
 };
 
 export default ProductAnalyticsTab;
+

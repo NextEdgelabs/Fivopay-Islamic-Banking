@@ -22,14 +22,37 @@ export default function AddLoanCategoryPage() {
   const { createLoanCategory, loading } = useLoanCategoryMutations();
   const { addToast } = useToast();
 
-  const [formData, setFormData] = useState<CreateLoanCategoryDto>({
-    name: '',
+  const [formData, setFormData] = useState<Partial<CreateLoanCategoryDto>>({
+    categoryName: '',
     description: '',
-    isActive: true,
-    displayOrder: 1,
-    icon: '',
-    color: '#6366f1',
-    subCategories: [],
+    loanType: '',
+    minLoanAmount: 0,
+    maxLoanAmount: 0,
+    interestRate: 0,
+    minTenureMonths: 0,
+    maxTenureMonths: 0,
+    status: 'active',
+    eligibilityCriteria: {
+      minAge: 0,
+      maxAge: 0,
+      minIncome: 0,
+      requiredDocuments: [],
+      creditScoreMin: 0,
+    },
+    processingFee: {
+      type: 'percentage',
+      value: 0,
+    },
+    prepaymentCharges: {
+      type: 'percentage',
+      value: 0,
+    },
+    latePaymentCharges: {
+      type: 'percentage',
+      value: 0,
+    },
+    features: [],
+    termsAndConditions: '',
   });
 
   const [subCategories, setSubCategories] = useState<Partial<LoanSubCategory>[]>([]);
@@ -42,10 +65,10 @@ export default function AddLoanCategoryPage() {
     }));
   };
 
-  const handleToggleChange = (name: string, checked: boolean) => {
+  const handleToggleChange = (name: string, value: boolean | string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: checked
+      [name]: value
     }));
   };
 
@@ -116,12 +139,43 @@ export default function AddLoanCategoryPage() {
     e.preventDefault();
     
     try {
-      const categoryData = {
-        ...formData,
-        subCategories: subCategories.map((sub, index) => ({
-          ...sub,
-          displayOrder: index + 1,
-        }))
+      // Ensure all required fields are present
+      if (!formData.categoryName || !formData.description || !formData.loanType) {
+        addToast({ type: 'error', message: 'Please fill in all required fields' });
+        return;
+      }
+
+      const categoryData: CreateLoanCategoryDto = {
+        categoryName: formData.categoryName,
+        description: formData.description || '',
+        loanType: formData.loanType,
+        minLoanAmount: formData.minLoanAmount || 0,
+        maxLoanAmount: formData.maxLoanAmount || 0,
+        interestRate: formData.interestRate || 0,
+        minTenureMonths: formData.minTenureMonths || 0,
+        maxTenureMonths: formData.maxTenureMonths || 0,
+        status: formData.status || 'active',
+        eligibilityCriteria: formData.eligibilityCriteria || {
+          minAge: 0,
+          maxAge: 0,
+          minIncome: 0,
+          requiredDocuments: [],
+          creditScoreMin: 0,
+        },
+        processingFee: formData.processingFee || {
+          type: 'percentage',
+          value: 0,
+        },
+        prepaymentCharges: formData.prepaymentCharges || {
+          type: 'percentage',
+          value: 0,
+        },
+        latePaymentCharges: formData.latePaymentCharges || {
+          type: 'percentage',
+          value: 0,
+        },
+        features: formData.features || [],
+        termsAndConditions: formData.termsAndConditions || '',
       };
       
       await createLoanCategory(categoryData);
@@ -164,8 +218,8 @@ export default function AddLoanCategoryPage() {
                     Category Name *
                   </label>
                   <Input
-                    name="name"
-                    value={formData.name}
+                    name="categoryName"
+                    value={formData.categoryName || ''}
                     onChange={handleInputChange}
                     placeholder="e.g., Personal Loans"
                     required
@@ -176,13 +230,6 @@ export default function AddLoanCategoryPage() {
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Display Order
                   </label>
-                  <Input
-                    name="displayOrder"
-                    type="number"
-                    value={formData.displayOrder}
-                    onChange={handleInputChange}
-                    placeholder="1"
-                  />
                 </div>
                 
                 <div className="md:col-span-2">
@@ -201,43 +248,22 @@ export default function AddLoanCategoryPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Icon
+                    Loan Type *
                   </label>
                   <Input
-                    name="icon"
-                    value={formData.icon}
+                    name="loanType"
+                    value={formData.loanType || ''}
                     onChange={handleInputChange}
-                    placeholder="e.g., home, car, business"
+                    placeholder="e.g., Personal, Business, Home"
+                    required
                   />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Color
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      name="color"
-                      type="color"
-                      value={formData.color}
-                      onChange={handleInputChange}
-                      className="w-16 h-10"
-                    />
-                    <Input
-                      name="color"
-                      value={formData.color}
-                      onChange={handleInputChange}
-                      placeholder="#6366f1"
-                      className="flex-1"
-                    />
-                  </div>
                 </div>
                 
                 <div className="md:col-span-2">
                   <div className="flex items-center gap-2">
                     <Toggle
-                      checked={formData.isActive}
-                      onCheckedChange={(checked) => handleToggleChange('isActive', checked)}
+                      checked={formData.status === 'active'}
+                      onChange={(e) => handleToggleChange('status', e.target.checked ? 'active' : 'inactive')}
                     />
                     <label className="text-sm font-medium text-neutral-700">
                       Active Category
@@ -495,7 +521,7 @@ export default function AddLoanCategoryPage() {
                     <div className="flex items-center gap-2">
                       <Toggle
                         checked={subCategory.isActive || false}
-                        onCheckedChange={(checked) => updateSubCategory(index, 'isActive', checked)}
+                        onChange={(e) => updateSubCategory(index, 'isActive', e.target.checked)}
                       />
                       <label className="text-sm font-medium text-neutral-700">
                         Active Sub-category

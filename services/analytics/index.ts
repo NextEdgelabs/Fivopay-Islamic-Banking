@@ -1,6 +1,4 @@
-import { customerService } from '@/services/customers';
-import { loanService } from '@/services/loans';
-import { depositService } from '@/services/deposits';
+
 import { DateRange } from 'react-day-picker';
 
 export interface PerformanceData {

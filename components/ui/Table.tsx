@@ -123,14 +123,30 @@ function Table<T extends Record<string, any>>({
             {sortedData?.map((row, rowIndex) => (
               <tr
                 key={rowIndex}
-                onClick={() => onRowClick?.(row, rowIndex)}
+                onClick={(e) => {
+                  // Only trigger if clicking directly on the row, not on interactive elements
+                  const target = e.target as HTMLElement;
+                  const isInteractive = target.closest('button, a, input, select, textarea, [role="button"]');
+                  if (isInteractive) {
+                    return;
+                  }
+                  console.log('Row click triggered:', row);
+                  onRowClick?.(row, rowIndex);
+                }}
                 className={cn(
                   'transition-colors',
-                  onRowClick && 'cursor-pointer hover:bg-neutral-50'
+                  onRowClick && 'cursor-pointer hover:bg-neutral-50 active:bg-neutral-100'
                 )}
+                style={onRowClick ? { cursor: 'pointer' } : undefined}
               >
                 {columns.map((column) => (
-                  <td key={column.key} className="px-6 py-4 text-sm text-neutral-900">
+                  <td 
+                    key={column.key} 
+                    className={cn(
+                      "px-6 py-4 text-sm text-neutral-900",
+                      onRowClick && "cursor-pointer"
+                    )}
+                  >
                     {column.render
                       ? column.render(row[column.key], row, rowIndex)
                       : row[column.key]}

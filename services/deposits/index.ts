@@ -1,53 +1,161 @@
-// Import existing customer data for referential integrity
-import { mockCustomers } from '@/services/mockData';
+import axios from 'axios';
+import { API } from '@/api';
+import { getAuthToken } from '@/lib/auth';
 
 // ============================================================================
-// TYPE DEFINITIONS
+// TYPE DEFINITIONS (matching loadFlow.md schema)
 // ============================================================================
 
+export enum TransactionType {
+  DEPOSIT = 'deposit',
+  WITHDRAWAL = 'withdrawal',
+  TRANSFER = 'transfer',
+  REFUND = 'refund',
+}
+
+export enum TransactionStatus {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  CANCELLED = 'cancelled',
+  REFUNDED = 'refunded',
+}
+
+export enum PaymentMethod {
+  RAZORPAY = 'razorpay',
+  BANK_TRANSFER = 'bank_transfer',
+  UPI = 'upi',
+  CARD = 'card',
+  WALLET = 'wallet',
+}
+
+export enum PaymentStatus {
+  PENDING = 'pending',
+  CAPTURED = 'captured',
+  AUTHORIZED = 'authorized',
+  FAILED = 'failed',
+  CANCELLED = 'cancelled',
+  REFUNDED = 'refunded',
+}
+
+// Backend Deposit/Transaction Interface (matching loadFlow.md)
+export interface DepositTransaction {
+  _id?: string;
+  id?: string;
+  
+  // Transaction Information
+  transactionId: string;
+  userId: string;
+  transactionType: TransactionType;
+  amount: number;
+  fees: number;
+  netAmount: number;
+  status: TransactionStatus;
+  
+  // Payment Information
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
+  razorpaySignature?: string;
+  razorpayRefundId?: string;
+  
+  // Bank Details (for withdrawals)
+  bankAccountNumber?: string;
+  bankName?: string;
+  bankBranch?: string;
+  ifscCode?: string;
+  upiId?: string;
+  
+  // Transaction Details
+  description?: string;
+  reference?: string;
+  notes?: string;
+  
+  // Razorpay Response Data
+  razorpayResponse?: any;
+  webhookData?: any;
+  
+  // Timestamps
+  processedAt?: string | Date;
+  completedAt?: string | Date;
+  failedAt?: string | Date;
+  
+  // System Fields
+  retryCount?: number;
+  failureReason?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  
+  // Balance Information
+  balanceBefore: number;
+  balanceAfter: number;
+  
+  // Additional Fields
+  isRefundable?: boolean;
+  isReversible?: boolean;
+  reversalReason?: string;
+  reversedAt?: string | Date;
+  reversalReference?: string;
+  
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+  
+  // Populated fields
+  user?: {
+    _id: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    memberId?: string;
+  };
+}
+
+// Frontend compatibility interface (for existing UI)
 export interface Deposit {
   id: string;
   depositId: string;
   accountNumber: string;
-
-  // Customer Info (from existing customers)
+  
+  // Customer Info
   customerId: string;
   customerName: string;
   customerPhone: string;
   customerEmail: string;
-
+  
   // Deposit Details
   depositType: 'Savings Account' | 'Fixed Deposit' | 'Recurring Deposit' | 'Current Account';
   depositAmount: number;
   interestRate: number;
-  tenure?: number; // in months, for FD/RD
+  tenure?: number;
   maturityAmount?: number;
   maturityDate?: string;
-
+  
   // Dates
   openingDate: string;
   lastTransactionDate?: string;
-
+  
   // Status
   status: 'Active' | 'Closed' | 'Matured' | 'Frozen';
-
+  
   // Financial Details
   currentBalance: number;
   totalDeposits: number;
   totalWithdrawals: number;
   interestEarned: number;
-
-  // Branch (from existing branches)
+  
+  // Branch
   branchId: string;
   branchName: string;
-
+  
   // Nominee & Auto-renewal
   nomineeName?: string;
   nomineeRelation?: string;
   nomineePhone?: string;
   autoRenewal?: boolean;
   remarks?: string;
-
+  
   createdAt: string;
   updatedAt: string;
 }
@@ -77,359 +185,298 @@ export interface DepositFilters {
   customerId?: string;
 }
 
-// ============================================================================
-// MOCK DATA (References actual customers)
-// ============================================================================
+export interface GetAllDepositsParams {
+  page?: number;
+  limit?: number;
+  userId?: string;
+  transactionType?: TransactionType;
+  status?: TransactionStatus;
+  paymentStatus?: PaymentStatus;
+  paymentMethod?: PaymentMethod;
+  startDate?: string; // YYYY-MM-DD
+  endDate?: string; // YYYY-MM-DD
+}
 
-export const mockDeposits: Deposit[] = [
-  {
-    id: 'DEP001',
-    depositId: 'FD-2024-001',
-    accountNumber: mockCustomers[0]?.accountNumber,
-    customerId: mockCustomers[0]?.id,
-    customerName: mockCustomers[0]?.fullName,
-    customerPhone: mockCustomers[0]?.phone,
-    customerEmail: mockCustomers[0]?.email,
-    depositType: 'Fixed Deposit',
-    depositAmount: 500000,
-    interestRate: 7.5,
-    tenure: 36,
-    maturityAmount: 625000,
-    maturityDate: '2027-01-15',
-    openingDate: '2024-01-15',
-    status: 'Active',
-    currentBalance: 500000,
-    totalDeposits: 500000,
-    totalWithdrawals: 0,
-    interestEarned: 0,
-    branchId: 'BR001',
-    branchName: mockCustomers[0]?.branch,
-    nomineeName: mockCustomers[0]?.nomineeName,
-    nomineeRelation: mockCustomers[0]?.nomineeRelation,
-    autoRenewal: true,
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z',
-  },
-  {
-    id: 'DEP002',
-    depositId: 'SA-2024-002',
-    accountNumber: mockCustomers[1]?.accountNumber,
-    customerId: mockCustomers[1]?.id,
-    customerName: mockCustomers[1]?.fullName,
-    customerPhone: mockCustomers[1]?.phone,
-    customerEmail: mockCustomers[1]?.email,
-    depositType: 'Savings Account',
-    depositAmount: 950000,
-    interestRate: 4.0,
-    openingDate: '2024-02-01',
-    lastTransactionDate: '2024-10-15',
-    status: 'Active',
-    currentBalance: 950000,
-    totalDeposits: 950000,
-    totalWithdrawals: 0,
-    interestEarned: 12500,
-    branchId: 'BR002',
-    branchName: mockCustomers[1]?.branch,
-    nomineeName: mockCustomers[1]?.nomineeName,
-    nomineeRelation: mockCustomers[1]?.nomineeRelation,
-    createdAt: '2024-02-01T10:00:00Z',
-    updatedAt: '2024-10-15T10:00:00Z',
-  },
-  {
-    id: 'DEP003',
-    depositId: 'RD-2024-003',
-    accountNumber: mockCustomers[2]?.accountNumber,
-    customerId: mockCustomers[2]?.id,
-    customerName: mockCustomers[2]?.fullName,
-    customerPhone: mockCustomers[2]?.phone,
-    customerEmail: mockCustomers[2]?.email,
-    depositType: 'Recurring Deposit',
-    depositAmount: 10000,
-    interestRate: 6.5,
-    tenure: 60,
-    maturityAmount: 700000,
-    maturityDate: '2029-03-10',
-    openingDate: '2024-03-10',
-    status: 'Active',
-    currentBalance: 70000,
-    totalDeposits: 70000,
-    totalWithdrawals: 0,
-    interestEarned: 5000,
-    branchId: 'BR003',
-    branchName: mockCustomers[2]?.branch,
-    nomineeName: mockCustomers[2]?.nomineeName,
-    nomineeRelation: mockCustomers[2]?.nomineeRelation,
-    autoRenewal: false,
-    createdAt: '2024-03-10T10:00:00Z',
-    updatedAt: '2024-10-15T10:00:00Z',
-  },
-  {
-    id: 'DEP004',
-    depositId: 'CA-2024-004',
-    accountNumber: mockCustomers[3]?.accountNumber,
-    customerId: mockCustomers[3]?.id,
-    customerName: mockCustomers[3]?.fullName,
-    customerPhone: mockCustomers[3]?.phone,
-    customerEmail: mockCustomers[3]?.email,
-    depositType: 'Current Account',
-    depositAmount: 1806000,
-    interestRate: 0,
-    openingDate: '2024-04-01',
-    lastTransactionDate: '2024-10-15',
-    status: 'Active',
-    currentBalance: 1806000,
-    totalDeposits: 2500000,
-    totalWithdrawals: 694000,
-    interestEarned: 0,
-    branchId: 'BR004',
-    branchName: mockCustomers[3]?.branch,
-    nomineeName: mockCustomers[3]?.nomineeName,
-    nomineeRelation: mockCustomers[3]?.nomineeRelation,
-    createdAt: '2024-04-01T10:00:00Z',
-    updatedAt: '2024-10-15T10:00:00Z',
-  },
-  {
-    id: 'DEP005',
-    depositId: 'FD-2024-005',
-    accountNumber: mockCustomers[4]?.accountNumber,
-    customerId: mockCustomers[4]?.id,
-    customerName: mockCustomers[4]?.fullName,
-    customerPhone: mockCustomers[4]?.phone,
-    customerEmail: mockCustomers[4]?.email,
-    depositType: 'Fixed Deposit',
-    depositAmount: 300000,
-    interestRate: 7.0,
-    tenure: 24,
-    maturityAmount: 345000,
-    maturityDate: '2026-05-10',
-    openingDate: '2024-05-10',
-    status: 'Active',
-    currentBalance: 300000,
-    totalDeposits: 300000,
-    totalWithdrawals: 0,
-    interestEarned: 0,
-    branchId: 'BR005',
-    branchName: mockCustomers[4]?.branch,
-    nomineeName: mockCustomers[4]?.nomineeName,
-    nomineeRelation: mockCustomers[4]?.nomineeRelation,
-    autoRenewal: true,
-    createdAt: '2024-05-10T10:00:00Z',
-    updatedAt: '2024-05-10T10:00:00Z',
-  },
-];
+export interface DepositListResponse {
+  success: boolean;
+  message: string;
+  data?: DepositTransaction[];
+  result?: DepositTransaction[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface DepositResponse {
+  success: boolean;
+  message: string;
+  data?: DepositTransaction;
+  result?: DepositTransaction;
+}
+
+export interface VerifyDepositDto {
+  transactionId: string;
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
+  razorpaySignature?: string;
+}
 
 // ============================================================================
-// SERVICE METHODS
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Normalize deposit transaction from API to match frontend expectations
+ */
+function normalizeDeposit(transaction: any): Deposit {
+  const userId = typeof transaction.userId === 'string'
+    ? transaction.userId
+    : typeof transaction.userId === 'object' && transaction.userId?._id
+    ? transaction.userId._id
+    : transaction.userId?.toString() || '';
+
+  const user = transaction.user || (typeof transaction.userId === 'object' ? transaction.userId : null);
+  
+  // Map backend status to frontend status
+  const mapStatus = (status: TransactionStatus): 'Active' | 'Closed' | 'Matured' | 'Frozen' => {
+    switch (status) {
+      case TransactionStatus.COMPLETED:
+        return 'Active';
+      case TransactionStatus.CANCELLED:
+      case TransactionStatus.FAILED:
+        return 'Closed';
+      default:
+        return 'Active';
+    }
+  };
+
+  // Map transaction type to deposit type
+  const mapDepositType = (type: TransactionType): 'Savings Account' | 'Fixed Deposit' | 'Recurring Deposit' | 'Current Account' => {
+    // This might need adjustment based on actual backend data
+    return 'Savings Account';
+  };
+
+  return {
+    id: transaction._id || transaction.id || '',
+    depositId: transaction.transactionId || transaction._id || transaction.id || '',
+    accountNumber: transaction.reference || transaction.transactionId || '',
+    
+    customerId: userId,
+    customerName: user?.fullName || user?.name || 'N/A',
+    customerPhone: user?.phone || '',
+    customerEmail: user?.email || '',
+    
+    depositType: mapDepositType(transaction.transactionType),
+    depositAmount: transaction.amount || 0,
+    interestRate: 0, // Not in backend schema
+    tenure: undefined,
+    maturityAmount: undefined,
+    maturityDate: undefined,
+    
+    openingDate: transaction.createdAt 
+      ? new Date(transaction.createdAt).toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0],
+    lastTransactionDate: transaction.completedAt
+      ? new Date(transaction.completedAt).toISOString().split('T')[0]
+      : undefined,
+    
+    status: mapStatus(transaction.status),
+    
+    currentBalance: transaction.balanceAfter || 0,
+    totalDeposits: transaction.transactionType === TransactionType.DEPOSIT ? transaction.amount : 0,
+    totalWithdrawals: transaction.transactionType === TransactionType.WITHDRAWAL ? transaction.amount : 0,
+    interestEarned: 0, // Not in backend schema
+    
+    branchId: '',
+    branchName: '',
+    
+    createdAt: transaction.createdAt 
+      ? new Date(transaction.createdAt).toISOString()
+      : new Date().toISOString(),
+    updatedAt: transaction.updatedAt
+      ? new Date(transaction.updatedAt).toISOString()
+      : new Date().toISOString(),
+  };
+}
+
+// ============================================================================
+// API SERVICE FUNCTIONS
+// ============================================================================
+
+export const getAllDeposits = async (params?: GetAllDepositsParams): Promise<DepositListResponse> => {
+  try {
+    const token = getAuthToken();
+    const queryParams = new URLSearchParams();
+    
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.userId) queryParams.append('userId', params.userId);
+    if (params?.transactionType) queryParams.append('transactionType', params.transactionType);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.paymentStatus) queryParams.append('paymentStatus', params.paymentStatus);
+    if (params?.paymentMethod) queryParams.append('paymentMethod', params.paymentMethod);
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    
+    const url = `${API.domain}${API.endPoints.getAllDeposits}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    
+    const response = await axios.get(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+    });
+    
+    if (response.status === 200) {
+      const data = response.data;
+      if (data.success && (data.data || data.result)) {
+        const transactions = (data.data?.deposits || data.result?.deposits || data.data || data.result || []).map(normalizeDeposit);
+        return {
+          ...data,
+          data: transactions as any,
+          result: transactions as any,
+        };
+      }
+      return data;
+    } else {
+      throw new Error('Failed to fetch deposits');
+    }
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch deposits');
+  }
+};
+
+export const verifyDepositTransaction = async (data: VerifyDepositDto): Promise<DepositResponse> => {
+  try {
+    const token = getAuthToken();
+    const response = await axios.post(`${API.domain}${API.endPoints.verifyDeposit}`, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+    });
+    
+    if (response.status === 200 || response.status === 201) {
+      const responseData = response.data;
+      if (responseData.success && responseData.data) {
+        return {
+          ...responseData,
+          data: responseData.data,
+        };
+      }
+      return responseData;
+    } else {
+      throw new Error('Failed to verify deposit');
+    }
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Failed to verify deposit');
+  }
+};
+
+// ============================================================================
+// SERVICE OBJECT (with backward compatibility)
 // ============================================================================
 
 export const depositService = {
   /**
-   * Get all deposits with optional filters
+   * Get all deposits with optional filters (uses new API)
    */
   async getDeposits(filters?: DepositFilters): Promise<Deposit[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        let filtered = [...mockDeposits];
-
-        if (filters?.search) {
-          const searchLower = filters.search.toLowerCase();
-          filtered = filtered.filter(
-            (d) =>
-              d.depositId.toLowerCase().includes(searchLower) ||
-              d.accountNumber.toLowerCase().includes(searchLower) ||
-              d.customerName.toLowerCase().includes(searchLower)
-          );
-        }
-
-        if (filters?.status) {
-          filtered = filtered.filter((d) => d.status === filters.status);
-        }
-
-        if (filters?.depositType) {
-          filtered = filtered.filter((d) => d.depositType === filters.depositType);
-        }
-
-        if (filters?.branchId) {
-          filtered = filtered.filter((d) => d.branchId === filters.branchId);
-        }
-
-        if (filters?.customerId) {
-          filtered = filtered.filter((d) => d.customerId === filters.customerId);
-        }
-
-        resolve(filtered);
-      }, 500);
-    });
+    const params: GetAllDepositsParams = {
+      page: 1,
+      limit: 100,
+    };
+    
+    if (filters?.customerId) {
+      params.userId = filters.customerId;
+    }
+    
+    if (filters?.status) {
+      // Map frontend status to backend status
+      const statusMap: Record<string, TransactionStatus> = {
+        'Active': TransactionStatus.COMPLETED,
+        'Closed': TransactionStatus.CANCELLED,
+        'Matured': TransactionStatus.COMPLETED,
+        'Frozen': TransactionStatus.PENDING,
+      };
+      params.status = statusMap[filters.status] || TransactionStatus.COMPLETED;
+    }
+    
+    if (filters?.depositType) {
+      params.transactionType = TransactionType.DEPOSIT;
+    }
+    
+    const response = await getAllDeposits(params);
+    return (response.data || response.result || []) as any;
   },
 
   /**
    * Get a single deposit by ID
    */
   async getDepositById(id: string): Promise<Deposit> {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const deposit = mockDeposits.find((d) => d.id === id);
-        if (deposit) {
-          resolve(deposit);
-        } else {
-          reject(new Error(`Deposit with ID ${id} not found`));
-        }
-      }, 500);
-    });
+    // Get all deposits and find by ID
+    const deposits = await this.getDeposits();
+    const deposit = deposits.find((d) => d.id === id || d.depositId === id);
+    if (!deposit) {
+      throw new Error(`Deposit with ID ${id} not found`);
+    }
+    return deposit;
   },
 
   /**
-   * Create a new deposit
+   * Create a new deposit (placeholder - may need separate endpoint)
    */
   async createDeposit(data: CreateDepositDto): Promise<Deposit> {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const customer = mockCustomers.find((c) => c.id === data.customerId);
-        if (!customer) {
-          reject(new Error('Customer not found'));
-          return;
-        }
-
-        const interestRates: Record<string, number> = {
-          'Savings Account': 4.0,
-          'Fixed Deposit': 7.5,
-          'Recurring Deposit': 6.5,
-          'Current Account': 0,
-        };
-
-        const interestRate = interestRates[data.depositType];
-        let maturityAmount;
-        let maturityDate;
-
-        if (data.tenure && (data.depositType === 'Fixed Deposit' || data.depositType === 'Recurring Deposit')) {
-          const years = data.tenure / 12;
-          maturityAmount = Math.round(data.depositAmount * Math.pow(1 + interestRate / 100, years));
-          const maturityDateObj = new Date();
-          maturityDateObj.setMonth(maturityDateObj.getMonth() + data.tenure);
-          maturityDate = maturityDateObj.toISOString().split('T')[0];
-        }
-
-        const newDeposit: Deposit = {
-          id: `DEP${String(mockDeposits.length + 1).padStart(3, '0')}`,
-          depositId: `${data.depositType.substring(0, 2).toUpperCase()}-2024-${String(mockDeposits.length + 1).padStart(3, '0')}`,
-          accountNumber: customer.accountNumber,
-          customerId: data.customerId,
-          customerName: customer.fullName,
-          customerPhone: customer.phone,
-          customerEmail: customer.email,
-          depositType: data.depositType,
-          depositAmount: data.depositAmount,
-          interestRate,
-          tenure: data.tenure,
-          maturityAmount,
-          maturityDate,
-          openingDate: new Date().toISOString().split('T')[0],
-          status: 'Active',
-          currentBalance: data.depositAmount,
-          totalDeposits: data.depositAmount,
-          totalWithdrawals: 0,
-          interestEarned: 0,
-          branchId: data.branchId,
-          branchName: customer.branch,
-          nomineeName: data.nomineeName || customer.nomineeName,
-          nomineeRelation: data.nomineeRelation || customer.nomineeRelation,
-          nomineePhone: data.nomineePhone,
-          autoRenewal: data.autoRenewal,
-          remarks: data.remarks,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        mockDeposits.push(newDeposit);
-        resolve(newDeposit);
-      }, 800);
-    });
+    // This would need a create endpoint if available
+    throw new Error('Create deposit endpoint not yet implemented');
   },
 
   /**
-   * Update a deposit
+   * Update a deposit (placeholder - may need separate endpoint)
    */
   async updateDeposit(id: string, data: UpdateDepositDto): Promise<Deposit> {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const index = mockDeposits.findIndex((d) => d.id === id);
-        if (index === -1) {
-          reject(new Error('Deposit not found'));
-          return;
-        }
-
-        const updated: Deposit = {
-          ...mockDeposits[index],
-          ...data,
-          updatedAt: new Date().toISOString(),
-        };
-
-        mockDeposits[index] = updated;
-        resolve(updated);
-      }, 800);
-    });
+    // This would need an update endpoint if available
+    throw new Error('Update deposit endpoint not yet implemented');
   },
 
   /**
-   * Delete a deposit
+   * Delete a deposit (placeholder - may need separate endpoint)
    */
   async deleteDeposit(id: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const index = mockDeposits.findIndex((d) => d.id === id);
-        if (index === -1) {
-          reject(new Error('Deposit not found'));
-          return;
-        }
-
-        mockDeposits.splice(index, 1);
-        resolve();
-      }, 500);
-    });
+    // This would need a delete endpoint if available
+    throw new Error('Delete deposit endpoint not yet implemented');
   },
 
   /**
-   * Close a deposit
+   * Close a deposit (placeholder - may need separate endpoint)
    */
   async closeDeposit(id: string): Promise<Deposit> {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const index = mockDeposits.findIndex((d) => d.id === id);
-        if (index === -1) {
-          reject(new Error('Deposit not found'));
-          return;
-        }
-
-        const updated: Deposit = {
-          ...mockDeposits[index],
-          status: 'Closed',
-          updatedAt: new Date().toISOString(),
-        };
-
-        mockDeposits[index] = updated;
-        resolve(updated);
-      }, 800);
-    });
+    // This would need a close endpoint if available
+    throw new Error('Close deposit endpoint not yet implemented');
   },
 
   /**
-   * Calculate maturity amount
+   * Verify a deposit
    */
-  calculateMaturityAmount(principal: number, rate: number, tenureMonths: number): number {
-    const years = tenureMonths / 12;
-    return Math.round(principal * Math.pow(1 + rate / 100, years));
+  async verifyDeposit(data: VerifyDepositDto): Promise<DepositTransaction> {
+    const response = await verifyDepositTransaction(data);
+    if (response.success && response.data) {
+      return response.data;
+    }
+    throw new Error(response.message || 'Failed to verify deposit');
   },
 
   /**
    * Get customer deposits
    */
   async getCustomerDeposits(customerId: string): Promise<Deposit[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const deposits = mockDeposits.filter((d) => d.customerId === customerId);
-        resolve(deposits);
-      }, 500);
-    });
+    return this.getDeposits({ customerId });
   },
-};
 
+  // New API methods
+  getAll: getAllDeposits,
+  verify: verifyDepositTransaction,
+};

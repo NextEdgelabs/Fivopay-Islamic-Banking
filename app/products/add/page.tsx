@@ -32,7 +32,7 @@ export default function AddProductPage() {
       name: formData.name,
       description: formData.description,
       status: formData.status,
-      type: newType,
+      type: newType as any,
       subType: newType === 'Loan' ? 'Personal' : 'Fixed Deposit',
       eligibilityRules: [],
       requiredDocuments: [],

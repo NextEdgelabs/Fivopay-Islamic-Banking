@@ -12,7 +12,7 @@ const ProductKpiWidget = () => {
   const { loans } = useLoans();
   const { deposits } = useDeposits();
 
-  const totalLoanValue = loans.reduce((acc, loan) => acc + loan.loanAmount, 0);
+  const totalLoanValue = loans.reduce((acc, loan) => acc + (loan.loanAmount || 0), 0);
   const totalDepositValue = deposits.reduce((acc, deposit) => acc + deposit.currentBalance, 0);
 
   return (

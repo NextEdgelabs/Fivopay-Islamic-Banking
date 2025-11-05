@@ -427,7 +427,9 @@ export default function LoanCategoriesPage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-neutral-900">
-                Delete {itemToDelete?.item.categoryName || itemToDelete?.item.name}?
+                Delete {itemToDelete && itemToDelete.type === 'category' 
+                  ? (itemToDelete.item as LoanCategory).categoryName 
+                  : itemToDelete && (itemToDelete.item as LoanSubCategory).name}?
               </h3>
               <p className="text-sm text-neutral-600 mt-1">
                 This action cannot be undone. All {itemToDelete?.type === 'category' ? 'sub-categories and ' : ''}related data will be permanently deleted.

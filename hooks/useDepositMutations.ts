@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { depositService, CreateDepositDto, UpdateDepositDto, Deposit } from '@/services/deposits';
+import { useToast } from '@/components/ui/Toast';
+import { depositService, CreateDepositDto, UpdateDepositDto, Deposit, VerifyDepositDto, DepositTransaction } from '@/services/deposits';
 
 export const useDepositMutations = () => {
+  const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -10,9 +12,18 @@ export const useDepositMutations = () => {
     setError(null);
     try {
       const newDeposit = await depositService.createDeposit(data);
+      addToast({
+        type: 'success',
+        message: 'Deposit created successfully',
+      });
       return newDeposit;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create deposit');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create deposit';
+      setError(errorMessage);
+      addToast({
+        type: 'error',
+        message: errorMessage,
+      });
       throw err;
     } finally {
       setLoading(false);
@@ -24,9 +35,18 @@ export const useDepositMutations = () => {
     setError(null);
     try {
       const updatedDeposit = await depositService.updateDeposit(id, data);
+      addToast({
+        type: 'success',
+        message: 'Deposit updated successfully',
+      });
       return updatedDeposit;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update deposit');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update deposit';
+      setError(errorMessage);
+      addToast({
+        type: 'error',
+        message: errorMessage,
+      });
       throw err;
     } finally {
       setLoading(false);
@@ -38,8 +58,17 @@ export const useDepositMutations = () => {
     setError(null);
     try {
       await depositService.deleteDeposit(id);
+      addToast({
+        type: 'success',
+        message: 'Deposit deleted successfully',
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete deposit');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete deposit';
+      setError(errorMessage);
+      addToast({
+        type: 'error',
+        message: errorMessage,
+      });
       throw err;
     } finally {
       setLoading(false);
@@ -51,9 +80,41 @@ export const useDepositMutations = () => {
     setError(null);
     try {
       const closedDeposit = await depositService.closeDeposit(id);
+      addToast({
+        type: 'success',
+        message: 'Deposit closed successfully',
+      });
       return closedDeposit;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to close deposit');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to close deposit';
+      setError(errorMessage);
+      addToast({
+        type: 'error',
+        message: errorMessage,
+      });
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyDeposit = async (data: VerifyDepositDto): Promise<DepositTransaction> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const verifiedDeposit = await depositService.verifyDeposit(data);
+      addToast({
+        type: 'success',
+        message: 'Deposit verified successfully',
+      });
+      return verifiedDeposit;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to verify deposit';
+      setError(errorMessage);
+      addToast({
+        type: 'error',
+        message: errorMessage,
+      });
       throw err;
     } finally {
       setLoading(false);
@@ -65,6 +126,7 @@ export const useDepositMutations = () => {
     updateDeposit,
     deleteDeposit,
     closeDeposit,
+    verifyDeposit,
     loading,
     error,
   };

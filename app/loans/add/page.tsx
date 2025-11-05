@@ -11,18 +11,18 @@ import { useBranches } from '@/hooks/useBranches';
 import { useProducts } from '@/hooks/useProducts';
 import { useToast } from '@/components/ui/Toast';
 import { LoanProduct, EligibilityRule } from '@/services/products';
-import { Customer } from '@/services/customers';
+import { Customer } from '@/services/customers.service';
 import { Alert } from '@/components/ui';
 
 const checkEligibility = (customer: Customer, rules: EligibilityRule[]): string[] => {
   const warnings = [];
-  const customerAge = new Date().getFullYear() - new Date(customer.dateOfBirth).getFullYear();
+  const customerAge = new Date().getFullYear() - new Date(customer.dateOfBirth || '').getFullYear();
 
   for (const rule of rules) {
     let customerValue: any;
     switch (rule.field) {
       case 'age': customerValue = customerAge; break;
-      case 'annualIncome': customerValue = customer.annualIncome; break;
+      case 'annualIncome': customerValue = customer.annualIncome || 0; break;
       case 'occupation': customerValue = customer.occupation; break;
     }
 
@@ -130,11 +130,12 @@ export default function AddLoanPage() {
     try {
       await createLoan({
         customerId: formData.customerId,
-        loanType: formData.loanType,
-        loanAmount: parseFloat(formData.loanAmount),
+        category: formData.loanType,
+        amount: parseFloat(formData.loanAmount),
         tenure: parseInt(formData.tenure),
-        interestRate: parseFloat(formData.interestRate),
         branchId: formData.branchId,
+        userId: '',
+        product: '',
       });
       addToast({ type: 'success', message: 'Loan application created successfully!' });
       router.push('/loans');
@@ -193,18 +194,18 @@ export default function AddLoanPage() {
                 error={errors.customerId}
                 options={[
                   { value: '', label: 'Select Customer' },
-                  ...customers.map((c) => ({ value: c.id, label: `${c.fullName} - ${c.phone}` })),
+                  ...customers.map((c) => ({ value: c.id || '', label: `${c.fullName} - ${c.phone}` })),
                 ]}
                 required
               />
             </div>
             
             {eligibilityWarnings.length > 0 && (
-              <Alert type="warning" title="Eligibility Warnings">
-                <ul className="list-disc pl-5">
-                  {eligibilityWarnings.map((warning, i) => <li key={i}>{warning}</li>)}
-                </ul>
-              </Alert>
+              <Alert 
+                variant="warning" 
+                title="Eligibility Warnings"
+                message={eligibilityWarnings.map((warning, i) => `${i + 1}. ${warning}`).join(' • ')}
+              />
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -224,7 +225,7 @@ export default function AddLoanPage() {
                 error={errors.branchId}
                 options={[
                   { value: '', label: 'Select Branch' },
-                  ...branches.map((b) => ({ value: b.id, label: b.branchName })),
+                  ...branches.map((b) => ({ value: b.id || '', label: b.branchName })),
                 ]}
                 required
               />

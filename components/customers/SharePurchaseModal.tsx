@@ -6,7 +6,7 @@ import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import { Input, Select, Textarea, Button } from '@/components/ui';
 import { X, Save } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
-import { SharePurchase } from '@/services/customers.service';
+import { SharePurchase, CreateSharePurchaseDto, UpdateSharePurchaseDto } from '@/services/customers.service';
 
 interface SharePurchaseModalProps {
   customerId: string;
@@ -48,10 +48,10 @@ export default function SharePurchaseModal({ customerId, purchase, onClose }: Sh
         quantity: purchase.quantity.toString(),
         purchaseDate: purchase.purchaseDate,
         pricePerShare: purchase.pricePerShare.toString(),
-        certificateNumber: purchase.certificateNumber,
-        shareholderId: purchase.shareholderId,
+        certificateNumber: purchase.certificateNumber || '',
+        shareholderId: purchase.shareholderId || '',
         paymentMethod: purchase.paymentMethod,
-        transactionReference: purchase.transactionReference,
+        transactionReference: purchase.transactionReference || '',
         notes: purchase.notes || '',
       });
     }
@@ -137,13 +137,13 @@ export default function SharePurchaseModal({ customerId, purchase, onClose }: Sh
       };
 
       if (purchase) {
-        await updateSharePurchase(purchase.id, shareData);
+        await updateSharePurchase(purchase.id || '', shareData as UpdateSharePurchaseDto);
         addToast({
           type: 'success',
           message: 'Share purchase updated successfully',
         });
       } else {
-        await createSharePurchase(shareData);
+        await createSharePurchase(shareData as CreateSharePurchaseDto);
         addToast({
           type: 'success',
           message: 'Share purchase created successfully',

@@ -8,7 +8,7 @@ import { useBranch } from '@/hooks/useBranch';
 import { useBranchMutations } from '@/hooks/useBranchMutations';
 import { useToast } from '@/components/ui/Toast';
 import { INDIAN_STATES, CITIES_BY_STATE, BRANCH_SERVICES } from '@/lib/indiaData';
-import { UpdateBranchDto } from '@/services/branches';
+import { UpdateBranchDto } from '@/services/branch.service';
 
 export default function EditBranchPage() {
   const router = useRouter();
@@ -17,7 +17,7 @@ export default function EditBranchPage() {
   const { branch, loading: fetchLoading } = useBranch(branchId);
   const { updateBranch, loading } = useBranchMutations();
   const { addToast } = useToast();
-  const [formData, setFormData] = useState<Partial<UpdateBranchDto>>({
+  const [formData, setFormData] = useState<Omit<UpdateBranchDto, 'id'>>({
     branchName: '',
     branchType: 'Main Branch',
     status: 'Active',
@@ -102,11 +102,12 @@ export default function EditBranchPage() {
     }
     try {
       const dataToSubmit: UpdateBranchDto = {
+        id: branchId,
         ...formData,
         latitude: formData.latitude ? parseFloat(String(formData.latitude)) : undefined,
         longitude: formData.longitude ? parseFloat(String(formData.longitude)) : undefined,
       };
-      await updateBranch(branchId, dataToSubmit);
+      await updateBranch(dataToSubmit);
       addToast({ type: 'success', message: 'Branch updated successfully' });
       router.push(`/branches/${branchId}`);
     } catch (err) {

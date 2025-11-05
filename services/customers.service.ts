@@ -2,21 +2,48 @@ import axios from 'axios';
 import { API } from '@/api';
 import { getAuthToken } from '@/lib/auth';
 
+// Enums matching backend User model
+export enum Gender {
+  Male = 'Male',
+  Female = 'Female',
+  Other = 'Other',
+}
+
+export enum MaritalStatus {
+  Single = 'Single',
+  Married = 'Married',
+  Divorced = 'Divorced',
+  Widowed = 'Widowed',
+}
+
+export enum AccountType {
+  Savings = 'Savings',
+  Current = 'Current',
+  Business = 'Business',
+}
+
+export enum KycStatus {
+  Pending = 'Pending',
+  InProgress = 'In Progress',
+  Verified = 'Verified',
+  Rejected = 'Rejected',
+}
+
 // Customer Types and Interfaces (matching backend User model)
 export interface Customer {
   _id?: string; // MongoDB ObjectId
   id?: string; // For compatibility
   customerId?: string; // For compatibility with existing code
-  memberId?: string; // Backend User model has memberId
+  memberId: string; // Required in backend User model
   
   // Primary Details
   fullName: string;
   email: string;
   phone: string;
   alternatePhone?: string;
-  dateOfBirth: string; // Backend stores as Date
-  gender: 'Male' | 'Female' | 'Other';
-  maritalStatus?: 'Single' | 'Married' | 'Divorced' | 'Widowed';
+  dateOfBirth: string | Date; // Backend stores as Date, frontend can use string
+  gender: Gender | 'Male' | 'Female' | 'Other';
+  maritalStatus?: MaritalStatus | 'Single' | 'Married' | 'Divorced' | 'Widowed';
   fatherName?: string;
   motherName?: string;
   occupation: string;
@@ -28,15 +55,13 @@ export interface Customer {
   city: string;
   state: string;
   postalCode: string;
-  country: string;
+  country: string; // Default: "India"
   
   // Account Information
-  accountType: 'Savings' | 'Current' | 'Business';
-  initialDeposit: number;
-  currentBalance?: number;
+  accountType: AccountType | 'Savings' | 'Current' | 'Business';
+  initialDeposit: number; // Minimum ₹1,000
+  accountBalance: number; // Current account balance (min: 0, default: 0)
   branch: string;
-  status?: 'Active' | 'Inactive' | 'Pending' | 'Blocked';
-  joinedDate?: string;
   
   // Nominee Information
   nomineeName?: string;
@@ -45,21 +70,39 @@ export interface Customer {
   nomineeAddress?: string;
   
   // KYC Details (matching backend User model)
-  aadhaarNumber?: string;
-  aadharVerificationStatus?: boolean; // Backend uses this field name
-  panNumber?: string;
-  panVerificationStatus?: boolean; // Backend uses this field name
+  aadhaarNumber?: string; // 12 digits
+  aadharVerificationStatus?: boolean;
+  panNumber?: string; // ABCDE1234F
+  panVerificationStatus?: boolean;
   passportNumber?: string;
   drivingLicenseNumber?: string;
   voterIdNumber?: string;
-  addressProofType?: 'Utility Bill' | 'Bank Statement' | 'Rent Agreement' | 'Property Tax Receipt';
+  addressProofType?: string;
   addressProofNumber?: string;
-  kycStatus: 'Pending' | 'In Progress' | 'Verified' | 'Rejected';
+  kycStatus: KycStatus | 'Pending' | 'In Progress' | 'Verified' | 'Rejected'; // Default: Pending
   kycNotes?: string;
   
-  // Timestamps
-  createdAt?: string;
-  updatedAt?: string;
+  // Status and Organization
+  isDeleted?: boolean; // Default: false
+  isActive: boolean; // Default: true
+  organisation?: string; // MongoDB ObjectId reference
+  
+  // Shareholder Information
+  totalSharesPurchased: number; // Default: 0
+  isShareHolder: boolean; // Default: false
+  isApproved: boolean; // Default: false
+  
+  // Documents
+  documents?: CustomerDocument[];
+  
+  // Timestamps (from schemaOptions: { timestamps: true })
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+  
+  // Compatibility fields (for UI - not in backend)
+  status?: 'Active' | 'Inactive' | 'Pending' | 'Blocked'; // Derived from isActive
+  currentBalance?: number; // Alias for accountBalance for backward compatibility
+  joinedDate?: string; // Alias for createdAt
 }
 
 export interface CreateCustomerDto {
@@ -68,9 +111,9 @@ export interface CreateCustomerDto {
   email: string;
   phone: string;
   alternatePhone?: string;
-  dateOfBirth: string;
-  gender: 'Male' | 'Female' | 'Other';
-  maritalStatus?: 'Single' | 'Married' | 'Divorced' | 'Widowed';
+  dateOfBirth: string | Date;
+  gender: Gender | 'Male' | 'Female' | 'Other';
+  maritalStatus?: MaritalStatus | 'Single' | 'Married' | 'Divorced' | 'Widowed';
   fatherName?: string;
   motherName?: string;
   occupation: string;
@@ -82,11 +125,11 @@ export interface CreateCustomerDto {
   city: string;
   state: string;
   postalCode: string;
-  country: string;
+  country?: string; // Default: "India"
   
   // Account Information
-  accountType: 'Savings' | 'Current' | 'Business';
-  initialDeposit: number;
+  accountType: AccountType | 'Savings' | 'Current' | 'Business';
+  initialDeposit: number; // Minimum ₹1,000
   branch: string;
   
   // Nominee Information
@@ -96,15 +139,18 @@ export interface CreateCustomerDto {
   nomineeAddress?: string;
   
   // KYC Details
-  aadhaarNumber?: string;
-  panNumber?: string;
+  aadhaarNumber?: string; // 12 digits
+  panNumber?: string; // ABCDE1234F
   passportNumber?: string;
   drivingLicenseNumber?: string;
   voterIdNumber?: string;
-  addressProofType?: 'Utility Bill' | 'Bank Statement' | 'Rent Agreement' | 'Property Tax Receipt';
+  addressProofType?: string;
   addressProofNumber?: string;
-  kycStatus?: 'Pending' | 'In Progress' | 'Verified' | 'Rejected';
+  kycStatus?: KycStatus | 'Pending' | 'In Progress' | 'Verified' | 'Rejected';
   kycNotes?: string;
+  
+  // Organization (optional)
+  organisation?: string; // MongoDB ObjectId reference
 }
 
 export interface UpdateCustomerDto extends Partial<CreateCustomerDto> {
@@ -248,6 +294,34 @@ export const saveUserBasicInformation = async (customer: any)=> {
   }
 };
 
+// Helper Functions
+/**
+ * Normalize customer data from API to match frontend expectations
+ */
+function normalizeCustomer(customer: any): Customer {
+  const accountBalance = customer.accountBalance ?? customer.currentBalance ?? 0;
+  return {
+    ...customer,
+    // Map backend fields to frontend compatibility fields
+    id: customer._id || customer.id,
+    accountBalance: accountBalance,
+    currentBalance: accountBalance, // Alias for compatibility
+    status: customer.status || (customer.isActive ? 'Active' : 'Inactive'),
+    joinedDate: customer.createdAt || customer.joinedDate,
+    // Ensure required fields have defaults
+    memberId: customer.memberId || customer._id || customer.id || '',
+    totalSharesPurchased: customer.totalSharesPurchased ?? 0,
+    isShareHolder: customer.isShareHolder ?? false,
+    isApproved: customer.isApproved ?? false,
+    isActive: customer.isActive ?? true,
+    isDeleted: customer.isDeleted ?? false,
+    kycStatus: customer.kycStatus || KycStatus.Pending,
+    country: customer.country || 'India',
+    // Ensure documents is an array
+    documents: Array.isArray(customer.documents) ? customer.documents : [],
+  };
+}
+
 // API Service Functions
 export const createCustomer = async (customer: CreateCustomerDto): Promise<CustomerResponse> => {
     try {
@@ -282,7 +356,18 @@ export const getAllCustomers = async (filters?: CustomerFilters): Promise<Custom
     });
     if (response.status === 200) {
       // Backend returns { success, message, data: { users, pagination } }
-      return response.data;
+      const data = response.data;
+      if (data.success && data.data?.users) {
+        // Normalize all customers
+        return {
+          ...data,
+          data: {
+            ...data.data,
+            users: data.data.users.map((customer: any) => normalizeCustomer(customer)),
+          },
+        };
+      }
+      return data;
     } else {
       throw new Error('Failed to fetch customers');
     }
@@ -293,14 +378,23 @@ export const getAllCustomers = async (filters?: CustomerFilters): Promise<Custom
 
 export const getCustomerById = async (id: string): Promise<CustomerResponse> => {
   try {
+    const token = getAuthToken();
     const response = await axios.get(`${API.domain}${API.endPoints.getCustomerById}/${id}`, {
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
       },
     });
     if (response.status === 200) {
       // Backend returns { success, message, data: user }
-      return response.data;
+      const data = response.data;
+      if (data.success && data.data) {
+        return {
+          ...data,
+          data: normalizeCustomer(data.data),
+        };
+      }
+      return data;
     } else {
       throw new Error('Failed to fetch customer');
     }
@@ -521,6 +615,25 @@ export const uploadCustomerDocument = async (customerId: string, docType: string
   return;
 };
 
+export const approveUser = async (id: string): Promise<CustomerResponse> => {
+  try {
+    const token = getAuthToken();
+    const response = await axios.patch(`${API.domain}${API.endPoints.approveUser}/${id}`, {}, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+    });
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error('Failed to approve user');
+    }
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Failed to approve user');
+  }
+};
+
 // Customer Service Object (for easier imports)
 export const customerService = {
   create: createCustomer,
@@ -530,6 +643,7 @@ export const customerService = {
   delete: deleteCustomer,
   updateKyc: updateCustomerKyc,
   export: exportCustomers,
+  approveUser,
   getCustomerTransactions,
   getCustomerActivity,
   getAllShareholders,

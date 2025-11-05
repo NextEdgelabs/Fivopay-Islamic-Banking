@@ -290,7 +290,7 @@ export default function EditEmployeePage() {
                 label="Date of Birth"
                 type="date"
                 name="dateOfBirth"
-                value={formData.dateOfBirth || ''}
+                value={formData.dateOfBirth?.toString() || ''}
                 onChange={handleChange}
               />
               <Select
@@ -403,6 +403,7 @@ export default function EditEmployeePage() {
                   { value: 'branch_manager', label: 'Branch Manager' },
                   { value: 'senior_officer', label: 'Senior Officer' },
                   { value: 'junior_officer', label: 'Junior Officer' },
+                  { value: 'agent', label: 'Agent' },
                 ]}
               />
               <Select
@@ -421,6 +422,7 @@ export default function EditEmployeePage() {
                   { value: 'marketing', label: 'Marketing' },
                   { value: 'compliance', label: 'Compliance' },
                   { value: 'risk_management', label: 'Risk Management' },
+                  { value: 'agent_department', label: 'Agent Department' },
                 ]}
               />
               <Input
@@ -435,7 +437,7 @@ export default function EditEmployeePage() {
                 label="Date of Joining"
                 type="date"
                 name="dateOfJoining"
-                value={formData.dateOfJoining || ''}
+                value={formData.dateOfJoining?.toString() || ''}
                 onChange={handleChange}
               />
               <Input

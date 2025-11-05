@@ -11,6 +11,7 @@ import {
   Breadcrumbs,
   Table,
   Tabs,
+  Modal,
 } from '@/components/ui';
 import {
   ArrowLeft,
@@ -33,6 +34,7 @@ import {
   Trash2,
   Users,
   UploadCloud,
+  AlertTriangle,
 } from 'lucide-react';
 import { useCustomer } from '@/hooks/useCustomer';
 import { useCustomerMutations } from '@/hooks/useCustomerMutations';
@@ -65,11 +67,13 @@ export default function ViewCustomerPage() {
   const { addToast } = useToast();
 
   const { customer, transactions, activities, loading, error, refetch } = useCustomer(customerId);
-  const { deleteCustomer, loading: isDeleting } = useCustomerMutations();
+  const { deleteCustomer, approveUser, loading: isDeleting } = useCustomerMutations();
   const { isEthicalBanking } = useOrganizationSettings();
   
   const [customerLoans, setCustomerLoans] = React.useState<any[]>([]);
   const [customerDeposits, setCustomerDeposits] = React.useState<any[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [showApproveModal, setShowApproveModal] = React.useState(false);
   
   React.useEffect(() => {
     if (customerId) {
@@ -78,24 +82,41 @@ export default function ViewCustomerPage() {
     }
   }, [customerId]);
 
-
   const handleDelete = async () => {
     if (!customer) return;
 
-    if (confirm(`Are you sure you want to delete ${customer.fullName}?`)) {
-      try {
-        await deleteCustomer(customerId);
-        addToast({
-          type: 'success',
-          message: `${customer.fullName} has been deleted successfully`,
-        });
-        router.push('/customers');
-      } catch (err) {
-        addToast({
-          type: 'error',
-          message: 'Failed to delete customer',
-        });
-      }
+    try {
+      await deleteCustomer(customerId);
+      addToast({
+        type: 'success',
+        message: `${customer.fullName} has been deleted successfully`,
+      });
+      setShowDeleteModal(false);
+      router.push('/customers');
+    } catch (err) {
+      addToast({
+        type: 'error',
+        message: 'Failed to delete customer',
+      });
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!customer) return;
+
+    try {
+      await approveUser(customerId);
+      addToast({
+        type: 'success',
+        message: `${customer.fullName} has been approved successfully`,
+      });
+      setShowApproveModal(false);
+      refetch();
+    } catch (err) {
+      addToast({
+        type: 'error',
+        message: 'Failed to approve user',
+      });
     }
   };
   
@@ -212,14 +233,109 @@ export default function ViewCustomerPage() {
               </div>
             </div>
             <div className="flex gap-2 flex-shrink-0">
+              {!customer.isApproved && (
+                <Button variant="primary" onClick={() => setShowApproveModal(true)} loading={isDeleting}>
+                  <CheckCircle className="mr-2 h-4 w-4" /> Approve User
+                </Button>
+              )}
               <Button variant="outline" onClick={() => router.push(`/customers/${customerId}/edit`)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
-              <Button variant="danger" onClick={handleDelete} loading={isDeleting}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
+              <Button variant="danger" onClick={() => setShowDeleteModal(true)} loading={isDeleting}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
             </div>
           </div>
         </Card>
 
         {/* Top-level Tabs */}
         <Tabs tabs={TABS} defaultTab="overview" />
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          title="Delete Customer"
+          size="md"
+          closeOnOverlayClick={false}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={handleDelete} loading={isDeleting}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Customer
+              </Button>
+            </>
+          }
+        >
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 bg-error-100 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-error-600" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+                Are you sure you want to delete this customer?
+              </h3>
+              <p className="text-neutral-600 mb-4">
+                This action will permanently delete <span className="font-semibold text-neutral-900">{customer.fullName}</span> and all associated data. This action cannot be undone.
+              </p>
+              <div className="bg-neutral-50 rounded-lg p-4">
+                <p className="text-sm text-neutral-600 mb-2">Customer Details:</p>
+                <ul className="text-sm text-neutral-700 space-y-1">
+                  <li>Name: <span className="font-medium">{customer.fullName}</span></li>
+                  <li>Member ID: <span className="font-medium">{customer.memberId || customer._id || customer.id}</span></li>
+                  <li>Email: <span className="font-medium">{customer.email}</span></li>
+                  <li>Phone: <span className="font-medium">{customer.phone}</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Approve Confirmation Modal */}
+        <Modal
+          isOpen={showApproveModal}
+          onClose={() => setShowApproveModal(false)}
+          title="Approve Customer"
+          size="md"
+          closeOnOverlayClick={false}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setShowApproveModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleApprove} loading={isDeleting}>
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Approve Customer
+              </Button>
+            </>
+          }
+        >
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 bg-success-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-6 w-6 text-success-600" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+                Approve Customer Account
+              </h3>
+              <p className="text-neutral-600 mb-4">
+                Are you sure you want to approve <span className="font-semibold text-neutral-900">{customer.fullName}</span>? This will activate their account and grant them full access to banking services.
+              </p>
+              <div className="bg-neutral-50 rounded-lg p-4">
+                <p className="text-sm text-neutral-600 mb-2">Customer Details:</p>
+                <ul className="text-sm text-neutral-700 space-y-1">
+                  <li>Name: <span className="font-medium">{customer.fullName}</span></li>
+                  <li>Member ID: <span className="font-medium">{customer.memberId || customer._id || customer.id}</span></li>
+                  <li>Email: <span className="font-medium">{customer.email}</span></li>
+                  <li>KYC Status: <span className="font-medium">{customer.kycStatus}</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </Modal>
       </div>
     </DashboardLayout>
   );
@@ -237,7 +353,7 @@ const CustomerOverviewTab = ({ customer }: { customer: any }) => (
            <div>
              <p className="text-sm text-neutral-600">Current Balance</p>
              <p className="text-2xl font-bold text-neutral-900 mt-1">
-               ₹{customer?.currentBalance?.toLocaleString('en-IN')}
+               ₹{(customer?.accountBalance || customer?.currentBalance || 0).toLocaleString('en-IN')}
              </p>
            </div>
            <div className="w-12 h-12 bg-primary-100 rounded-stripe flex items-center justify-center">
@@ -249,7 +365,9 @@ const CustomerOverviewTab = ({ customer }: { customer: any }) => (
          <div className="flex items-center justify-between">
            <div>
              <p className="text-sm text-neutral-600">Account Type</p>
-             <p className="text-2xl font-bold text-neutral-900 mt-1">{customer.accountType}</p>
+             <p className="text-2xl font-bold text-neutral-900 mt-1">
+               {customer.accountType || 'N/A'}
+             </p>
            </div>
            <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center">
              <CreditCard className="h-6 w-6 text-success-600" />
@@ -260,7 +378,9 @@ const CustomerOverviewTab = ({ customer }: { customer: any }) => (
          <div className="flex items-center justify-between">
            <div>
              <p className="text-sm text-neutral-600">Status</p>
-             <p className="text-2xl font-bold text-neutral-900 mt-1">{customer.status}</p>
+             <p className="text-2xl font-bold text-neutral-900 mt-1">
+               {customer.status || (customer.isActive ? 'Active' : 'Inactive')}
+             </p>
            </div>
            <div className="w-12 h-12 bg-warning-100 rounded-stripe flex items-center justify-center">
              <CheckCircle className="h-6 w-6 text-warning-600" />
@@ -279,17 +399,85 @@ const CustomerOverviewTab = ({ customer }: { customer: any }) => (
          </div>
        </Card>
     </div>
+
+    {/* Shareholder Information Cards */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+       <Card padding="sm">
+         <div className="flex items-center justify-between">
+           <div>
+             <p className="text-sm text-neutral-600">Total Shares Purchased</p>
+             <p className="text-2xl font-bold text-neutral-900 mt-1">
+               {customer?.totalSharesPurchased?.toLocaleString('en-IN') || '0'}
+             </p>
+           </div>
+           <div className="w-12 h-12 bg-info-100 rounded-stripe flex items-center justify-center">
+             <TrendingUp className="h-6 w-6 text-info-600" />
+           </div>
+         </div>
+       </Card>
+       <Card padding="sm">
+         <div className="flex items-center justify-between">
+           <div>
+             <p className="text-sm text-neutral-600">Is Shareholder</p>
+             <p className="text-2xl font-bold text-neutral-900 mt-1">
+               {customer?.isShareHolder ? (
+                 <Badge variant="success">Yes</Badge>
+               ) : (
+                 <Badge variant="neutral">No</Badge>
+               )}
+             </p>
+           </div>
+           <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center">
+             <Users className="h-6 w-6 text-success-600" />
+           </div>
+         </div>
+       </Card>
+       <Card padding="sm">
+         <div className="flex items-center justify-between">
+           <div>
+             <p className="text-sm text-neutral-600">Approval Status</p>
+             <p className="text-2xl font-bold text-neutral-900 mt-1">
+               {customer?.isApproved ? (
+                 <Badge variant="success">Approved</Badge>
+               ) : (
+                 <Badge variant="warning">Pending</Badge>
+               )}
+             </p>
+           </div>
+           <div className="w-12 h-12 bg-primary-100 rounded-stripe flex items-center justify-center">
+             <CheckCircle className="h-6 w-6 text-primary-600" />
+           </div>
+         </div>
+       </Card>
+    </div>
     
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
         <h2 className="text-xl font-semibold p-6 border-b">Personal Information</h2>
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <InfoItem icon={<User className="h-4 w-4 mr-2" />} label="Gender" value={customer.gender} />
-          <InfoItem icon={<Calendar className="h-4 w-4 mr-2" />} label="Date of Birth" value={customer.dateOfBirth} />
+          <InfoItem 
+            icon={<Calendar className="h-4 w-4 mr-2" />} 
+            label="Date of Birth" 
+            value={
+              customer.dateOfBirth 
+                ? typeof customer.dateOfBirth === 'string' 
+                  ? new Date(customer.dateOfBirth).toLocaleDateString('en-IN')
+                  : customer.dateOfBirth instanceof Date
+                  ? customer.dateOfBirth.toLocaleDateString('en-IN')
+                  : String(customer.dateOfBirth)
+                : null
+            }
+          />
           <InfoItem icon={<Briefcase className="h-4 w-4 mr-2" />} label="Occupation" value={customer.occupation} />
-          <InfoItem icon={<TrendingUp className="h-4 w-4 mr-2" />} label="Annual Income" value={customer.annualIncome?.toLocaleString('en-IN')} />
+          <InfoItem icon={<TrendingUp className="h-4 w-4 mr-2" />} label="Annual Income" value={
+            customer.annualIncome 
+              ? `₹${customer.annualIncome.toLocaleString('en-IN')}`
+              : null
+          } />
           <InfoItem icon={<User className="h-4 w-4 mr-2" />} label="Father's Name" value={customer.fatherName} />
           <InfoItem icon={<User className="h-4 w-4 mr-2" />} label="Mother's Name" value={customer.motherName} />
+          <InfoItem icon={<User className="h-4 w-4 mr-2" />} label="Marital Status" value={customer.maritalStatus} />
         </div>
       </Card>
       
@@ -299,18 +487,32 @@ const CustomerOverviewTab = ({ customer }: { customer: any }) => (
           <InfoItem 
             icon={<MapPin className="h-4 w-4 mr-2" />} 
             label="Address" 
-            value={`${customer.addressLine1}, ${customer.addressLine2 ? customer.addressLine2 + ', ' : ''}${customer.city}, ${customer.state} - ${customer.postalCode}`} 
+            value={
+              customer.addressLine1 
+                ? `${customer.addressLine1}${customer.addressLine2 ? ', ' + customer.addressLine2 : ''}${customer.city ? ', ' + customer.city : ''}${customer.state ? ', ' + customer.state : ''}${customer.postalCode ? ' - ' + customer.postalCode : ''}${customer.country && !customer.addressLine1.includes(customer.country) ? ', ' + customer.country : ''}`
+                : 'N/A'
+            }
           />
+          <InfoItem icon={<Phone className="h-4 w-4 mr-2" />} label="Phone" value={customer.phone} />
           <InfoItem icon={<Phone className="h-4 w-4 mr-2" />} label="Alternate Phone" value={customer.alternatePhone} />
+          <InfoItem icon={<Mail className="h-4 w-4 mr-2" />} label="Email" value={customer.email} />
+          <InfoItem icon={<MapPin className="h-4 w-4 mr-2" />} label="Country" value={customer.country} />
         </div>
       </Card>
 
       <Card>
         <h2 className="text-xl font-semibold p-6 border-b">Account Details</h2>
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <InfoItem icon={<User className="h-4 w-4 mr-2" />} label="Member ID" value={customer.memberId || customer._id || customer.id} />
           <InfoItem icon={<CreditCard className="h-4 w-4 mr-2" />} label="Account Number" value={customer.accountNumber} />
           <InfoItem icon={<Briefcase className="h-4 w-4 mr-2" />} label="Branch" value={customer.branch} />
-          <InfoItem icon={<Calendar className="h-4 w-4 mr-2" />} label="Joined Date" value={customer.joinedDate} />
+          <InfoItem icon={<Calendar className="h-4 w-4 mr-2" />} label="Joined Date" value={
+            customer.joinedDate 
+              ? new Date(customer.joinedDate).toLocaleDateString('en-IN')
+              : customer.createdAt 
+              ? new Date(customer.createdAt).toLocaleDateString('en-IN')
+              : 'N/A'
+          } />
         </div>
       </Card>
 
@@ -511,8 +713,11 @@ const CustomerKycTab = ({ customer }: { customer: any }) => (
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {customer.aadhaarVerified && (
+              {customer.aadharVerificationStatus === true && (
                 <Badge variant="success">Verified</Badge>
+              )}
+              {customer.aadharVerificationStatus === false && (
+                <Badge variant="warning">Pending Verification</Badge>
               )}
               {customer.aadhaarFrontImage && (
                 <Button variant="ghost" size="sm">
@@ -536,8 +741,11 @@ const CustomerKycTab = ({ customer }: { customer: any }) => (
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {customer.panVerified && (
+              {customer.panVerificationStatus && (
                 <Badge variant="success">Verified</Badge>
+              )}
+              {customer.panVerificationStatus === false && (
+                <Badge variant="warning">Pending</Badge>
               )}
               {customer.panImage && (
                 <Button variant="ghost" size="sm">
@@ -659,7 +867,9 @@ const CustomerDocumentsTab = ({ customer, loans, deposits, onDocumentUpload }: {
 
   const allDocumentItems = React.useMemo(() => {
     const items: (CustomerDocument & { isRequired: boolean })[] = [];
-    const customerDocsMap = new Map(customer.documents.map((d: CustomerDocument) => [d.type, d]));
+    // Safety check: ensure documents is an array
+    const documents = customer?.documents || [];
+    const customerDocsMap = new Map(documents.map((d: CustomerDocument) => [d.type, d]));
 
     requiredDocs.forEach(docType => {
       const existingDoc = customerDocsMap.get(docType);
@@ -678,7 +888,7 @@ const CustomerDocumentsTab = ({ customer, loans, deposits, onDocumentUpload }: {
     });
 
     return items;
-  }, [requiredDocs, customer.documents]);
+  }, [requiredDocs, customer?.documents]);
   
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, docType: string) => {
     const file = e.target.files?.[0];
@@ -774,15 +984,15 @@ const CustomerLoansTab = ({ loans }: { loans: any[] }) => (
               <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
                 <div>
                   <p className="text-neutral-600">Amount</p>
-                  <p className="font-semibold">₹{loan.loanAmount.toLocaleString('en-IN')}</p>
+                  <p className="font-semibold">₹{(loan.loanAmount || loan.amount || 0).toLocaleString('en-IN')}</p>
                 </div>
                 <div>
                   <p className="text-neutral-600">EMI</p>
-                  <p className="font-semibold">₹{loan.emiAmount.toLocaleString('en-IN')}</p>
+                  <p className="font-semibold">₹{(loan.emiAmount || 0).toLocaleString('en-IN')}</p>
                 </div>
                 <div>
                   <p className="text-neutral-600">Outstanding</p>
-                  <p className="font-semibold">₹{loan.outstandingAmount.toLocaleString('en-IN')}</p>
+                  <p className="font-semibold">₹{(loan.outstandingAmount || loan.amount || 0).toLocaleString('en-IN')}</p>
                 </div>
               </div>
             </Card>

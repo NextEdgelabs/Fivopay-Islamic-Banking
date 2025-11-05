@@ -1,5 +1,5 @@
 export const API = {
-    domain: process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:5000",
+    domain: process.env.NEXT_PUBLIC_DOMAIN || "http://13.234.19.100:8080/",
   
     endPoints: {
         // Customer endpoints
@@ -11,6 +11,7 @@ export const API = {
         updateCustomerKyc: "/api/v1/user/update-user-kyc",
         exportCustomers: "/api/v1/user/export-users",
         saveUserBasicInformation: "/api/v1/user/save-user-basic-information",
+        approveUser: "/api/v1/user/approve-user",
 
         // employee
         employeeLogin: "/api/v1/employee/employee-login",
@@ -40,5 +41,44 @@ export const API = {
         // organization
         getAllOrganisations: "/api/v1/organisation/get-all-organisations",
         getOrganisationById: "/api/v1/organisation/get-organisation-by-id",
+
+        // batch
+        createBatch: "/api/v1/user/create-customer-batch",
+        getAllBatches: "/api/v1/user/get-all-customer-batches",
+        getBatchById: "/api/v1/user/get-customer-batch-by-id",
+        getBatchesByEmployee: "/api/v1/user/get-batches-by-employee",
+        getBatchCustomers: "/api/v1/user/get-batch-customers",
+        updateBatch: "/api/v1/user/update-customer-batch",
+        addCustomersToBatch: "/api/v1/user/add-customers-to-batch",
+        removeCustomersFromBatch: "/api/v1/user/remove-customers-from-batch",
+        updateBatchStatus: "/api/v1/user/update-batch-status",
+        deleteBatch: "/api/v1/user/delete-customer-batch",
+        getBatchStats: "/api/v1/user/get-batch-stats",
+
+        // loan
+        getAllLoans: "/api/v1/loan/get-all-loans",
+        getLoanById: "/api/v1/loan/get-loan-by-id",
+        approveLoan: "/api/v1/loan/approve-loan",
+        rejectLoan: "/api/v1/loan/reject-loan",
+        updateLoan: "/api/v1/loan/update-loan",
+
+        // payment records
+        getAllPaymentRecords: "/api/v1/agent/payment-record/get-all-payment-records",
+        getPaymentRecordById: "/api/v1/agent/payment-record/get-payment-record-by-id",
+        getPaymentRecordsByAgent: "/api/v1/agent/payment-record/get-payment-records-by-agent",
+        createPaymentRecord: "/api/v1/agent/payment-record/create-payment-record",
+        updatePaymentRecord: "/api/v1/agent/payment-record/update-payment-record",
+        updatePaymentStatus: "/api/v1/agent/payment-record/update-payment-status",
+        verifyPaymentRecord: "/api/v1/agent/payment-record/verify-payment-record",
+        rejectPaymentRecord: "/api/v1/agent/payment-record/reject-payment-record",
+        collectPaymentRecord: "/api/v1/agent/payment-record/collect-payment-record",
+        deletePaymentRecord: "/api/v1/agent/payment-record/delete-payment-record",
+
+        // deposits
+        getAllDeposits: "/api/v1/deposit/get-all-deposits",
+        verifyDeposit: "/api/v1/deposit/verify-deposit",
+
+        // share transactions
+        getAllShareTransactions: "/api/v1/share-transaction/get-all-transactions",
     }
 }   

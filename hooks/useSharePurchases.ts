@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { customerService, SharePurchase } from '@/services/customers.service';
+import { shareTransactionService, SharePurchase } from '@/services/shareTransactions.service';
 
 export const useSharePurchases = (customerId: string) => {
   const [sharePurchases, setSharePurchases] = useState<SharePurchase[]>([]);
@@ -12,7 +12,7 @@ export const useSharePurchases = (customerId: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await customerService.getCustomerSharePurchases(customerId);
+      const data = await shareTransactionService.getCustomerSharePurchases(customerId);
       setSharePurchases(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch share purchases');

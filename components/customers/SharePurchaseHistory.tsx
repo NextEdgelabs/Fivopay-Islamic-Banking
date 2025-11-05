@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import { useSharePurchases } from '@/hooks/useSharePurchases';
 import { useSharePurchaseMutations } from '@/hooks/useSharePurchaseMutations';
 import { Table, Button, Badge, Card } from '@/components/ui';
-import { Plus, Edit, Trash2, Check, X, TrendingUp } from 'lucide-react';
+import { Plus, Edit, Trash2, Check, X, TrendingUp, FileText } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/Toast';
 import SharePurchaseModal from './SharePurchaseModal';
-import { SharePurchase } from '@/services/customers.service';
+import { SharePurchase } from '@/services/shareTransactions.service';
 
 interface SharePurchaseHistoryProps {
   customerId: string;
@@ -15,6 +16,7 @@ interface SharePurchaseHistoryProps {
 }
 
 export default function SharePurchaseHistory({ customerId, mode = 'view' }: SharePurchaseHistoryProps) {
+  const router = useRouter();
   const { sharePurchases, loading, refetch } = useSharePurchases(customerId);
   const { deleteSharePurchase, approveSharePurchase, rejectSharePurchase } = useSharePurchaseMutations();
   const { addToast } = useToast();
@@ -50,7 +52,8 @@ export default function SharePurchaseHistory({ customerId, mode = 'view' }: Shar
   };
 
   const handleDelete = async (purchase: SharePurchase) => {
-    if (confirm(`Are you sure you want to delete this share purchase (${purchase.certificateNumber})?`)) {
+    const identifier = purchase.certificateNumber || purchase.transactionReference || purchase.id;
+    if (confirm(`Are you sure you want to delete this share purchase (${identifier})?`)) {
       try {
         await deleteSharePurchase(purchase.id);
         addToast({
@@ -109,12 +112,23 @@ export default function SharePurchaseHistory({ customerId, mode = 'view' }: Shar
     }
   };
 
+  const handleRowClick = (purchase: SharePurchase) => {
+    // Navigate to preview for all purchases (even pending ones can be viewed)
+    // The preview page will show the appropriate certificate
+    console.log('Row clicked:', purchase);
+    const transactionId = purchase.id || purchase.transactionReference || purchase.certificateNumber;
+    router.push(`/customers/${customerId}/pdf-preview?transactionId=${transactionId}`);
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { variant: 'success' | 'warning' | 'error' | 'neutral', text: string }> = {
       'Approved': { variant: 'success', text: 'Approved' },
+      'Pending Approval': { variant: 'warning', text: 'Pending' },
       'Pending': { variant: 'warning', text: 'Pending' },
       'Rejected': { variant: 'error', text: 'Rejected' },
       'Cancelled': { variant: 'error', text: 'Cancelled' },
+      'Completed': { variant: 'success', text: 'Completed' },
+      'Verified': { variant: 'success', text: 'Verified' },
     };
     
     const config = statusConfig[status] || { variant: 'neutral' as const, text: status };
@@ -124,8 +138,10 @@ export default function SharePurchaseHistory({ customerId, mode = 'view' }: Shar
   const columns = [
     {
       key: 'certificateNumber',
-      header: 'Certificate #',
-      render: (value: string) => <span className="font-medium text-neutral-900">{value}</span>,
+      header: 'Transaction ID',
+      render: (value: string, row: SharePurchase) => (
+        <span className="font-medium text-neutral-900">{value || row.transactionReference || row.id || '-'}</span>
+      ),
     },
     {
       key: 'purchaseDate',
@@ -150,26 +166,46 @@ export default function SharePurchaseHistory({ customerId, mode = 'view' }: Shar
       ),
     },
     {
-      key: 'status',
+      key: 'approvalStatus',
       header: 'Status',
-      render: (value: string) => getStatusBadge(value),
+      render: (value: string, row: SharePurchase) => getStatusBadge(value || row.status || 'Pending'),
     },
     {
-      key: 'memberId',
+      key: 'shareholderId',
       header: 'Member ID',
       render: (value?: string) => value || '-',
+    },
+    {
+      key: 'paymentMethod',
+      header: 'Payment Method',
+      render: (value: string) => <Badge variant="neutral">{value}</Badge>,
     },
     {
       key: 'actions',
       header: 'Actions',
       render: (_: unknown, row: SharePurchase) => (
-        <div className="flex items-center gap-2">
-          {row.approvalStatus === 'Pending Approval' && mode !== 'view' && (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/customers/${customerId}/pdf-preview?transactionId=${row.id || row.transactionReference || row.certificateNumber}`);
+            }}
+            title="View Certificate PDF"
+          >
+            <FileText className="h-4 w-4 mr-1" />
+            View PDF
+          </Button>
+          {(row.approvalStatus === 'Pending Approval' || row.status === 'Pending') && mode !== 'view' && (
             <>
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => handleApprove(row)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleApprove(row);
+                }}
                 title="Approve"
               >
                 <Check className="h-4 w-4" />
@@ -177,7 +213,10 @@ export default function SharePurchaseHistory({ customerId, mode = 'view' }: Shar
               <Button
                 variant="danger"
                 size="sm"
-                onClick={() => handleReject(row)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleReject(row);
+                }}
                 title="Reject"
               >
                 <X className="h-4 w-4" />
@@ -189,7 +228,10 @@ export default function SharePurchaseHistory({ customerId, mode = 'view' }: Shar
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => handleEdit(row)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEdit(row);
+                }}
                 title="Edit"
               >
                 <Edit className="h-4 w-4" />
@@ -197,7 +239,10 @@ export default function SharePurchaseHistory({ customerId, mode = 'view' }: Shar
               <Button
                 variant="danger"
                 size="sm"
-                onClick={() => handleDelete(row)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(row);
+                }}
                 title="Delete"
               >
                 <Trash2 className="h-4 w-4" />
@@ -209,11 +254,11 @@ export default function SharePurchaseHistory({ customerId, mode = 'view' }: Shar
     },
   ];
 
-  const totalShares = sharePurchases.reduce((sum, sp) => sum + sp.quantity, 0);
-  const totalValue = sharePurchases.reduce((sum, sp) => sum + sp.totalAmount, 0);
+  const totalShares = sharePurchases.reduce((sum, sp) => sum + (sp.quantity || sp.numberOfShares || 0), 0);
+  const totalValue = sharePurchases.reduce((sum, sp) => sum + (sp.totalAmount || 0), 0);
   const approvedShares = sharePurchases
-    .filter((sp) => sp.approvalStatus === 'Approved')
-    .reduce((sum, sp) => sum + sp.quantity, 0);
+    .filter((sp) => sp.approvalStatus === 'Approved' || sp.status === 'Completed')
+    .reduce((sum, sp) => sum + (sp.quantity || sp.numberOfShares || 0), 0);
 
   if (loading) {
     return (
@@ -231,12 +276,30 @@ export default function SharePurchaseHistory({ customerId, mode = 'view' }: Shar
           <TrendingUp className="h-5 w-5 text-primary-600" />
           <h3 className="text-xl font-semibold text-neutral-900">Share Purchase History</h3>
         </div>
-        {mode !== 'view' && (
-          <Button variant="primary" onClick={handleAdd}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Share Purchase
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {sharePurchases.filter(sp => sp.approvalStatus === 'Approved' || sp.status === 'Completed').length > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                const approvedPurchase = sharePurchases.find(
+                  sp => sp.approvalStatus === 'Approved' || sp.status === 'Completed'
+                );
+                if (approvedPurchase) {
+                  router.push(`/customers/${customerId}/pdf-preview?transactionId=${approvedPurchase.id || approvedPurchase.transactionReference || approvedPurchase.certificateNumber}`);
+                }
+              }}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              View Certificate
+            </Button>
+          )}
+          {mode !== 'view' && (
+            <Button variant="primary" onClick={handleAdd}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Share Purchase
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -270,7 +333,11 @@ export default function SharePurchaseHistory({ customerId, mode = 'view' }: Shar
           </div>
         </Card>
       ) : (
-        <Table columns={columns} data={sharePurchases} />
+        <Table 
+          columns={columns} 
+          data={sharePurchases} 
+          onRowClick={(row: SharePurchase) => handleRowClick(row)}
+        />
       )}
 
       {/* Add/Edit Modal */}

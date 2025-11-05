@@ -116,8 +116,8 @@ export default function AddEmployeePage() {
     if (!formData.city || formData.city === '') newErrors.city = 'City is required';
     if (!formData.state || formData.state === '') newErrors.state = 'State is required';
     if (!formData.postalCode || formData.postalCode.trim() === '') newErrors.postalCode = 'Postal code is required';
-    if (!formData.role || formData.role === '') newErrors.role = 'Role is required';
-    if (!formData.department || formData.department === '') newErrors.department = 'Department is required';
+    if (!formData.role) newErrors.role = 'Role is required';
+    if (!formData.department) newErrors.department = 'Department is required';
     if (!formData.designation || formData.designation.trim() === '') newErrors.designation = 'Designation is required';
     if (!formData.dateOfJoining) newErrors.dateOfJoining = 'Date of joining is required';
     if (!formData.salary || formData.salary <= 0) newErrors.salary = 'Salary must be greater than 0';
@@ -282,7 +282,7 @@ export default function AddEmployeePage() {
                 label="Date of Birth *"
                 type="date"
                 name="dateOfBirth"
-                value={formData.dateOfBirth}
+                value={formData.dateOfBirth?.toString() || ''}
                 onChange={handleChange}
                 error={errors.dateOfBirth}
                 required
@@ -398,6 +398,7 @@ export default function AddEmployeePage() {
                   { value: 'branch_manager', label: 'Branch Manager' },
                   { value: 'senior_officer', label: 'Senior Officer' },
                   { value: 'junior_officer', label: 'Junior Officer' },
+                  { value: 'agent', label: 'Agent' },
                 ]}
                 required
               />
@@ -418,6 +419,7 @@ export default function AddEmployeePage() {
                   { value: 'marketing', label: 'Marketing' },
                   { value: 'compliance', label: 'Compliance' },
                   { value: 'risk_management', label: 'Risk Management' },
+                  { value: 'agent_department', label: 'Agent Department' },
                 ]}
                 required
               />
@@ -433,7 +435,7 @@ export default function AddEmployeePage() {
                 label="Date of Joining *"
                 type="date"
                 name="dateOfJoining"
-                value={formData.dateOfJoining}
+                value={formData.dateOfJoining?.toString() || ''}
                 onChange={handleChange}
                 error={errors.dateOfJoining}
                 required

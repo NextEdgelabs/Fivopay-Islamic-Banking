@@ -4,8 +4,8 @@ import { getAuthToken } from '@/lib/auth';
 
 // Employee Types and Interfaces (matching backend Employee model)
 export type EmployeeStatus = 'active' | 'inactive' | 'suspended' | 'terminated';
-export type EmployeeRole = 'admin' | 'manager' | 'loan_officer' | 'customer_service' | 'accountant' | 'hr' | 'it_support' | 'branch_manager' | 'senior_officer' | 'junior_officer';
-export type Department = 'administration' | 'loan_department' | 'customer_service' | 'accounting' | 'human_resources' | 'information_technology' | 'operations' | 'marketing' | 'compliance' | 'risk_management';
+export type EmployeeRole = 'admin' | 'manager' | 'loan_officer' | 'customer_service' | 'accountant' | 'hr' | 'it_support' | 'branch_manager' | 'senior_officer' | 'junior_officer' | 'agent';
+export type Department = 'administration' | 'loan_department' | 'customer_service' | 'accounting' | 'human_resources' | 'information_technology' | 'operations' | 'marketing' | 'compliance' | 'risk_management' | 'agent_department';
 export type Gender = 'male' | 'female' | 'other';
 export type MaritalStatus = 'single' | 'married' | 'divorced' | 'widowed';
 export type EmploymentType = 'full_time' | 'part_time' | 'contract';

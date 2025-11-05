@@ -10,6 +10,7 @@ interface UseCustomerMutationsResult {
   createCustomer: (data: CreateCustomerDto) => Promise<Customer>;
   updateCustomer: (id: string, data: UpdateCustomerDto) => Promise<Customer>;
   deleteCustomer: (id: string) => Promise<void>;
+  approveUser: (id: string) => Promise<Customer>;
   loading: boolean;
   error: string | null;
 }
@@ -63,10 +64,26 @@ export function useCustomerMutations(): UseCustomerMutationsResult {
     }
   };
 
+  const approveUser = async (id: string): Promise<Customer> => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await customerService.approveUser(id);
+      return response.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to approve user';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     createCustomer,
     updateCustomer,
     deleteCustomer,
+    approveUser,
     loading,
     error,
   };

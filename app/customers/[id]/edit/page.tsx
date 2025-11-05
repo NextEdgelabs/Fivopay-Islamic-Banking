@@ -91,7 +91,7 @@ export default function EditCustomerPage() {
         email: customer.email || '',
         phone: customer.phone || '',
         alternatePhone: customer.alternatePhone || '',
-        dateOfBirth: customer.dateOfBirth || '',
+        dateOfBirth: customer.dateOfBirth ? (typeof customer.dateOfBirth === 'string' ? customer.dateOfBirth : customer.dateOfBirth.toISOString().split('T')[0]) : '',
         gender: customer.gender || '',
         maritalStatus: customer.maritalStatus || '',
         fatherName: customer.fatherName || '',

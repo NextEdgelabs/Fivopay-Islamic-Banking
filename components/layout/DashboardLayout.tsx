@@ -137,6 +137,12 @@ export default function DashboardLayout({
           />
           <NavItem
             icon={<Users className="h-5 w-5" />}
+            label="Agents"
+            sidebarOpen={sidebarOpen}
+            href="/agents"
+          />
+          <NavItem
+            icon={<Users className="h-5 w-5" />}
             label="Customers"
             sidebarOpen={sidebarOpen}
             href="/customers"
