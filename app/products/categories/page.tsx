@@ -114,12 +114,12 @@ export default function LoanCategoriesPage() {
             className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold"
             style={{ backgroundColor: '#6366f1' }}
           >
-            {row.categoryName.charAt(0)}
+            {row.categoryName?.charAt(0) || '?'}
           </div>
           <div>
-            <p className="font-medium text-neutral-900">{row.categoryName}</p>
-            <p className="text-sm text-neutral-500">{row.description}</p>
-            <p className="text-xs text-neutral-400 capitalize">{row.loanType} Loan</p>
+            <p className="font-medium text-neutral-900">{row.categoryName || 'Unnamed Category'}</p>
+            <p className="text-sm text-neutral-500">{row.description || 'No description'}</p>
+            <p className="text-xs text-neutral-400 capitalize">{row.loanType || 'Unknown'} Loan</p>
           </div>
         </div>
       ),
@@ -130,11 +130,15 @@ export default function LoanCategoriesPage() {
       render: (_: any, row: LoanCategory) => (
         <div className="space-y-1">
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-neutral-600">Amount: ₹{row.minLoanAmount.toLocaleString()} - ₹{row.maxLoanAmount.toLocaleString()}</span>
+            <span className="text-neutral-600">
+              Amount: ₹{row.minLoanAmount?.toLocaleString() || '0'} - ₹{row.maxLoanAmount?.toLocaleString() || '0'}
+            </span>
           </div>
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-neutral-600">Rate: {row.interestRate}%</span>
-            <span className="text-neutral-600">Tenure: {row.minTenureMonths} - {row.maxTenureMonths} months</span>
+            <span className="text-neutral-600">Rate: {row.interestRate || '0'}%</span>
+            <span className="text-neutral-600">
+              Tenure: {row.minTenureMonths || '0'} - {row.maxTenureMonths || '0'} months
+            </span>
           </div>
         </div>
       ),
@@ -149,9 +153,9 @@ export default function LoanCategoriesPage() {
       key: 'processingFee',
       render: (_: any, row: LoanCategory) => (
         <span className="text-sm text-neutral-600">
-          {row.processingFee.type === 'percentage' 
-            ? `${row.processingFee.value}%` 
-            : `₹${row.processingFee.value.toLocaleString()}`}
+          {row.processingFee?.type === 'percentage' 
+            ? `${row.processingFee?.value || 0}%` 
+            : `₹${(row.processingFee?.value || 0).toLocaleString()}`}
         </span>
       ),
     },
@@ -304,7 +308,7 @@ export default function LoanCategoriesPage() {
               <div>
                 <p className="text-sm text-neutral-600">Loan Types</p>
                 <p className="text-2xl font-bold">
-                  {new Set(categories.map(c => c.loanType)).size}
+                  {new Set(categories.map(c => c.loanType).filter(Boolean)).size}
                 </p>
               </div>
               <div className="w-12 h-12 bg-warning-100 rounded-stripe flex items-center justify-center">
@@ -318,7 +322,9 @@ export default function LoanCategoriesPage() {
               <div>
                 <p className="text-sm text-neutral-600">Avg Interest Rate</p>
                 <p className="text-2xl font-bold">
-                  {(categories.reduce((acc, c) => acc + c.interestRate, 0) / categories.length).toFixed(1)}%
+                  {categories.length > 0
+                    ? (categories.reduce((acc, c) => acc + (c.interestRate || 0), 0) / categories.length).toFixed(1)
+                    : '0.0'}%
                 </p>
               </div>
               <div className="w-12 h-12 bg-info-100 rounded-stripe flex items-center justify-center">
