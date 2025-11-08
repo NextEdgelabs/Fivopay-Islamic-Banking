@@ -34,7 +34,7 @@ import {
 import { useToast } from '@/components/ui/Toast';
 import { useLoanCategories } from '@/hooks/useLoanCategories';
 import { useLoanCategoryMutations } from '@/hooks/useLoanCategoryMutations';
-import { LoanCategory, LoanSubCategory } from '@/services/loan-categories.service';
+import { LoanCategory, LoanSubCategory, LoanCategoryStatus, LoanType } from '@/services/loan-categories.service';
 
 export default function LoanCategoriesPage() {
   const router = useRouter();
@@ -96,12 +96,17 @@ export default function LoanCategoriesPage() {
     setExpandedCategories(newExpanded);
   };
 
-  const getStatusBadge = (isActive: boolean) => {
-    return isActive ? (
-      <Badge variant="success">Active</Badge>
-    ) : (
-      <Badge variant="neutral">Inactive</Badge>
-    );
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case LoanCategoryStatus.ACTIVE:
+        return <Badge variant="success">Active</Badge>;
+      case LoanCategoryStatus.INACTIVE:
+        return <Badge variant="neutral">Inactive</Badge>;
+      case LoanCategoryStatus.SUSPENDED:
+        return <Badge variant="warning">Suspended</Badge>;
+      default:
+        return <Badge variant="neutral">{status || 'Unknown'}</Badge>;
+    }
   };
 
   const columns = [
@@ -135,7 +140,9 @@ export default function LoanCategoriesPage() {
             </span>
           </div>
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-neutral-600">Rate: {row.interestRate || '0'}%</span>
+            {row.defaultInterestRate && (
+              <span className="text-neutral-600">Rate: {row.defaultInterestRate}%</span>
+            )}
             <span className="text-neutral-600">
               Tenure: {row.minTenureMonths || '0'} - {row.maxTenureMonths || '0'} months
             </span>
@@ -146,16 +153,18 @@ export default function LoanCategoriesPage() {
     {
       header: 'Status',
       key: 'status',
-      render: (status: string) => getStatusBadge(status === 'active'),
+      render: (status: string) => getStatusBadge(status),
     },
     {
-      header: 'Processing Fee',
-      key: 'processingFee',
+      header: 'Default Processing Fee',
+      key: 'defaultProcessingFee',
       render: (_: any, row: LoanCategory) => (
         <span className="text-sm text-neutral-600">
-          {row.processingFee?.type === 'percentage' 
-            ? `${row.processingFee?.value || 0}%` 
-            : `₹${(row.processingFee?.value || 0).toLocaleString()}`}
+          {row.defaultProcessingFee?.type === 'percentage' 
+            ? `${row.defaultProcessingFee?.value || 0}%` 
+            : row.defaultProcessingFee?.value 
+              ? `₹${row.defaultProcessingFee.value.toLocaleString()}`
+              : 'N/A'}
         </span>
       ),
     },
@@ -295,7 +304,7 @@ export default function LoanCategoriesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600">Active Categories</p>
-                <p className="text-2xl font-bold">{categories.filter(c => c.status === 'active').length}</p>
+                <p className="text-2xl font-bold">{categories.filter(c => c.status === LoanCategoryStatus.ACTIVE).length}</p>
               </div>
               <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center">
                 <CheckCircle className="h-6 w-6 text-success-600" />
@@ -320,10 +329,14 @@ export default function LoanCategoriesPage() {
           <Card padding="sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Avg Interest Rate</p>
+                <p className="text-sm text-neutral-600">Avg Default Interest Rate</p>
                 <p className="text-2xl font-bold">
                   {categories.length > 0
-                    ? (categories.reduce((acc, c) => acc + (c.interestRate || 0), 0) / categories.length).toFixed(1)
+                    ? (categories
+                        .filter(c => c.defaultInterestRate !== undefined)
+                        .reduce((acc, c) => acc + (c.defaultInterestRate || 0), 0) / 
+                        Math.max(categories.filter(c => c.defaultInterestRate !== undefined).length, 1)
+                      ).toFixed(1)
                     : '0.0'}%
                 </p>
               </div>
@@ -351,12 +364,13 @@ export default function LoanCategoriesPage() {
                 value={filters.status || ''}
                 onChange={e => setFilters(prev => ({ 
                   ...prev, 
-                  status: e.target.value === '' ? undefined : e.target.value as 'active' | 'inactive'
+                  status: e.target.value === '' ? undefined : e.target.value as LoanCategoryStatus | string
                 }))}
                 options={[
                   { label: 'All Status', value: '' },
-                  { label: 'Active', value: 'active' },
-                  { label: 'Inactive', value: 'inactive' },
+                  { label: 'Active', value: LoanCategoryStatus.ACTIVE },
+                  { label: 'Inactive', value: LoanCategoryStatus.INACTIVE },
+                  { label: 'Suspended', value: LoanCategoryStatus.SUSPENDED },
                 ]}
               />
             </div>
@@ -366,15 +380,18 @@ export default function LoanCategoriesPage() {
                 value={filters.loanType || ''}
                 onChange={e => setFilters(prev => ({ 
                   ...prev, 
-                  loanType: e.target.value === '' ? undefined : e.target.value
+                  loanType: e.target.value === '' ? undefined : e.target.value as LoanType | string
                 }))}
                 options={[
                   { label: 'All Types', value: '' },
-                  { label: 'Personal', value: 'personal' },
-                  { label: 'Home', value: 'home' },
-                  { label: 'Car', value: 'car' },
-                  { label: 'Business', value: 'business' },
-                  { label: 'Education', value: 'education' },
+                  { label: 'Personal', value: LoanType.PERSONAL },
+                  { label: 'Home', value: LoanType.HOME },
+                  { label: 'Car', value: LoanType.CAR },
+                  { label: 'Business', value: LoanType.BUSINESS },
+                  { label: 'Education', value: LoanType.EDUCATION },
+                  { label: 'Gold', value: LoanType.GOLD },
+                  { label: 'Agriculture', value: LoanType.AGRICULTURE },
+                  { label: 'Medical', value: LoanType.MEDICAL },
                 ]}
               />
             </div>

@@ -2,41 +2,61 @@ import axios from 'axios';
 import { API } from '@/api';
 import { getAuthToken } from '@/lib/auth';
 
+// Loan Category Enums (matching the model)
+export enum LoanCategoryStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  SUSPENDED = 'suspended',
+}
+
+export enum LoanType {
+  PERSONAL = 'personal',
+  HOME = 'home',
+  CAR = 'car',
+  EDUCATION = 'education',
+  BUSINESS = 'business',
+  GOLD = 'gold',
+  AGRICULTURE = 'agriculture',
+  MEDICAL = 'medical',
+}
+
 // Loan Category Types
 export interface LoanCategory {
   _id: string;
   categoryName: string;
+  organisation: string;
+  branch?: string;
   description: string;
-  loanType: string;
+  loanType: LoanType | string;
   minLoanAmount: number;
   maxLoanAmount: number;
-  interestRate: number;
   minTenureMonths: number;
   maxTenureMonths: number;
-  status: 'active' | 'inactive';
-  eligibilityCriteria: {
-    minAge: number;
-    maxAge: number;
-    minIncome: number;
-    requiredDocuments: string[];
-    creditScoreMin: number;
-  };
-  processingFee: {
+  defaultInterestRate?: number;
+  defaultProcessingFee?: {
     type: 'percentage' | 'fixed';
     value: number;
   };
-  prepaymentCharges: {
+  defaultPrepaymentCharges?: {
     type: 'percentage' | 'fixed';
     value: number;
   };
-  latePaymentCharges: {
+  defaultLatePaymentCharges?: {
     type: 'percentage' | 'fixed';
     value: number;
   };
-  features: string[];
-  termsAndConditions: string;
-  createdAt: string;
-  updatedAt: string;
+  eligibilityCriteria?: {
+    minAge?: number;
+    maxAge?: number;
+    minIncome?: number;
+    creditScoreMin?: number;
+    requiredDocuments?: string[];
+  };
+  keyFeatures?: string[];
+  termsAndConditions?: string;
+  status: LoanCategoryStatus | string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
 }
 
 // Note: The API doesn't seem to have sub-categories in the current response
@@ -69,35 +89,37 @@ export interface LoanSubCategory {
 
 export interface CreateLoanCategoryDto {
   categoryName: string;
+  organisation: string;
+  branch?: string;
   description: string;
-  loanType: string;
+  loanType: LoanType | string;
   minLoanAmount: number;
   maxLoanAmount: number;
-  interestRate: number;
   minTenureMonths: number;
   maxTenureMonths: number;
-  status?: 'active' | 'inactive';
-  eligibilityCriteria: {
-    minAge: number;
-    maxAge: number;
-    minIncome: number;
-    requiredDocuments: string[];
-    creditScoreMin: number;
-  };
-  processingFee: {
+  defaultInterestRate?: number;
+  defaultProcessingFee?: {
     type: 'percentage' | 'fixed';
     value: number;
   };
-  prepaymentCharges: {
+  defaultPrepaymentCharges?: {
     type: 'percentage' | 'fixed';
     value: number;
   };
-  latePaymentCharges: {
+  defaultLatePaymentCharges?: {
     type: 'percentage' | 'fixed';
     value: number;
   };
-  features: string[];
-  termsAndConditions: string;
+  eligibilityCriteria?: {
+    minAge?: number;
+    maxAge?: number;
+    minIncome?: number;
+    creditScoreMin?: number;
+    requiredDocuments?: string[];
+  };
+  keyFeatures?: string[];
+  termsAndConditions?: string;
+  status?: LoanCategoryStatus | string;
 }
 
 export interface UpdateLoanCategoryDto extends Partial<CreateLoanCategoryDto> {
@@ -133,8 +155,8 @@ export interface UpdateLoanSubCategoryDto extends Partial<CreateLoanSubCategoryD
 
 export interface LoanCategoryFilters {
   search?: string;
-  status?: 'active' | 'inactive';
-  loanType?: string;
+  status?: LoanCategoryStatus | string;
+  loanType?: LoanType | string;
 }
 
 export interface LoanCategoryResponse {

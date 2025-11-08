@@ -29,14 +29,21 @@ export const API = {
         deleteBranch: "/api/v1/branch/delete-branch",
 
         // loan categories
-        createLoanCategory: "/api/v1/loan-categories/create-loan-category",
+        createLoanCategory: "/api/v1/loan-category/create-loan-category",
         getAllLoanCategories: "/api/v1/loan-category/get-all-loan-categories",
-        getLoanCategoryById: "/api/v1/loan-categories/get-loan-category-by-id",
-        updateLoanCategory: "/api/v1/loan-categories/update-loan-category",
-        deleteLoanCategory: "/api/v1/loan-categories/delete-loan-category",
-        createLoanSubCategory: "/api/v1/loan-subcategories/create-loan-subcategory",
-        updateLoanSubCategory: "/api/v1/loan-subcategories/update-loan-subcategory",
-        deleteLoanSubCategory: "/api/v1/loan-subcategories/delete-loan-subcategory",
+        getLoanCategoryById: "/api/v1/loan-category/get-loan-category-by-id",
+        updateLoanCategory: "/api/v1/loan-category/update-loan-category",
+        deleteLoanCategory: "/api/v1/loan-category/delete-loan-category",
+        createLoanSubCategory: "/api/v1/loan-subcategory/create-loan-subcategory",
+        updateLoanSubCategory: "/api/v1/loan-subcategory/update-loan-subcategory",
+        deleteLoanSubCategory: "/api/v1/loan-subcategory/delete-loan-subcategory",
+
+        // loan products
+        createLoanProduct: "/api/v1/loan-product/create-loan-product",
+        getAllLoanProducts: "/api/v1/loan-product/get-all-loan-products",
+        getLoanProductById: "/api/v1/loan-product/get-loan-product-by-id",
+        updateLoanProduct: "/api/v1/loan-product/update-loan-product",
+        deleteLoanProduct: "/api/v1/loan-product/delete-loan-product",
 
         // organization
         getAllOrganisations: "/api/v1/organisation/get-all-organisations",

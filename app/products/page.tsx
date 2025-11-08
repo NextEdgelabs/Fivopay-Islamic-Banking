@@ -14,7 +14,7 @@ import {
   Skeleton,
   Breadcrumbs,
 } from '@/components/ui';
-import { Search, Plus, Edit, Trash2, Eye, UploadCloud, FolderOpen } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, FolderOpen } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useProducts } from '@/hooks/useProducts';
 import { useProductMutations } from '@/hooks/useProductMutations';
@@ -38,9 +38,9 @@ export default function ProductsPage() {
   );
 
   const handleDelete = async (product: AnyProduct) => {
-    if (confirm(`Are you sure you want to delete ${product.name}?`)) {
+    if (confirm(`Are you sure you want to delete ${product.productName}?`)) {
       try {
-        await deleteProduct(product.id);
+        await deleteProduct(product._id);
         addToast({ type: 'success', message: 'Product deleted successfully' });
         refetch();
       } catch (err) {
@@ -48,32 +48,61 @@ export default function ProductsPage() {
       }
     }
   };
-  
-  const handleSubmitForApproval = async (product: AnyProduct) => {
-    try {
-      await updateProduct(product.id, { ...product, status: 'Pending Approval' });
-      addToast({ type: 'success', message: 'Product submitted for approval' });
-      refetch();
-    } catch (err) {
-      addToast({ type: 'error', message: 'Failed to submit for approval' });
-    }
-  };
 
   const columns = [
-    { header: 'Product ID', key: 'id' },
-    { header: 'Name', key: 'name' },
-    { header: 'Type', key: 'type' },
-    { header: 'Sub-Type', key: 'subType' },
+    { header: 'Product ID', key: '_id' },
+    { header: 'Product Name', key: 'productName' },
+    { 
+      header: 'Product Type', 
+      key: 'productType',
+      render: (type: string) => (
+        <Badge
+          variant={
+            type === 'standard' ? 'primary'
+            : type === 'premium' ? 'warning'
+            : type === 'basic' ? 'success'
+            : 'neutral'
+          }
+        >
+          {type}
+        </Badge>
+      ),
+    },
+    {
+      header: 'Category',
+      key: 'category',
+      render: (category: any) => {
+        // Handle if category is a populated object
+        if (typeof category === 'object' && category !== null) {
+          return category.categoryName || category.name || 'N/A';
+        }
+        // Handle if category is just an ID string
+        return category || 'N/A';
+      },
+    },
+    {
+      header: 'Loan Amount',
+      key: 'loanAmount',
+      render: (_: any, item: AnyProduct) => (
+        <span>
+          ₹{(item.minLoanAmount || 0).toLocaleString()} - ₹{(item.maxLoanAmount || 0).toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      header: 'Interest Rate',
+      key: 'interestRate',
+      render: (rate: number) => `${rate || 0}%`,
+    },
     {
       header: 'Status',
       key: 'status',
       render: (status: string) => (
         <Badge
           variant={
-            status === 'Active' ? 'success'
-            : status === 'Draft' ? 'warning'
-            : status === 'Pending Approval' ? 'primary'
-            : status === 'Retired' ? 'error'
+            status === 'active' ? 'success'
+            : status === 'inactive' ? 'warning'
+            : status === 'suspended' ? 'error'
             : 'neutral'
           }
         >
@@ -86,16 +115,10 @@ export default function ProductsPage() {
       key: 'actions',
       render: (_: any, item: AnyProduct) => (
         <div className="flex gap-2">
-          {item.status === 'Draft' && (
-            <Button variant="outline" size="sm" onClick={() => handleSubmitForApproval(item)}>
-              <UploadCloud className="mr-2 h-4 w-4" />
-              Submit for Approval
-            </Button>
-          )}
-          <Button variant="ghost" size="sm" onClick={() => router.push(`/products/${item.id}`)}>
+          <Button variant="ghost" size="sm" onClick={() => router.push(`/products/${item._id}`)}>
             <Eye className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => router.push(`/products/${item.id}/edit`)}>
+          <Button variant="ghost" size="sm" onClick={() => router.push(`/products/${item._id}/edit`)}>
             <Edit className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="sm" onClick={() => handleDelete(item)} disabled={isDeleting}>
@@ -151,14 +174,16 @@ export default function ProductsPage() {
             </div>
             <div className="w-full md:w-48">
               <Select
-                name="type"
-                placeholder="Filter by Type"
-                value={filters.type || ''}
+                name="productType"
+                placeholder="Filter by Product Type"
+                value={filters.productType || ''}
                 onChange={handleFilterChange}
                 options={[
                   { value: '', label: 'All Types' },
-                  { value: 'Term Deposit', label: 'Term Deposit' },
-                  { value: 'Loan', label: 'Loan' },
+                  { value: 'standard', label: 'Standard' },
+                  { value: 'premium', label: 'Premium' },
+                  { value: 'basic', label: 'Basic' },
+                  { value: 'custom', label: 'Custom' },
                 ]}
               />
             </div>
@@ -170,11 +195,9 @@ export default function ProductsPage() {
                 onChange={handleFilterChange}
                 options={[
                   { value: '', label: 'All Statuses' },
-                  { value: 'Active', label: 'Active' },
-                  { value: 'Inactive', label: 'Inactive' },
-                  { value: 'Draft', label: 'Draft' },
-                  { value: 'Pending Approval', label: 'Pending Approval' },
-                  { value: 'Retired', label: 'Retired' },
+                  { value: 'active', label: 'Active' },
+                  { value: 'inactive', label: 'Inactive' },
+                  { value: 'suspended', label: 'Suspended' },
                 ]}
               />
             </div>

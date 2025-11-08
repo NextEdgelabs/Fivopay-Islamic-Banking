@@ -48,10 +48,10 @@ export default function AddLoanPage() {
   const { createLoan, loading: isSubmitting } = useLoanMutations();
   const { customers } = useCustomers();
   const { branches } = useBranches();
-  const { products: loanProducts } = useProducts({ type: 'Loan', status: 'Active' });
+  const { products: loanProducts } = useProducts({ productType: 'Loan', status: 'Active' });
   const { addToast } = useToast();
   
-  const [selectedProduct, setSelectedProduct] = useState<LoanProduct | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [eligibilityWarnings, setEligibilityWarnings] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
@@ -66,7 +66,7 @@ export default function AddLoanPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const selectedCustomer = useMemo(() => {
-    return customers.find(c => c.id === formData.customerId);
+    return customers.find((c:any) => c.id === formData.customerId);
   }, [formData.customerId, customers]);
   
   useEffect(() => {
@@ -178,12 +178,12 @@ export default function AddLoanPage() {
                 name="productId"
                 value={selectedProduct?.id || ''}
                 onChange={(e) => {
-                  const product = loanProducts.find(p => p.id === e.target.value) as LoanProduct | undefined;
+                  const product = loanProducts.find((p:any) => p._id === e.target.value) as LoanProduct | undefined;
                   setSelectedProduct(product || null);
                 }}
                 options={[
                   { value: '', label: 'Select a loan product' },
-                  ...loanProducts.map((p) => ({ value: p.id, label: p.name })),
+                  ...loanProducts.map((p:any) => ({ value: p._id, label: p.productName })),
                 ]}
               />
               <Select

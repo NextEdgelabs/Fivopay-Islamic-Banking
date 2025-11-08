@@ -844,22 +844,22 @@ const CustomerKycTab = ({ customer }: { customer: any }) => (
 );
 
 const CustomerDocumentsTab = ({ customer, loans, deposits, onDocumentUpload }: { customer: any, loans: any[], deposits: any[], onDocumentUpload: () => void }) => {
-  const { products: loanProducts } = useProducts({ type: 'Loan' });
-  const { products: depositProducts } = useProducts({ type: 'Term Deposit' });
+  const { products: loanProducts } = useProducts({ productType: 'Loan' });
+  const { products: depositProducts } = useProducts({ productType: 'Term Deposit' });
   const { addToast } = useToast();
   const [uploading, setUploading] = React.useState<string | null>(null);
 
   const requiredDocs = React.useMemo(() => {
     const docs = new Set<string>();
     
-    loans.forEach(loan => {
-      const product = loanProducts.find(p => p.subType === loan.loanType);
-      product?.requiredDocuments.forEach(doc => docs.add(doc));
+    loans.forEach((loan:any) => {
+      const product = loanProducts.find((p:any) => p.subType === loan.loanType);
+      product?.documentsRequired?.forEach((doc:any) => docs.add(doc));
     });
     
-    deposits.forEach(deposit => {
-      const product = depositProducts.find(p => p.subType === deposit.depositType);
-      product?.requiredDocuments.forEach(doc => docs.add(doc));
+    deposits.forEach((deposit:any) => {
+      const product = depositProducts.find((p:any) => p.subType === deposit.depositType);
+      product?.documentsRequired?.forEach((doc:any) => docs.add(doc));
     });
 
     return Array.from(docs);

@@ -30,7 +30,7 @@ import {
 import { useToast } from '@/components/ui/Toast';
 import { useLoanCategoryMutations } from '@/hooks/useLoanCategoryMutations';
 import { useLoanCategory } from '@/hooks/useLoanCategory';
-import { LoanCategory } from '@/services/loan-categories.service';
+import { LoanCategory, LoanCategoryStatus } from '@/services/loan-categories.service';
 
 export default function LoanCategoryDetailPage() {
   const router = useRouter();
@@ -54,11 +54,16 @@ export default function LoanCategoryDetailPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    return status === 'active' ? (
-      <Badge variant="success">Active</Badge>
-    ) : (
-      <Badge variant="neutral">Inactive</Badge>
-    );
+    switch (status) {
+      case LoanCategoryStatus.ACTIVE:
+        return <Badge variant="success">Active</Badge>;
+      case LoanCategoryStatus.INACTIVE:
+        return <Badge variant="neutral">Inactive</Badge>;
+      case LoanCategoryStatus.SUSPENDED:
+        return <Badge variant="warning">Suspended</Badge>;
+      default:
+        return <Badge variant="neutral">{status || 'Unknown'}</Badge>;
+    }
   };
 
   if (loading) return <DashboardLayout><div className="p-6"><Skeleton className="h-96 w-full" /></div></DashboardLayout>;
@@ -132,19 +137,45 @@ const CategoryOverviewTab = ({ category }: { category: LoanCategory }) => (
         <Card>
           <h2 className="text-xl font-semibold p-6 border-b">Loan Details</h2>
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InfoItem icon={<DollarSign />} label="Loan Amount" value={`₹${category.minLoanAmount.toLocaleString()} - ₹${category.maxLoanAmount.toLocaleString()}`} />
-            <InfoItem icon={<TrendingUp />} label="Interest Rate" value={`${category.interestRate}% per annum`} />
-            <InfoItem icon={<Calendar />} label="Tenure" value={`${category.minTenureMonths} - ${category.maxTenureMonths} months`} />
-            <InfoItem icon={<CreditCard />} label="Processing Fee" value={category.processingFee.type === 'percentage' ? `${category.processingFee.value}%` : `₹${category.processingFee.value.toLocaleString()}`} />
-            <InfoItem icon={<Shield />} label="Prepayment Charges" value={`${category.prepaymentCharges.value}%`} />
-            <InfoItem icon={<AlertCircle />} label="Late Payment Charges" value={`${category.latePaymentCharges.value}%`} />
+            <InfoItem icon={<DollarSign />} label="Loan Amount" value={`₹${(category.minLoanAmount || 0).toLocaleString()} - ₹${(category.maxLoanAmount || 0).toLocaleString()}`} />
+            {category.defaultInterestRate && (
+              <InfoItem icon={<TrendingUp />} label="Default Interest Rate" value={`${category.defaultInterestRate}% per annum`} />
+            )}
+            <InfoItem icon={<Calendar />} label="Tenure" value={`${category.minTenureMonths || 0} - ${category.maxTenureMonths || 0} months`} />
+            {category.defaultProcessingFee && (
+              <InfoItem 
+                icon={<CreditCard />} 
+                label="Default Processing Fee" 
+                value={category.defaultProcessingFee.type === 'percentage' 
+                  ? `${category.defaultProcessingFee.value}%` 
+                  : `₹${category.defaultProcessingFee.value.toLocaleString()}`} 
+              />
+            )}
+            {category.defaultPrepaymentCharges && (
+              <InfoItem 
+                icon={<Shield />} 
+                label="Default Prepayment Charges" 
+                value={category.defaultPrepaymentCharges.type === 'percentage' 
+                  ? `${category.defaultPrepaymentCharges.value}%` 
+                  : `₹${category.defaultPrepaymentCharges.value.toLocaleString()}`} 
+              />
+            )}
+            {category.defaultLatePaymentCharges && (
+              <InfoItem 
+                icon={<AlertCircle />} 
+                label="Default Late Payment Charges" 
+                value={category.defaultLatePaymentCharges.type === 'percentage' 
+                  ? `${category.defaultLatePaymentCharges.value}%` 
+                  : `₹${category.defaultLatePaymentCharges.value.toLocaleString()}`} 
+              />
+            )}
           </div>
         </Card>
         
         <Card>
           <h2 className="text-xl font-semibold p-6 border-b">Description</h2>
           <div className="p-6">
-            <p className="text-neutral-700">{category.description}</p>
+            <p className="text-neutral-700">{category.description || 'No description available'}</p>
           </div>
         </Card>
       </div>
@@ -155,23 +186,25 @@ const CategoryOverviewTab = ({ category }: { category: LoanCategory }) => (
           <div className="space-y-4">
             <div className="flex justify-between">
               <span className="text-neutral-600">Min Amount</span>
-              <span className="font-semibold">₹{category.minLoanAmount.toLocaleString()}</span>
+              <span className="font-semibold">₹{(category.minLoanAmount || 0).toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-neutral-600">Max Amount</span>
-              <span className="font-semibold">₹{category.maxLoanAmount.toLocaleString()}</span>
+              <span className="font-semibold">₹{(category.maxLoanAmount || 0).toLocaleString()}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-neutral-600">Interest Rate</span>
-              <span className="font-semibold">{category.interestRate}%</span>
-            </div>
+            {category.defaultInterestRate && (
+              <div className="flex justify-between">
+                <span className="text-neutral-600">Default Interest Rate</span>
+                <span className="font-semibold">{category.defaultInterestRate}%</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-neutral-600">Min Tenure</span>
-              <span className="font-semibold">{category.minTenureMonths} months</span>
+              <span className="font-semibold">{category.minTenureMonths || 0} months</span>
             </div>
             <div className="flex justify-between">
               <span className="text-neutral-600">Max Tenure</span>
-              <span className="font-semibold">{category.maxTenureMonths} months</span>
+              <span className="font-semibold">{category.maxTenureMonths || 0} months</span>
             </div>
           </div>
         </Card>
@@ -182,46 +215,84 @@ const CategoryOverviewTab = ({ category }: { category: LoanCategory }) => (
 
 const CategoryEligibilityTab = ({ category }: { category: LoanCategory }) => (
   <div className="space-y-6 mt-4">
-    <Card>
-      <h2 className="text-xl font-semibold p-6 border-b">Eligibility Criteria</h2>
-      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InfoItem icon={<Users />} label="Age Range" value={`${category.eligibilityCriteria.minAge} - ${category.eligibilityCriteria.maxAge} years`} />
-        <InfoItem icon={<DollarSign />} label="Minimum Income" value={`₹${category.eligibilityCriteria.minIncome.toLocaleString()}`} />
-        <InfoItem icon={<CheckCircle />} label="Credit Score" value={`Minimum ${category.eligibilityCriteria.creditScoreMin}`} />
-      </div>
-    </Card>
-    
-    <Card>
-      <h2 className="text-xl font-semibold p-6 border-b">Required Documents</h2>
-      <div className="p-6">
-        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {category.eligibilityCriteria.requiredDocuments.map((doc, index) => (
-            <li key={index} className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-primary-500" />
-              <span className="text-neutral-700">{doc}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </Card>
+    {category.eligibilityCriteria ? (
+      <>
+        <Card>
+          <h2 className="text-xl font-semibold p-6 border-b">Eligibility Criteria</h2>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {(category.eligibilityCriteria.minAge || category.eligibilityCriteria.maxAge) && (
+              <InfoItem 
+                icon={<Users />} 
+                label="Age Range" 
+                value={`${category.eligibilityCriteria.minAge || 'N/A'} - ${category.eligibilityCriteria.maxAge || 'N/A'} years`} 
+              />
+            )}
+            {category.eligibilityCriteria.minIncome && (
+              <InfoItem 
+                icon={<DollarSign />} 
+                label="Minimum Income" 
+                value={`₹${category.eligibilityCriteria.minIncome.toLocaleString()}`} 
+              />
+            )}
+            {category.eligibilityCriteria.creditScoreMin && (
+              <InfoItem 
+                icon={<CheckCircle />} 
+                label="Credit Score" 
+                value={`Minimum ${category.eligibilityCriteria.creditScoreMin}`} 
+              />
+            )}
+          </div>
+        </Card>
+        
+        {category.eligibilityCriteria.requiredDocuments && category.eligibilityCriteria.requiredDocuments.length > 0 && (
+          <Card>
+            <h2 className="text-xl font-semibold p-6 border-b">Required Documents</h2>
+            <div className="p-6">
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {category.eligibilityCriteria.requiredDocuments.map((doc, index) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary-500" />
+                    <span className="text-neutral-700">{doc}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Card>
+        )}
+      </>
+    ) : (
+      <Card>
+        <div className="p-6 text-center text-neutral-500">
+          <p>No eligibility criteria defined for this category.</p>
+        </div>
+      </Card>
+    )}
   </div>
 );
 
 const CategoryFeaturesTab = ({ category }: { category: LoanCategory }) => (
   <div className="space-y-6 mt-4">
-    <Card>
-      <h2 className="text-xl font-semibold p-6 border-b">Key Features</h2>
-      <div className="p-6">
-        <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {category.features.map((feature, index) => (
-            <li key={index} className="flex items-center gap-3">
-              <Star className="h-5 w-5 text-warning-500 flex-shrink-0" />
-              <span className="text-neutral-700">{feature}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </Card>
+    {category.keyFeatures && category.keyFeatures.length > 0 ? (
+      <Card>
+        <h2 className="text-xl font-semibold p-6 border-b">Key Features</h2>
+        <div className="p-6">
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {category.keyFeatures.map((feature, index) => (
+              <li key={index} className="flex items-center gap-3">
+                <Star className="h-5 w-5 text-warning-500 flex-shrink-0" />
+                <span className="text-neutral-700">{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Card>
+    ) : (
+      <Card>
+        <div className="p-6 text-center text-neutral-500">
+          <p>No key features defined for this category.</p>
+        </div>
+      </Card>
+    )}
   </div>
 );
 
@@ -230,31 +301,49 @@ const CategoryTermsTab = ({ category }: { category: LoanCategory }) => (
     <Card>
       <h2 className="text-xl font-semibold p-6 border-b">Terms & Conditions</h2>
       <div className="p-6">
-        <p className="text-neutral-700 leading-relaxed">{category.termsAndConditions}</p>
+        <p className="text-neutral-700 leading-relaxed">
+          {category.termsAndConditions || 'No terms and conditions defined for this category.'}
+        </p>
       </div>
     </Card>
     
-    <Card>
-      <h2 className="text-xl font-semibold p-6 border-b">Charges & Fees</h2>
-      <div className="p-6 space-y-4">
-        <div className="flex justify-between items-center py-2 border-b">
-          <span className="text-neutral-600">Processing Fee</span>
-          <span className="font-semibold">
-            {category.processingFee.type === 'percentage' 
-              ? `${category.processingFee.value}%` 
-              : `₹${category.processingFee.value.toLocaleString()}`}
-          </span>
+    {(category.defaultProcessingFee || category.defaultPrepaymentCharges || category.defaultLatePaymentCharges) && (
+      <Card>
+        <h2 className="text-xl font-semibold p-6 border-b">Default Charges & Fees</h2>
+        <div className="p-6 space-y-4">
+          {category.defaultProcessingFee && (
+            <div className="flex justify-between items-center py-2 border-b">
+              <span className="text-neutral-600">Default Processing Fee</span>
+              <span className="font-semibold">
+                {category.defaultProcessingFee.type === 'percentage' 
+                  ? `${category.defaultProcessingFee.value}%` 
+                  : `₹${category.defaultProcessingFee.value.toLocaleString()}`}
+              </span>
+            </div>
+          )}
+          {category.defaultPrepaymentCharges && (
+            <div className="flex justify-between items-center py-2 border-b">
+              <span className="text-neutral-600">Default Prepayment Charges</span>
+              <span className="font-semibold">
+                {category.defaultPrepaymentCharges.type === 'percentage' 
+                  ? `${category.defaultPrepaymentCharges.value}%` 
+                  : `₹${category.defaultPrepaymentCharges.value.toLocaleString()}`}
+              </span>
+            </div>
+          )}
+          {category.defaultLatePaymentCharges && (
+            <div className="flex justify-between items-center py-2">
+              <span className="text-neutral-600">Default Late Payment Charges</span>
+              <span className="font-semibold">
+                {category.defaultLatePaymentCharges.type === 'percentage' 
+                  ? `${category.defaultLatePaymentCharges.value}%` 
+                  : `₹${category.defaultLatePaymentCharges.value.toLocaleString()}`}
+              </span>
+            </div>
+          )}
         </div>
-        <div className="flex justify-between items-center py-2 border-b">
-          <span className="text-neutral-600">Prepayment Charges</span>
-          <span className="font-semibold">{category.prepaymentCharges.value}%</span>
-        </div>
-        <div className="flex justify-between items-center py-2">
-          <span className="text-neutral-600">Late Payment Charges</span>
-          <span className="font-semibold">{category.latePaymentCharges.value}%</span>
-        </div>
-      </div>
-    </Card>
+      </Card>
+    )}
   </div>
 );
 

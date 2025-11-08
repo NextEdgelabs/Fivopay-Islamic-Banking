@@ -10,7 +10,7 @@ import { useCustomers } from '@/hooks/useCustomers';
 import { useBranches } from '@/hooks/useBranches';
 import { useProducts } from '@/hooks/useProducts';
 import { useToast } from '@/components/ui/Toast';
-import { TermDepositProduct, EligibilityRule } from '@/services/products';
+import { LoanProduct, EligibilityRule, TermDepositProduct } from '@/services/products';
 import { Customer } from '@/services/customers.service';
 import { Alert } from '@/components/ui';
 
@@ -49,7 +49,7 @@ export default function AddDepositPage() {
   const { createDeposit, loading: isSubmitting } = useDepositMutations();
   const { customers } = useCustomers();
   const { branches } = useBranches();
-  const { products: depositProducts } = useProducts({ type: 'Term Deposit', status: 'Active' });
+  const { products: depositProducts } = useProducts({ productType: 'Term Deposit', status: 'Active' });
   const { addToast } = useToast();
   
   const [selectedProduct, setSelectedProduct] = useState<TermDepositProduct | null>(null);
@@ -70,7 +70,7 @@ export default function AddDepositPage() {
 
   useEffect(() => {
     if (selectedProduct && selectedCustomer) {
-      const warnings = checkEligibility(selectedCustomer, selectedProduct.eligibilityRules);
+      const warnings = checkEligibility(selectedCustomer, selectedProduct.eligibilityRules || []);
       setEligibilityWarnings(warnings);
     } else {
       setEligibilityWarnings([]);
@@ -139,14 +139,14 @@ export default function AddDepositPage() {
               <Select
                 label="Select Product (Optional)"
                 name="productId"
-                value={selectedProduct?.id || ''}
+                value={selectedProduct?._id || ''}
                 onChange={(e) => {
-                  const product = depositProducts.find(p => p.id === e.target.value) as TermDepositProduct | undefined;
-                  setSelectedProduct(product || null);
+                  const product = depositProducts.find((p:any) => p.id === e.target.value) as TermDepositProduct | undefined;
+                  setSelectedProduct(product as any || null);
                 }}
                 options={[
                   { value: '', label: 'Select a deposit product' },
-                  ...depositProducts.map((p) => ({ value: p.id, label: p.name })),
+                  ...depositProducts.map((p:any) => ({ value: p.id, label: p.name })),
                 ]}
               />
               <Select
@@ -207,7 +207,7 @@ export default function AddDepositPage() {
                     value={formData.tenure}
                     onChange={handleChange}
                     placeholder="Select Tenure"
-                    options={selectedProduct ? Object.keys(selectedProduct.interestRates).map(t => ({ label: `${t} months`, value: t })) : []}
+                    options={selectedProduct ? Object.keys(selectedProduct.interestRates || {}).map((t:any) => ({ label: `${t} months`, value: t })) : []}
                     disabled={!selectedProduct}
                     required
                   />
@@ -215,7 +215,7 @@ export default function AddDepositPage() {
                     label="Interest Rate (% p.a.)"
                     name="interestRate"
                     type="number"
-                    value={selectedProduct?.interestRates[parseInt(formData.tenure)] || ''}
+                    value={selectedProduct?.interestRates?.[parseInt(formData.tenure)] || ''}
                     disabled
                   />
                 </>

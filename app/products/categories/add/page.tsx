@@ -15,43 +15,48 @@ import {
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useLoanCategoryMutations } from '@/hooks/useLoanCategoryMutations';
-import { CreateLoanCategoryDto, LoanSubCategory } from '@/services/loan-categories.service';
+import { CreateLoanCategoryDto, LoanSubCategory, LoanCategoryStatus, LoanType } from '@/services/loan-categories.service';
+import { useOrganizations } from '@/hooks/useOrganizations';
+import { useBranches } from '@/hooks/useBranches';
 
 export default function AddLoanCategoryPage() {
   const router = useRouter();
   const { createLoanCategory, loading } = useLoanCategoryMutations();
   const { addToast } = useToast();
+  const { organizations } = useOrganizations();
+  const { branches } = useBranches();
 
   const [formData, setFormData] = useState<Partial<CreateLoanCategoryDto>>({
     categoryName: '',
+    organisation: '',
     description: '',
     loanType: '',
     minLoanAmount: 0,
     maxLoanAmount: 0,
-    interestRate: 0,
     minTenureMonths: 0,
     maxTenureMonths: 0,
-    status: 'active',
+    status: LoanCategoryStatus.ACTIVE,
+    defaultInterestRate: undefined,
     eligibilityCriteria: {
-      minAge: 0,
-      maxAge: 0,
-      minIncome: 0,
+      minAge: undefined,
+      maxAge: undefined,
+      minIncome: undefined,
       requiredDocuments: [],
-      creditScoreMin: 0,
+      creditScoreMin: undefined,
     },
-    processingFee: {
+    defaultProcessingFee: {
       type: 'percentage',
       value: 0,
     },
-    prepaymentCharges: {
+    defaultPrepaymentCharges: {
       type: 'percentage',
       value: 0,
     },
-    latePaymentCharges: {
+    defaultLatePaymentCharges: {
       type: 'percentage',
       value: 0,
     },
-    features: [],
+    keyFeatures: [],
     termsAndConditions: '',
   });
 
@@ -140,41 +145,28 @@ export default function AddLoanCategoryPage() {
     
     try {
       // Ensure all required fields are present
-      if (!formData.categoryName || !formData.description || !formData.loanType) {
+      if (!formData.categoryName || !formData.description || !formData.loanType || !formData.organisation) {
         addToast({ type: 'error', message: 'Please fill in all required fields' });
         return;
       }
 
       const categoryData: CreateLoanCategoryDto = {
         categoryName: formData.categoryName,
+        organisation: formData.organisation,
         description: formData.description || '',
         loanType: formData.loanType,
         minLoanAmount: formData.minLoanAmount || 0,
         maxLoanAmount: formData.maxLoanAmount || 0,
-        interestRate: formData.interestRate || 0,
         minTenureMonths: formData.minTenureMonths || 0,
         maxTenureMonths: formData.maxTenureMonths || 0,
-        status: formData.status || 'active',
-        eligibilityCriteria: formData.eligibilityCriteria || {
-          minAge: 0,
-          maxAge: 0,
-          minIncome: 0,
-          requiredDocuments: [],
-          creditScoreMin: 0,
-        },
-        processingFee: formData.processingFee || {
-          type: 'percentage',
-          value: 0,
-        },
-        prepaymentCharges: formData.prepaymentCharges || {
-          type: 'percentage',
-          value: 0,
-        },
-        latePaymentCharges: formData.latePaymentCharges || {
-          type: 'percentage',
-          value: 0,
-        },
-        features: formData.features || [],
+        status: formData.status || LoanCategoryStatus.ACTIVE,
+        defaultInterestRate: formData.defaultInterestRate,
+        branch: formData.branch,
+        eligibilityCriteria: formData.eligibilityCriteria,
+        defaultProcessingFee: formData.defaultProcessingFee,
+        defaultPrepaymentCharges: formData.defaultPrepaymentCharges,
+        defaultLatePaymentCharges: formData.defaultLatePaymentCharges,
+        keyFeatures: formData.keyFeatures || [],
         termsAndConditions: formData.termsAndConditions || '',
       };
       
@@ -228,8 +220,39 @@ export default function AddLoanCategoryPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Display Order
+                    Organisation *
                   </label>
+                  <Select
+                    name="organisation"
+                    value={formData.organisation || ''}
+                    onChange={handleInputChange}
+                    required
+                    options={[
+                      { label: 'Select Organisation', value: '' },
+                      ...(organizations || []).map(org => ({
+                        value: org._id || org.id || '',
+                        label: org.organisationName || org.organizationName || org.name || 'Unknown'
+                      }))
+                    ]}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Branch
+                  </label>
+                  <Select
+                    name="branch"
+                    value={formData.branch || ''}
+                    onChange={handleInputChange}
+                    options={[
+                      { label: 'Select Branch (Optional)', value: '' },
+                      ...(branches || []).map(b => ({
+                        value: b._id || b.id || '',
+                        label: b.branchName || 'Unknown'
+                      }))
+                    ]}
+                  />
                 </div>
                 
                 <div className="md:col-span-2">
@@ -250,27 +273,492 @@ export default function AddLoanCategoryPage() {
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Loan Type *
                   </label>
-                  <Input
+                  <Select
                     name="loanType"
                     value={formData.loanType || ''}
                     onChange={handleInputChange}
-                    placeholder="e.g., Personal, Business, Home"
                     required
+                    options={[
+                      { label: 'Select Loan Type', value: '' },
+                      { label: 'Personal', value: LoanType.PERSONAL },
+                      { label: 'Home', value: LoanType.HOME },
+                      { label: 'Car', value: LoanType.CAR },
+                      { label: 'Business', value: LoanType.BUSINESS },
+                      { label: 'Education', value: LoanType.EDUCATION },
+                      { label: 'Gold', value: LoanType.GOLD },
+                      { label: 'Agriculture', value: LoanType.AGRICULTURE },
+                      { label: 'Medical', value: LoanType.MEDICAL },
+                    ]}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Status *
+                  </label>
+                  <Select
+                    name="status"
+                    value={formData.status || LoanCategoryStatus.ACTIVE}
+                    onChange={handleInputChange}
+                    required
+                    options={[
+                      { label: 'Active', value: LoanCategoryStatus.ACTIVE },
+                      { label: 'Inactive', value: LoanCategoryStatus.INACTIVE },
+                      { label: 'Suspended', value: LoanCategoryStatus.SUSPENDED },
+                    ]}
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Loan Amount & Interest */}
+          <Card>
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Loan Amount & Interest</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Minimum Loan Amount (₹) *
+                  </label>
+                  <Input
+                    type="number"
+                    name="minLoanAmount"
+                    value={formData.minLoanAmount || ''}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 50000"
+                    required
+                    min={0}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Maximum Loan Amount (₹) *
+                  </label>
+                  <Input
+                    type="number"
+                    name="maxLoanAmount"
+                    value={formData.maxLoanAmount || ''}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 5000000"
+                    required
+                    min={0}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Default Interest Rate (%)
+                  </label>
+                  <Input
+                    type="number"
+                    name="defaultInterestRate"
+                    value={formData.defaultInterestRate || ''}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 10.5"
+                    min={0}
+                    max={100}
+                    step="0.1"
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Tenure */}
+          <Card>
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Tenure (in months)</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Minimum Tenure (months) *
+                  </label>
+                  <Input
+                    type="number"
+                    name="minTenureMonths"
+                    value={formData.minTenureMonths || ''}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 12"
+                    required
+                    min={1}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Maximum Tenure (months) *
+                  </label>
+                  <Input
+                    type="number"
+                    name="maxTenureMonths"
+                    value={formData.maxTenureMonths || ''}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 60"
+                    required
+                    min={1}
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Eligibility Criteria */}
+          <Card>
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Eligibility Criteria</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Minimum Age
+                  </label>
+                  <Input
+                    type="number"
+                    name="eligibilityCriteria.minAge"
+                    value={formData.eligibilityCriteria?.minAge || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      eligibilityCriteria: {
+                        ...prev.eligibilityCriteria,
+                        minAge: Number(e.target.value)
+                      }
+                    }))}
+                    placeholder="e.g., 21"
+                    min={0}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Maximum Age
+                  </label>
+                  <Input
+                    type="number"
+                    name="eligibilityCriteria.maxAge"
+                    value={formData.eligibilityCriteria?.maxAge || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      eligibilityCriteria: {
+                        ...prev.eligibilityCriteria,
+                        maxAge: Number(e.target.value)
+                      }
+                    }))}
+                    placeholder="e.g., 65"
+                    min={0}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Minimum Income (₹)
+                  </label>
+                  <Input
+                    type="number"
+                    name="eligibilityCriteria.minIncome"
+                    value={formData.eligibilityCriteria?.minIncome || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      eligibilityCriteria: {
+                        ...prev.eligibilityCriteria,
+                        minIncome: Number(e.target.value)
+                      }
+                    }))}
+                    placeholder="e.g., 25000"
+                    min={0}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Minimum Credit Score
+                  </label>
+                  <Input
+                    type="number"
+                    name="eligibilityCriteria.creditScoreMin"
+                    value={formData.eligibilityCriteria?.creditScoreMin || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      eligibilityCriteria: {
+                        ...prev.eligibilityCriteria,
+                        creditScoreMin: Number(e.target.value)
+                      }
+                    }))}
+                    placeholder="e.g., 650"
+                    min={0}
+                    max={900}
                   />
                 </div>
                 
                 <div className="md:col-span-2">
-                  <div className="flex items-center gap-2">
-                    <Toggle
-                      checked={formData.status === 'active'}
-                      onChange={(e) => handleToggleChange('status', e.target.checked ? 'active' : 'inactive')}
-                    />
-                    <label className="text-sm font-medium text-neutral-700">
-                      Active Category
-                    </label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Required Documents
+                  </label>
+                  <div className="space-y-2">
+                    {(formData.eligibilityCriteria?.requiredDocuments || []).map((doc, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={doc}
+                          onChange={(e) => {
+                            const updatedDocs = [...(formData.eligibilityCriteria?.requiredDocuments || [])];
+                            updatedDocs[index] = e.target.value;
+                            setFormData(prev => ({
+                              ...prev,
+                              eligibilityCriteria: {
+                                ...prev.eligibilityCriteria,
+                                requiredDocuments: updatedDocs
+                              }
+                            }));
+                          }}
+                          placeholder="e.g., Identity Proof"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const updatedDocs = [...(formData.eligibilityCriteria?.requiredDocuments || [])];
+                            updatedDocs.splice(index, 1);
+                            setFormData(prev => ({
+                              ...prev,
+                              eligibilityCriteria: {
+                                ...prev.eligibilityCriteria,
+                                requiredDocuments: updatedDocs
+                              }
+                            }));
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData(prev => ({
+                        ...prev,
+                        eligibilityCriteria: {
+                          ...prev.eligibilityCriteria,
+                          requiredDocuments: [...(prev.eligibilityCriteria?.requiredDocuments || []), '']
+                        }
+                      }))}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Document
+                    </Button>
                   </div>
                 </div>
               </div>
+            </div>
+          </Card>
+
+          {/* Fees & Charges */}
+          <Card>
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Fees & Charges</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Default Processing Fee Type
+                  </label>
+                  <Select
+                    name="defaultProcessingFee.type"
+                    value={formData.defaultProcessingFee?.type || 'percentage'}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      defaultProcessingFee: {
+                        type: e.target.value as 'percentage' | 'fixed',
+                        value: prev.defaultProcessingFee?.value || 0
+                      }
+                    }))}
+                    options={[
+                      { label: 'Percentage', value: 'percentage' },
+                      { label: 'Fixed Amount', value: 'fixed' },
+                    ]}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Default Processing Fee Value
+                  </label>
+                  <Input
+                    type="number"
+                    name="defaultProcessingFee.value"
+                    value={formData.defaultProcessingFee?.value || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      defaultProcessingFee: {
+                        type: prev.defaultProcessingFee?.type || 'percentage',
+                        value: Number(e.target.value)
+                      }
+                    }))}
+                    placeholder={formData.defaultProcessingFee?.type === 'percentage' ? 'e.g., 2.5' : 'e.g., 5000'}
+                    min={0}
+                    step={formData.defaultProcessingFee?.type === 'percentage' ? '0.1' : '1'}
+                  />
+                </div>
+                
+                <div className="flex items-end">
+                  <span className="text-sm text-neutral-500">
+                    {formData.defaultProcessingFee?.type === 'percentage' ? '%' : '₹'}
+                  </span>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Default Prepayment Charges Type
+                  </label>
+                  <Select
+                    name="defaultPrepaymentCharges.type"
+                    value={formData.defaultPrepaymentCharges?.type || 'percentage'}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      defaultPrepaymentCharges: {
+                        type: e.target.value as 'percentage' | 'fixed',
+                        value: prev.defaultPrepaymentCharges?.value || 0
+                      }
+                    }))}
+                    options={[
+                      { label: 'Percentage', value: 'percentage' },
+                      { label: 'Fixed Amount', value: 'fixed' },
+                    ]}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Default Prepayment Charges Value
+                  </label>
+                  <Input
+                    type="number"
+                    name="defaultPrepaymentCharges.value"
+                    value={formData.defaultPrepaymentCharges?.value || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      defaultPrepaymentCharges: {
+                        type: prev.defaultPrepaymentCharges?.type || 'percentage',
+                        value: Number(e.target.value)
+                      }
+                    }))}
+                    placeholder={formData.defaultPrepaymentCharges?.type === 'percentage' ? 'e.g., 2' : 'e.g., 1000'}
+                    min={0}
+                    step={formData.defaultPrepaymentCharges?.type === 'percentage' ? '0.1' : '1'}
+                  />
+                </div>
+                
+                <div className="flex items-end">
+                  <span className="text-sm text-neutral-500">
+                    {formData.defaultPrepaymentCharges?.type === 'percentage' ? '%' : '₹'}
+                  </span>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Default Late Payment Charges Type
+                  </label>
+                  <Select
+                    name="defaultLatePaymentCharges.type"
+                    value={formData.defaultLatePaymentCharges?.type || 'percentage'}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      defaultLatePaymentCharges: {
+                        type: e.target.value as 'percentage' | 'fixed',
+                        value: prev.defaultLatePaymentCharges?.value || 0
+                      }
+                    }))}
+                    options={[
+                      { label: 'Percentage', value: 'percentage' },
+                      { label: 'Fixed Amount', value: 'fixed' },
+                    ]}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Default Late Payment Charges Value
+                  </label>
+                  <Input
+                    type="number"
+                    name="defaultLatePaymentCharges.value"
+                    value={formData.defaultLatePaymentCharges?.value || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      defaultLatePaymentCharges: {
+                        type: (prev.defaultLatePaymentCharges?.type || 'percentage') as 'percentage' | 'fixed',
+                        value: Number(e.target.value)
+                      }
+                    }))}
+                    placeholder={formData.defaultLatePaymentCharges?.type === 'percentage' ? 'e.g., 1.5' : 'e.g., 500'}
+                    min={0}
+                    step={formData.defaultLatePaymentCharges?.type === 'percentage' ? '0.1' : '1'}
+                  />
+                </div>
+                
+                <div className="flex items-end">
+                  <span className="text-sm text-neutral-500">
+                    {formData.defaultLatePaymentCharges?.type === 'percentage' ? '%' : '₹'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Key Features */}
+          <Card>
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Key Features</h2>
+              <div className="space-y-2">
+                {(formData.keyFeatures || []).map((feature, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input
+                      value={feature}
+                      onChange={(e) => {
+                        const updatedFeatures = [...(formData.keyFeatures || [])];
+                        updatedFeatures[index] = e.target.value;
+                        setFormData(prev => ({ ...prev, keyFeatures: updatedFeatures }));
+                      }}
+                      placeholder="e.g., Quick approval"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const updatedFeatures = [...(formData.keyFeatures || [])];
+                        updatedFeatures.splice(index, 1);
+                        setFormData(prev => ({ ...prev, keyFeatures: updatedFeatures }));
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFormData(prev => ({ ...prev, keyFeatures: [...(prev.keyFeatures || []), ''] }))}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Feature
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Terms & Conditions */}
+          <Card>
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Terms & Conditions</h2>
+              <Textarea
+                name="termsAndConditions"
+                value={formData.termsAndConditions || ''}
+                onChange={handleInputChange}
+                placeholder="Enter terms and conditions for this loan category..."
+                rows={6}
+              />
             </div>
           </Card>
 
