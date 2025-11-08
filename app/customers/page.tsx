@@ -111,14 +111,16 @@ export default function CustomersPage() {
       render: (value: string) => (
         <Badge
           variant={
-            value === 'Business'
+            !value || value === 'N/A'
+              ? 'neutral'
+              : value === 'Business'
               ? 'primary'
               : value === 'Current'
               ? 'warning'
               : 'success'
           }
         >
-          {value}
+          {value || 'N/A'}
         </Badge>
       ),
     },

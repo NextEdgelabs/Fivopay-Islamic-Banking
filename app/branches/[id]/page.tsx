@@ -121,60 +121,154 @@ export default function ViewBranchPage() {
 
 const BranchOverviewTab = ({ branch }: { branch: any }) => (
   <div className="space-y-6 mt-4">
-    <BranchKpiCard branchId={branch.id || branch._id} />
+    <BranchKpiCard branch={branch} />
+    
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Left Column - Main Information */}
       <div className="lg:col-span-2 space-y-6">
+        {/* Location & Contact Card */}
         <Card>
-          <h2 className="text-xl font-semibold p-6 border-b">Location & Contact</h2>
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InfoItem icon={<MapPin />} label="Address" value={`${branch.addressLine1}${branch.addressLine2 ? ', ' + branch.addressLine2 : ''}, ${branch.city}, ${branch.state} ${branch.postalCode}`} />
-            <InfoItem icon={<Phone />} label="Branch Phone" value={branch.phone} />
-            <InfoItem icon={<Mail />} label="Branch Email" value={branch.email} />
-            {branch.landmark && <InfoItem icon={<Star />} label="Landmark" value={branch.landmark} />}
-            {branch.latitude && branch.longitude && 
+          <div className="p-6 border-b border-neutral-200">
+            <h2 className="text-xl font-semibold text-neutral-900 flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary-600" />
+              Location & Contact
+            </h2>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
-                <span className="text-sm font-medium text-neutral-600 flex items-center mb-1"><MapPin className="mr-2 h-4 w-4" /> Coordinates</span>
-                <Link 
-                  href={`https://www.google.com/maps?q=${branch.latitude},${branch.longitude}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary-600 hover:underline"
-                >
-                  {branch.latitude}, {branch.longitude} (Open in Maps)
-                </Link>
+                <InfoItem 
+                  icon={<MapPin className="h-4 w-4" />} 
+                  label="Full Address" 
+                  value={`${branch.addressLine1 || ''}${branch.addressLine2 ? ', ' + branch.addressLine2 : ''}, ${branch.city || ''}, ${branch.state || ''} ${branch.postalCode || ''}`.trim() || 'N/A'} 
+                />
               </div>
-            }
+              {branch.landmark && (
+                <InfoItem 
+                  icon={<Star className="h-4 w-4" />} 
+                  label="Landmark" 
+                  value={branch.landmark} 
+                />
+              )}
+              <InfoItem 
+                icon={<Phone className="h-4 w-4" />} 
+                label="Branch Phone" 
+                value={branch.phone || 'N/A'} 
+              />
+              <InfoItem 
+                icon={<Mail className="h-4 w-4" />} 
+                label="Branch Email" 
+                value={branch.email || 'N/A'} 
+              />
+              {branch.latitude && branch.longitude && (
+                <div className="md:col-span-2">
+                  <InfoItem 
+                    icon={<MapPin className="h-4 w-4" />} 
+                    label="Coordinates" 
+                    value={
+                      <Link 
+                        href={`https://www.google.com/maps?q=${branch.latitude},${branch.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 hover:text-primary-700 hover:underline inline-flex items-center gap-1"
+                      >
+                        {branch.latitude}, {branch.longitude}
+                        <span className="text-xs">(Open in Maps)</span>
+                      </Link>
+                    } 
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </Card>
+
+        {/* Services Offered Card */}
         <Card>
-          <h2 className="text-xl font-semibold p-6 border-b">Services Offered</h2>
+          <div className="p-6 border-b border-neutral-200">
+            <h2 className="text-xl font-semibold text-neutral-900 flex items-center gap-2">
+              <Award className="h-5 w-5 text-primary-600" />
+              Services Offered
+            </h2>
+          </div>
           <div className="p-6">
-            <ul className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
-              {branch.services.map((service: string) => (
-                <li key={service} className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-primary-500" />
-                  <span className="text-neutral-700">{service}</span>
-                </li>
-              ))}
-            </ul>
+            {branch.services && branch.services.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {branch.services.map((service: string) => (
+                  <Badge 
+                    key={service} 
+                    variant="primary"
+                    className="px-4 py-2 text-sm font-medium"
+                  >
+                    <Award className="h-3 w-3 mr-2" />
+                    {service}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-neutral-500 text-sm">No services listed</p>
+            )}
           </div>
         </Card>
       </div>
+
+      {/* Right Column - Sidebar Information */}
       <div className="space-y-6">
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Manager Details</h2>
-          <InfoItem icon={<Users />} label="Manager Name" value={branch.managerName} />
-          <InfoItem icon={<Phone />} label="Manager Phone" value={branch.managerPhone} />
+        {/* Manager Details Card */}
+        <Card>
+          <div className="p-6 border-b border-neutral-200">
+            <h2 className="text-xl font-semibold text-neutral-900 flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary-600" />
+              Manager Details
+            </h2>
+          </div>
+          <div className="p-6 space-y-4">
+            <InfoItem 
+              icon={<Users className="h-4 w-4" />} 
+              label="Manager Name" 
+              value={branch.managerName || 'N/A'} 
+            />
+            <InfoItem 
+              icon={<Phone className="h-4 w-4" />} 
+              label="Manager Phone" 
+              value={branch.managerPhone || 'N/A'} 
+            />
+          </div>
         </Card>
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Operating Details</h2>
-          <InfoItem icon={<Calendar />} label="Opening Date" value={new Date(branch.openingDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })} />
-          <div className="mt-4">
-            <h3 className="text-sm font-medium text-neutral-600 flex items-center mb-2"><Clock className="mr-2 h-4 w-4" /> Working Hours</h3>
-            <div className="text-sm space-y-1 text-neutral-800">
-              <p><strong>Weekdays:</strong> {branch.workingHours.weekdays}</p>
-              <p><strong>Saturday:</strong> {branch.workingHours.saturday}</p>
-              <p><strong>Sunday:</strong> {branch.workingHours.sunday}</p>
+
+        {/* Operating Details Card */}
+        <Card>
+          <div className="p-6 border-b border-neutral-200">
+            <h2 className="text-xl font-semibold text-neutral-900 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary-600" />
+              Operating Details
+            </h2>
+          </div>
+          <div className="p-6 space-y-4">
+            <InfoItem 
+              icon={<Calendar className="h-4 w-4" />} 
+              label="Opening Date" 
+              value={branch.openingDate ? new Date(branch.openingDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'} 
+            />
+            <div className="pt-2 border-t border-neutral-200">
+              <h3 className="text-sm font-semibold text-neutral-700 flex items-center gap-2 mb-3">
+                <Clock className="h-4 w-4 text-neutral-500" />
+                Working Hours
+              </h3>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between py-2 px-3 bg-neutral-50 rounded-md">
+                  <span className="text-sm font-medium text-neutral-600">Weekdays</span>
+                  <span className="text-sm text-neutral-900 font-medium">{branch.workingHours?.weekdays || 'N/A'}</span>
+                </div>
+                <div className="flex items-center justify-between py-2 px-3 bg-neutral-50 rounded-md">
+                  <span className="text-sm font-medium text-neutral-600">Saturday</span>
+                  <span className="text-sm text-neutral-900 font-medium">{branch.workingHours?.saturday || 'N/A'}</span>
+                </div>
+                <div className="flex items-center justify-between py-2 px-3 bg-neutral-50 rounded-md">
+                  <span className="text-sm font-medium text-neutral-600">Sunday</span>
+                  <span className="text-sm text-neutral-900 font-medium">{branch.workingHours?.sunday || 'N/A'}</span>
+                </div>
+              </div>
             </div>
           </div>
         </Card>
@@ -183,10 +277,15 @@ const BranchOverviewTab = ({ branch }: { branch: any }) => (
   </div>
 );
 
-const InfoItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) => (
-  <div>
-    <span className="text-sm font-medium text-neutral-600 flex items-center mb-1">{icon} {label}</span>
-    <p className="text-neutral-800">{value}</p>
+const InfoItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | React.ReactNode }) => (
+  <div className="space-y-1.5">
+    <div className="flex items-center gap-2 text-sm font-medium text-neutral-600">
+      <span className="text-neutral-400">{icon}</span>
+      <span>{label}</span>
+    </div>
+    <div className="text-neutral-900 text-sm pl-6">
+      {typeof value === 'string' ? <p>{value}</p> : value}
+    </div>
   </div>
 );
 

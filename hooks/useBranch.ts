@@ -11,8 +11,8 @@ export const useBranch = (branchId: string) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await branchService.getById(branchId);
-      setBranch(response.data);
+      const response:any = await branchService.getById(branchId);
+      setBranch(response.data.branch);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load branch data');
     } finally {

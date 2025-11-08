@@ -26,9 +26,9 @@ const BranchCustomersList: React.FC<BranchCustomersListProps> = ({ branchName })
   }, [customers, currentPage]);
 
   const columns = [
-    { header: 'Customer ID', key: 'customerId' },
+    { header: 'Customer ID', key: 'memberId' },
     { header: 'Full Name', key: 'fullName' },
-    { header: 'Account Type', key: 'accountType' },
+    { header: 'Account Type', key: 'accountType', render: (value: string) => value || 'N/A' },
     { header: 'Status', key: 'status', render: (status: string) => <Badge variant={status === 'Active' ? 'success' : 'neutral'}>{status}</Badge> },
     {
       header: 'Actions',
