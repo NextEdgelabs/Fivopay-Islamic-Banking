@@ -58,11 +58,13 @@ export default function LoansPage() {
   };
 
   const mapApprovalStatus = (approvalStatus?: string): string => {
+    debugger;
     if (!approvalStatus) return 'Pending';
     const statusMap: Record<string, string> = {
       'pending': 'Pending',
       'approved': 'Approved',
       'rejected': 'Rejected',
+      'processing': 'Processing',
     };
     return statusMap[approvalStatus.toLowerCase()] || 'Pending';
   };
@@ -205,7 +207,7 @@ export default function LoansPage() {
       key: 'status',
       header: 'Status',
       render: (value: string, row: any) => {
-        const status = value || row.status || mapApprovalStatus(row.approvalStatus) || 'Pending';
+        const status = mapApprovalStatus(row.approvalStatus) || 'Pending';
         return getStatusBadge(status);
       },
     },

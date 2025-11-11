@@ -96,6 +96,7 @@ export default function ViewLoanPage() {
       Active: 'success',
       Closed: 'neutral',
       Defaulted: 'error',
+      Processing: 'neutral',
     };
     return <Badge variant={variants[status] || 'neutral'}>{status}</Badge>;
   };
@@ -162,15 +163,22 @@ export default function ViewLoanPage() {
             </div>
             <div className="flex gap-2 flex-wrap">
               {/* Action Buttons */}
-              {loan.status === 'Pending' && (
+              {loan.approvalStatus === 'pending' || (loan.approvalStatus as string) === 'processing' && (
                 <>
                   <Button variant="primary" onClick={handleApprove}><Check className="mr-2 h-4 w-4" />Approve</Button>
                   <Button variant="danger" onClick={handleReject}><X className="mr-2 h-4 w-4" />Reject</Button>
                 </>
               )}
-              {loan.status === 'Approved' && (
+              {loan.approvalStatus === 'approved' && (
                 <Button variant="primary" onClick={handleDisburse}>Disburse</Button>
               )}
+              {/* {(loan.approvalStatus as string) === 'processing' && (
+                <>
+                  <Button variant="primary" onClick={handleApprove}><Check className="mr-2 h-4 w-4" />Approve</Button>
+                  <Button variant="danger" onClick={handleReject}><X className="mr-2 h-4 w-4" />Reject</Button>
+                  <Button variant="primary" onClick={handleDisburse}>Disburse</Button>
+                </>
+              )} */}
               <Button variant="outline" onClick={() => router.push(`/loans/${loan._id || ''}/edit`)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
               <Button variant="danger" onClick={handleDelete}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
             </div>
@@ -198,7 +206,7 @@ const LoanOverviewTab = ({ loan, getStatusBadge }: { loan: any, getStatusBadge: 
                 </div>
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Status</label>
-                  <p className="mt-1">{getStatusBadge(loan.status)}</p>
+                  <p className="mt-1">{getStatusBadge(loan.approvalStatus)}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Loan Amount</label>

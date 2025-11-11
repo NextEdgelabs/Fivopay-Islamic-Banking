@@ -19,6 +19,10 @@ import {
   Search,
   AlertTriangle,
   FileText,
+  BookOpen,
+  Book,
+  Calculator,
+  BarChart3,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -172,12 +176,76 @@ export default function DashboardLayout({
             sidebarOpen={sidebarOpen}
             href="/products"
           />
-          <NavItem
+          {/* <NavItem
             icon={<FileText className="h-5 w-5" />}
             label="Reports"
             sidebarOpen={sidebarOpen}
             href="/reports"
+          /> */}
+          
+          {/* Financials Divider */}
+          {sidebarOpen ? (
+            <div className="pt-4 pb-2">
+              <div className="px-3 py-2">
+                <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                  Financials
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="pt-4 pb-2 border-t border-border-light mt-2"></div>
+          )}
+          
+          <NavItem
+            icon={<BookOpen className="h-5 w-5" />}
+            label="General Ledger"
+            sidebarOpen={sidebarOpen}
+            href="/general-ledger"
           />
+          <NavItem
+            icon={<Book className="h-5 w-5" />}
+            label="Subledger"
+            sidebarOpen={sidebarOpen}
+            href="/sub-ledger"
+          />
+
+          <NavItem
+            icon={<Calculator className="h-5 w-5" />}
+            label="Account Management"
+            sidebarOpen={sidebarOpen}
+            href="/account-management"
+          />
+          <NavItem
+            icon={<BarChart3 className="h-5 w-5" />}
+            label="Reports"
+            sidebarOpen={sidebarOpen}
+            href="/reports"
+          />
+          <NavItem
+            icon={<Calculator className="h-5 w-5" />}
+            label="Balance Sheet"
+            sidebarOpen={sidebarOpen}
+            href="/balance-sheet"
+          />
+<NavItem
+            icon={<Calculator className="h-5 w-5" />}
+            label="Journal Entries"
+            sidebarOpen={sidebarOpen}
+            href="/journal-entries"
+          />
+          
+          {/* Divider below Financials */}
+          {sidebarOpen ? (
+            <div className="pt-4 pb-2">
+              <div className="px-3 py-2">
+                <div className="border-t border-border-light"></div>
+              </div>
+            </div>
+          ) : (
+            <div className="pt-4 pb-2 border-t border-border-light mt-2"></div>
+          )}
+
+          
           <NavItem
             icon={<Settings className="h-5 w-5" />}
             label="Settings"
