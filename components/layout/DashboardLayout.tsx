@@ -18,6 +18,7 @@ import {
   Bell,
   Search,
   AlertTriangle,
+  FileText,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -170,6 +171,12 @@ export default function DashboardLayout({
             label="Products"
             sidebarOpen={sidebarOpen}
             href="/products"
+          />
+          <NavItem
+            icon={<FileText className="h-5 w-5" />}
+            label="Reports"
+            sidebarOpen={sidebarOpen}
+            href="/reports"
           />
           <NavItem
             icon={<Settings className="h-5 w-5" />}

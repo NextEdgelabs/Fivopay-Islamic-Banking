@@ -409,7 +409,7 @@ const BranchLoansTab = ({ branchId }: { branchId: string }) => {
   }, [branchId]);
 
   const columns = [
-    { header: 'Loan ID', key: 'loanId' },
+    { header: 'Loan ID', key: 'loanId', render: (loanId: string) => loanId || 'N/A' },
     { header: 'Customer', key: 'customerName' },
     { header: 'Loan Type', key: 'loanType' },
     { header: 'Amount', key: 'loanAmount', render: (amount: number) => `₹${amount.toLocaleString()}` },

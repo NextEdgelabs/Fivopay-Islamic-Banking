@@ -249,8 +249,12 @@ export default function ViewBatchPage() {
       header: 'Location',
       render: (_: any, row: Customer) => (
         <div>
-          <p className="text-sm text-neutral-900">{row.city}, {row.state}</p>
-          <p className="text-sm text-neutral-500">{row.postalCode}</p>
+          <p className="text-sm text-neutral-900">
+            {row.city && row.state ? `${row.city}, ${row.state}` : 'N/A'}
+          </p>
+          <p className="text-sm text-neutral-500">
+            {row.postalCode || 'N/A'}
+          </p>
         </div>
       ),
     },
