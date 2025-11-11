@@ -34,6 +34,7 @@ import {
   Lock,
   Activity,
 } from 'lucide-react';
+import { exportToCSV } from '@/lib/utils';
 import {
   BarChart,
   Bar,
@@ -806,16 +807,37 @@ export default function ComplianceReportsPage() {
             Create Case
           </Button>
           <Button variant="outline" onClick={() => {
-            console.log('Download Audit Log');
+            exportToCSV(filteredAudit, `audit-trail-${new Date().toISOString().split('T')[0]}`, [
+              { key: 'action', label: 'Action' },
+              { key: 'user', label: 'User' },
+              { key: 'timestamp', label: 'Timestamp' },
+              { key: 'oldValue', label: 'Old Value' },
+              { key: 'newValue', label: 'New Value' },
+              { key: 'entityType', label: 'Entity Type' },
+            ]);
           }}>
             <Download className="h-4 w-4 mr-2" />
-            Download Audit Log
+            Download Audit Log (CSV)
           </Button>
           <Button variant="outline" onClick={() => {
-            console.log('Export to Regulator Format');
+            let dataToExport: any[] = [];
+            let filename = 'compliance-reports';
+            
+            if (activeTab === 'kyc') {
+              dataToExport = filteredKYC;
+              filename = 'kyc-exceptions';
+            } else if (activeTab === 'aml') {
+              dataToExport = filteredAML;
+              filename = 'aml-alerts';
+            } else if (activeTab === 'regulatory') {
+              dataToExport = filteredRegulatory;
+              filename = 'regulatory-submissions';
+            }
+            
+            exportToCSV(dataToExport, `${filename}-${new Date().toISOString().split('T')[0]}`);
           }}>
             <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Export to Regulator Format
+            Export CSV
           </Button>
         </div>
 

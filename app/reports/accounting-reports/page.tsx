@@ -32,6 +32,7 @@ import {
   XCircle,
   FileSpreadsheet,
 } from 'lucide-react';
+import { exportToCSV } from '@/lib/utils';
 import {
   LineChart,
   Line,
@@ -864,9 +865,31 @@ export default function AccountingReportsPage() {
 
         {/* Export Options */}
         <div className="flex items-center justify-end gap-2">
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => {
+              let dataToExport: any[] = [];
+              let filename = 'accounting-reports';
+              
+              if (activeTab === 'daybook') {
+                dataToExport = filteredDaybook;
+                filename = 'daybook-summary';
+              } else if (activeTab === 'interest') {
+                dataToExport = filteredInterestFees;
+                filename = 'interest-fees-report';
+              } else if (activeTab === 'provisioning') {
+                dataToExport = allProvisioning;
+                filename = 'provisioning-ecl';
+              } else if (activeTab === 'reconciliation') {
+                dataToExport = filteredBankReconciliation;
+                filename = 'bank-reconciliation';
+              }
+              
+              exportToCSV(dataToExport, `${filename}-${new Date().toISOString().split('T')[0]}`);
+            }}
+          >
             <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Export Excel
+            Export CSV
           </Button>
           <Button variant="outline">
             <FileText className="h-4 w-4 mr-2" />

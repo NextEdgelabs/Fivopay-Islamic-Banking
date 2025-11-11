@@ -28,6 +28,7 @@ import {
   DollarSign,
   Users,
 } from 'lucide-react';
+import { exportToCSV } from '@/lib/utils';
 import {
   BarChart,
   Bar,
@@ -757,9 +758,29 @@ export default function LoanReportsPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-neutral-900">Reports</h2>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                let dataToExport: any[] = [];
+                let filename = 'loan-reports';
+                
+                if (activeTab === 'applications') {
+                  dataToExport = filteredApplications;
+                  filename = 'loan-applications-pipeline';
+                } else if (activeTab === 'disbursed') {
+                  dataToExport = filteredDisbursed;
+                  filename = 'disbursed-loans';
+                } else if (activeTab === 'aging') {
+                  dataToExport = filteredAging;
+                  filename = 'loan-aging-report';
+                }
+                
+                exportToCSV(dataToExport, `${filename}-${new Date().toISOString().split('T')[0]}`);
+              }}
+            >
               <Download className="h-4 w-4 mr-2" />
-              Export
+              Export CSV
             </Button>
           </div>
           <Tabs

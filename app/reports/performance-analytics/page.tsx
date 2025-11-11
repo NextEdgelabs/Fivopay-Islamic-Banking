@@ -32,6 +32,7 @@ import {
   FileSpreadsheet,
   Settings,
 } from 'lucide-react';
+import { exportToCSV } from '@/lib/utils';
 import {
   BarChart,
   Bar,
@@ -650,11 +651,25 @@ export default function PerformanceAnalyticsPage() {
 
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-2">
-          <Button variant="outline" onClick={() => {
-            console.log('Export');
-          }}>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              let dataToExport: any[] = [];
+              let filename = 'performance-analytics';
+              
+              if (activeTab === 'branches') {
+                dataToExport = filteredBranches;
+                filename = 'top-performing-branches';
+              } else if (activeTab === 'agents') {
+                dataToExport = filteredAgents;
+                filename = 'top-performing-agents';
+              }
+              
+              exportToCSV(dataToExport, `${filename}-${new Date().toISOString().split('T')[0]}`);
+            }}
+          >
             <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Export
+            Export CSV
           </Button>
           <Button variant="outline" onClick={() => {
             console.log('Schedule Report');

@@ -30,6 +30,7 @@ import {
   Clock,
   AlertCircle,
 } from 'lucide-react';
+import { exportToCSV } from '@/lib/utils';
 import {
   BarChart,
   Bar,
@@ -886,7 +887,30 @@ export default function CollectionReportsPage() {
               </>
             )}
           </div>
-          <Button variant="primary">
+          <Button 
+            variant="primary"
+            onClick={() => {
+              let dataToExport: any[] = [];
+              let filename = 'collection-reports';
+              
+              if (activeTab === 'summary') {
+                dataToExport = filteredSummaries;
+                filename = 'agent-collection-summary';
+              } else if (activeTab === 'log') {
+                dataToExport = filteredLogs;
+                filename = 'collection-log';
+              } else if (activeTab === 'reconciliation') {
+                dataToExport = filteredReconciliation;
+                filename = 'reconciliation-report';
+              }
+              
+              exportToCSV(dataToExport, `${filename}-${new Date().toISOString().split('T')[0]}`);
+            }}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button variant="outline">
             <FileText className="h-4 w-4 mr-2" />
             Generate Report PDF
           </Button>

@@ -28,6 +28,7 @@ import {
   Eye,
   X,
 } from 'lucide-react';
+import { exportToCSV } from '@/lib/utils';
 import {
   LineChart,
   Line,
@@ -640,8 +641,20 @@ export default function TransactionReportsPage() {
             <Button
               variant="primary"
               onClick={() => {
-                // Export CSV logic
-                console.log('Export CSV');
+                exportToCSV(filteredTransactions, `transaction-reports-${new Date().toISOString().split('T')[0]}`, [
+                  { key: 'transactionId', label: 'Transaction ID' },
+                  { key: 'dateTime', label: 'Date/Time' },
+                  { key: 'user', label: 'User' },
+                  { key: 'userId', label: 'User ID' },
+                  { key: 'type', label: 'Type' },
+                  { key: 'amount', label: 'Amount' },
+                  { key: 'status', label: 'Status' },
+                  { key: 'agent', label: 'Agent' },
+                  { key: 'branch', label: 'Branch' },
+                  { key: 'paymentMethod', label: 'Payment Method' },
+                  { key: 'balanceAfter', label: 'Balance After' },
+                  { key: 'reference', label: 'Reference' },
+                ]);
               }}
             >
               <Download className="h-4 w-4 mr-2" />
