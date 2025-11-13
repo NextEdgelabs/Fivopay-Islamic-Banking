@@ -434,10 +434,17 @@ export default function RecoveryDetailPage() {
             </p>
             {penaltyBreakdown.length > 0 ? (
               <Table
-                data={penaltyBreakdown}
+                data={penaltyBreakdown.map((item, index) => ({ ...item, seriesNumber: index + 1 }))}
                 columns={[
-                  { header: 'Month', key: 'month', render: (value: number) => `Month ${value}` },
-                  { header: 'Penalty Date', key: 'date', render: (value: Date) => value.toLocaleDateString('en-IN') },
+                  { header: 'S.No.', key: 'seriesNumber', render: (value: number) => value },
+                  { header: 'Penalty Date', key: 'date', render: (value: Date) => {
+                    const date = new Date(value);
+                    const day = date.getDate();
+                    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                    const month = monthNames[date.getMonth()];
+                    const year = date.getFullYear();
+                    return `${day} ${month} ${year}`;
+                  }},
                   { header: 'Monthly Penalty (2%)', key: 'amount', render: (value: number) => `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
                   { header: 'Cumulative Penalty', key: 'cumulative', render: (value: number) => `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
                 ]}

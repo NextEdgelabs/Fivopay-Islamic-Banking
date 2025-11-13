@@ -196,16 +196,16 @@ export default function RecoveryTab() {
 
     // Days overdue filter based on active tab
     if (daysOverdueTab !== 'all') {
-      if (daysOverdueTab === '0-15') {
-        filtered = filtered.filter((due) => due.daysOverdue >= 0 && due.daysOverdue < 15);
-      } else if (daysOverdueTab === '15-30') {
-        filtered = filtered.filter((due) => due.daysOverdue >= 15 && due.daysOverdue < 30);
-      } else if (daysOverdueTab === '30-90') {
-        filtered = filtered.filter((due) => due.daysOverdue >= 30 && due.daysOverdue < 90);
-      } else if (daysOverdueTab === '90-180') {
+      if (daysOverdueTab === '30') {
+        filtered = filtered.filter((due) => due.daysOverdue >= 0 && due.daysOverdue < 30);
+      } else if (daysOverdueTab === '60') {
+        filtered = filtered.filter((due) => due.daysOverdue >= 30 && due.daysOverdue < 60);
+      } else if (daysOverdueTab === '90') {
+        filtered = filtered.filter((due) => due.daysOverdue >= 60 && due.daysOverdue < 90);
+      } else if (daysOverdueTab === '180') {
         filtered = filtered.filter((due) => due.daysOverdue >= 90 && due.daysOverdue < 180);
-      } else if (daysOverdueTab === '180+') {
-        filtered = filtered.filter((due) => due.daysOverdue >= 180);
+      } else if (daysOverdueTab === 'npa') {
+        filtered = filtered.filter((due) => due.daysOverdue >= 180 || due.isNPA);
       }
     }
 
@@ -460,76 +460,62 @@ export default function RecoveryTab() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
-        <Card>
-          <div className="p-3 sm:p-4">
-            <div className="flex items-center justify-between">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <Card className="hover:shadow-md transition-shadow">
+          <div className="p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm text-neutral-600 truncate">Total Pending Dues</p>
-                <p className="text-xl sm:text-2xl font-bold text-neutral-900 mt-1">{stats.total}</p>
+                <p className="text-xs sm:text-sm font-medium text-neutral-500 uppercase tracking-wide mb-2">Total Pending Dues</p>
+                <p className="text-2xl sm:text-3xl font-bold text-neutral-900 leading-tight">{stats.total}</p>
               </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-warning-100 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
-                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-warning-600" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-warning-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="h-6 w-6 sm:h-7 sm:w-7 text-warning-600" />
               </div>
             </div>
           </div>
         </Card>
 
-        <Card>
-          <div className="p-3 sm:p-4">
-            <div className="flex items-center justify-between">
+        <Card className="hover:shadow-md transition-shadow">
+          <div className="p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm text-neutral-600 truncate">Total Amount Due</p>
-                <p className="text-xs sm:text-2xl font-bold text-neutral-900 mt-1 break-words">
+                <p className="text-xs sm:text-sm font-medium text-neutral-500 uppercase tracking-wide mb-2">Total Amount Due</p>
+                <p className="text-xl sm:text-2xl font-bold text-neutral-900 leading-tight break-words">
                   ₹{stats.totalDue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-error-100 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
-                <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6 text-error-600" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-error-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <IndianRupee className="h-6 w-6 sm:h-7 sm:w-7 text-error-600" />
               </div>
             </div>
           </div>
         </Card>
 
-        <Card>
-          <div className="p-3 sm:p-4">
-            <div className="flex items-center justify-between">
+        <Card className="hover:shadow-md transition-shadow">
+          <div className="p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm text-neutral-600 truncate">Pending Notices</p>
-                <p className="text-xl sm:text-2xl font-bold text-neutral-900 mt-1">{stats.pendingNotices}</p>
+                <p className="text-xs sm:text-sm font-medium text-neutral-500 uppercase tracking-wide mb-2">NPA Accounts</p>
+                <p className="text-2xl sm:text-3xl font-bold text-neutral-900 leading-tight">{stats.npaCount}</p>
               </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
-                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-error-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="h-6 w-6 sm:h-7 sm:w-7 text-error-600" />
               </div>
             </div>
           </div>
         </Card>
 
-        <Card>
-          <div className="p-3 sm:p-4">
-            <div className="flex items-center justify-between">
+        <Card className="hover:shadow-md transition-shadow">
+          <div className="p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm text-neutral-600 truncate">NPA Accounts</p>
-                <p className="text-xl sm:text-2xl font-bold text-neutral-900 mt-1">{stats.npaCount}</p>
-              </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-error-100 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
-                <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-error-600" />
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="p-3 sm:p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm text-neutral-600 truncate">Avg Days Overdue</p>
-                <p className="text-xl sm:text-2xl font-bold text-neutral-900 mt-1">
+                <p className="text-xs sm:text-sm font-medium text-neutral-500 uppercase tracking-wide mb-2">Avg Days Overdue</p>
+                <p className="text-2xl sm:text-3xl font-bold text-neutral-900 leading-tight">
                   {Math.round(stats.avgDaysOverdue)}
                 </p>
               </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-neutral-100 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
-                <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-neutral-600" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-neutral-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Clock className="h-6 w-6 sm:h-7 sm:w-7 text-neutral-600" />
               </div>
             </div>
           </div>
@@ -613,7 +599,7 @@ export default function RecoveryTab() {
               tabs={[
                 {
                   id: 'all',
-                  label: 'All Periods',
+                  label: 'All Dues',
                   content: (
                     <div className="mt-4 overflow-x-auto">
                       <Table
@@ -625,66 +611,66 @@ export default function RecoveryTab() {
                   ),
                 },
                 {
-                  id: '0-15',
-                  label: '0-15 Days',
+                  id: '30',
+                  label: '30 Days',
                   content: (
                     <div className="mt-4 overflow-x-auto">
                       <Table
                         data={filteredDues}
                         columns={columns}
-                        emptyMessage="No recovery dues found for this period"
+                        emptyMessage="No recovery dues found for 0-30 days period"
                       />
                     </div>
                   ),
                 },
                 {
-                  id: '15-30',
-                  label: '15-30 Days',
+                  id: '60',
+                  label: '60 Days',
                   content: (
                     <div className="mt-4 overflow-x-auto">
                       <Table
                         data={filteredDues}
                         columns={columns}
-                        emptyMessage="No recovery dues found for this period"
+                        emptyMessage="No recovery dues found for 30-60 days period"
                       />
                     </div>
                   ),
                 },
                 {
-                  id: '30-90',
-                  label: '30-90 Days',
+                  id: '90',
+                  label: '90 Days',
                   content: (
                     <div className="mt-4 overflow-x-auto">
                       <Table
                         data={filteredDues}
                         columns={columns}
-                        emptyMessage="No recovery dues found for this period"
+                        emptyMessage="No recovery dues found for 60-90 days period"
                       />
                     </div>
                   ),
                 },
                 {
-                  id: '90-180',
-                  label: '90-180 Days',
+                  id: '180',
+                  label: '180 Days',
                   content: (
                     <div className="mt-4 overflow-x-auto">
                       <Table
                         data={filteredDues}
                         columns={columns}
-                        emptyMessage="No recovery dues found for this period"
+                        emptyMessage="No recovery dues found for 90-180 days period"
                       />
                     </div>
                   ),
                 },
                 {
-                  id: '180+',
-                  label: '180+ Days (NPA)',
+                  id: 'npa',
+                  label: 'NPA',
                   content: (
                     <div className="mt-4 overflow-x-auto">
                       <Table
                         data={filteredDues}
                         columns={columns}
-                        emptyMessage="No recovery dues found for this period"
+                        emptyMessage="No NPA accounts found"
                       />
                     </div>
                   ),
