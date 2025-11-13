@@ -4,7 +4,7 @@ import { Card } from '@/components/ui';
 import { useProducts } from '@/hooks/useProducts';
 import { useLoans } from '@/hooks/useLoans';
 import { useDeposits } from '@/hooks/useDeposits';
-import { Package, DollarSign, Landmark } from 'lucide-react';
+import { Package, IndianRupee, Landmark } from 'lucide-react';
 import React from 'react';
 
 const ProductKpiWidget = () => {
@@ -30,7 +30,7 @@ const ProductKpiWidget = () => {
         </div>
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center">
-            <DollarSign className="h-6 w-6 text-success-600" />
+            <IndianRupee className="h-6 w-6 text-success-600" />
           </div>
           <div>
             <p className="text-sm text-neutral-600">Total Loan Value</p>

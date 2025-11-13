@@ -22,7 +22,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   Download,
   Send,
@@ -487,7 +487,7 @@ export default function RecoveryPage() {
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-error-100 rounded-full flex items-center justify-center">
-                  <DollarSign className="h-6 w-6 text-error-600" />
+                  <IndianRupee className="h-6 w-6 text-error-600" />
                 </div>
               </div>
             </div>

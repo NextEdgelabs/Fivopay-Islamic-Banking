@@ -26,7 +26,7 @@ import {
   ChevronDown,
   ChevronRight,
   Building,
-  DollarSign,
+  IndianRupee,
   Users,
   Settings,
   CheckCircle,
@@ -321,7 +321,7 @@ export default function LoanCategoriesPage() {
                 </p>
               </div>
               <div className="w-12 h-12 bg-warning-100 rounded-stripe flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-warning-600" />
+                <IndianRupee className="h-6 w-6 text-warning-600" />
               </div>
             </div>
           </Card>

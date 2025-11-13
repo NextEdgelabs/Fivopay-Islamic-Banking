@@ -23,7 +23,7 @@ import {
   RefreshCw,
   Eye,
   CheckCircle,
-  DollarSign,
+  IndianRupee,
   Users,
   MapPin,
   Award,
@@ -673,7 +673,7 @@ export default function CollectionReportsPage() {
                 </p>
               </div>
               <div className="bg-primary-100 p-3 rounded-lg">
-                <DollarSign className="h-6 w-6 text-primary-600" />
+                <IndianRupee className="h-6 w-6 text-primary-600" />
               </div>
             </div>
           </Card>

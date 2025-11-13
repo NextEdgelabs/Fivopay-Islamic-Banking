@@ -20,10 +20,10 @@ import {
   FileText,
   CheckCircle,
   Clock,
-  DollarSign,
   TrendingUp,
   Download,
   Send,
+  IndianRupee,
 } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { Customer } from '@/services/customers.service';
@@ -374,13 +374,13 @@ export default function RecoveryTab() {
     { header: 'Notice Type', key: 'noticeType', render: (noticeType?: NoticeType) => getNoticeTypeBadge(noticeType) || 'N/A' },
     { header: 'Next Action', key: 'nextAction', render: (_: any, row: RecoveryDue) => {
       if (shouldPromptNotice(row)) {
-        return <Button size="sm" variant="primary" onClick={() => handleIssueNotice(row)}>Issue Notice</Button>;
+        return <Button size="sm" variant="primary" onClick={() => handleIssueNotice(row)} className="text-xs sm:text-sm whitespace-nowrap">Issue Notice</Button>;
       } else if (canApproveNotice(row)) {
-        return <Button size="sm" variant="primary" onClick={() => handleApproveNotice(row)}>Approve</Button>;
+        return <Button size="sm" variant="primary" onClick={() => handleApproveNotice(row)} className="text-xs sm:text-sm whitespace-nowrap">Approve</Button>;
       } else if (canSendNotice(row)) {
-        return <Button size="sm" variant="primary" onClick={() => handleSendNotice(row)}>Send Notice</Button>;
+        return <Button size="sm" variant="primary" onClick={() => handleSendNotice(row)} className="text-xs sm:text-sm whitespace-nowrap">Send Notice</Button>;
       } else if (row.isNPA) {
-        return <Badge variant="error">NPA - Follow SOP</Badge>;
+        return <Badge variant="error" className="text-xs sm:text-sm">NPA - Follow SOP</Badge>;
       }
       return <span className="text-neutral-500">-</span>;
     }},
@@ -401,14 +401,16 @@ export default function RecoveryTab() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-neutral-900">Recovery Management</h2>
-          <p className="text-neutral-600 mt-1">Track and manage pending dues and recovery notices</p>
+          <h2 className="text-lg sm:text-xl font-bold text-neutral-900">Recovery Management</h2>
+          <p className="text-sm sm:text-base text-neutral-600 mt-1">Track and manage pending dues and recovery notices</p>
         </div>
         <Button
           variant="outline"
+          size="sm"
+          className="w-full sm:w-auto"
           onClick={() => {
             exportToCSV(filteredDues, `recovery-dues-${new Date().toISOString().split('T')[0]}`, [
               { key: 'customerName', label: 'Customer Name' },
@@ -425,81 +427,82 @@ export default function RecoveryTab() {
           }}
         >
           <Download className="h-4 w-4 mr-2" />
-          Export CSV
+          <span className="hidden xs:inline">Export CSV</span>
+          <span className="xs:hidden">Export</span>
         </Button>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
         <Card>
-          <div className="p-4">
+          <div className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Total Pending Dues</p>
-                <p className="text-2xl font-bold text-neutral-900 mt-1">{stats.total}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-neutral-600 truncate">Total Pending Dues</p>
+                <p className="text-xl sm:text-2xl font-bold text-neutral-900 mt-1">{stats.total}</p>
               </div>
-              <div className="w-12 h-12 bg-warning-100 rounded-full flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-warning-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-warning-100 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
+                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-warning-600" />
               </div>
             </div>
           </div>
         </Card>
 
         <Card>
-          <div className="p-4">
+          <div className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Total Amount Due</p>
-                <p className="text-2xl font-bold text-neutral-900 mt-1">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-neutral-600 truncate">Total Amount Due</p>
+                <p className="text-xs sm:text-2xl font-bold text-neutral-900 mt-1 break-words">
                   ₹{stats.totalDue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-error-100 rounded-full flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-error-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-error-100 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
+                <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6 text-error-600" />
               </div>
             </div>
           </div>
         </Card>
 
         <Card>
-          <div className="p-4">
+          <div className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Pending Notices</p>
-                <p className="text-2xl font-bold text-neutral-900 mt-1">{stats.pendingNotices}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-neutral-600 truncate">Pending Notices</p>
+                <p className="text-xl sm:text-2xl font-bold text-neutral-900 mt-1">{stats.pendingNotices}</p>
               </div>
-              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                <FileText className="h-6 w-6 text-primary-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
               </div>
             </div>
           </div>
         </Card>
 
         <Card>
-          <div className="p-4">
+          <div className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">NPA Accounts</p>
-                <p className="text-2xl font-bold text-neutral-900 mt-1">{stats.npaCount}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-neutral-600 truncate">NPA Accounts</p>
+                <p className="text-xl sm:text-2xl font-bold text-neutral-900 mt-1">{stats.npaCount}</p>
               </div>
-              <div className="w-12 h-12 bg-error-100 rounded-full flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-error-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-error-100 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
+                <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-error-600" />
               </div>
             </div>
           </div>
         </Card>
 
         <Card>
-          <div className="p-4">
+          <div className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Avg Days Overdue</p>
-                <p className="text-2xl font-bold text-neutral-900 mt-1">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-neutral-600 truncate">Avg Days Overdue</p>
+                <p className="text-xl sm:text-2xl font-bold text-neutral-900 mt-1">
                   {Math.round(stats.avgDaysOverdue)}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-neutral-100 rounded-full flex items-center justify-center">
-                <Clock className="h-6 w-6 text-neutral-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-neutral-100 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
+                <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-neutral-600" />
               </div>
             </div>
           </div>
@@ -508,10 +511,10 @@ export default function RecoveryTab() {
 
       {/* Filters */}
       <Card>
-        <div className="p-6">
-          <div className="flex flex-col md:flex-row items-end gap-4">
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 sm:gap-4">
             {/* Search Input */}
-            <div className="flex-1 w-full md:min-w-[280px]">
+            <div className="flex-1 w-full sm:min-w-[200px] md:min-w-[280px]">
               <Input
                 placeholder="Search by customer name, loan ID, or phone..."
                 value={searchTerm}
@@ -521,7 +524,7 @@ export default function RecoveryTab() {
             </div>
 
             {/* Status Filter */}
-            <div className="w-full md:w-[160px]">
+            <div className="w-full sm:w-[140px] md:w-[160px]">
               <Select
                 label=""
                 placeholder="All Status"
@@ -540,7 +543,7 @@ export default function RecoveryTab() {
             </div>
 
             {/* Notice Type Filter */}
-            <div className="w-full md:w-[160px]">
+            <div className="w-full sm:w-[140px] md:w-[160px]">
               <Select
                 label=""
                 placeholder="All Types"
@@ -566,7 +569,7 @@ export default function RecoveryTab() {
                   setStatusFilter('all');
                   setNoticeTypeFilter('all');
                 }}
-                className="whitespace-nowrap"
+                className="whitespace-nowrap w-full sm:w-auto"
               >
                 Clear Filters
               </Button>
@@ -577,91 +580,93 @@ export default function RecoveryTab() {
 
       {/* Days Overdue Tabs */}
       <Card>
-        <div className="p-4">
-          <Tabs
-            tabs={[
-              {
-                id: 'all',
-                label: 'All Periods',
-                content: (
-                  <div className="mt-4">
-                    <Table
-                      data={filteredDues}
-                      columns={columns}
-                      emptyMessage="No recovery dues found"
-                    />
-                  </div>
-                ),
-              },
-              {
-                id: '0-15',
-                label: '0-15 Days',
-                content: (
-                  <div className="mt-4">
-                    <Table
-                      data={filteredDues}
-                      columns={columns}
-                      emptyMessage="No recovery dues found for this period"
-                    />
-                  </div>
-                ),
-              },
-              {
-                id: '15-30',
-                label: '15-30 Days',
-                content: (
-                  <div className="mt-4">
-                    <Table
-                      data={filteredDues}
-                      columns={columns}
-                      emptyMessage="No recovery dues found for this period"
-                    />
-                  </div>
-                ),
-              },
-              {
-                id: '30-90',
-                label: '30-90 Days',
-                content: (
-                  <div className="mt-4">
-                    <Table
-                      data={filteredDues}
-                      columns={columns}
-                      emptyMessage="No recovery dues found for this period"
-                    />
-                  </div>
-                ),
-              },
-              {
-                id: '90-180',
-                label: '90-180 Days',
-                content: (
-                  <div className="mt-4">
-                    <Table
-                      data={filteredDues}
-                      columns={columns}
-                      emptyMessage="No recovery dues found for this period"
-                    />
-                  </div>
-                ),
-              },
-              {
-                id: '180+',
-                label: '180+ Days (NPA)',
-                content: (
-                  <div className="mt-4">
-                    <Table
-                      data={filteredDues}
-                      columns={columns}
-                      emptyMessage="No recovery dues found for this period"
-                    />
-                  </div>
-                ),
-              },
-            ]}
-            defaultTab={daysOverdueTab}
-            onChange={setDaysOverdueTab}
-          />
+        <div className="p-2 sm:p-4">
+          <div className="overflow-x-auto">
+            <Tabs
+              tabs={[
+                {
+                  id: 'all',
+                  label: 'All Periods',
+                  content: (
+                    <div className="mt-4 overflow-x-auto">
+                      <Table
+                        data={filteredDues}
+                        columns={columns}
+                        emptyMessage="No recovery dues found"
+                      />
+                    </div>
+                  ),
+                },
+                {
+                  id: '0-15',
+                  label: '0-15 Days',
+                  content: (
+                    <div className="mt-4 overflow-x-auto">
+                      <Table
+                        data={filteredDues}
+                        columns={columns}
+                        emptyMessage="No recovery dues found for this period"
+                      />
+                    </div>
+                  ),
+                },
+                {
+                  id: '15-30',
+                  label: '15-30 Days',
+                  content: (
+                    <div className="mt-4 overflow-x-auto">
+                      <Table
+                        data={filteredDues}
+                        columns={columns}
+                        emptyMessage="No recovery dues found for this period"
+                      />
+                    </div>
+                  ),
+                },
+                {
+                  id: '30-90',
+                  label: '30-90 Days',
+                  content: (
+                    <div className="mt-4 overflow-x-auto">
+                      <Table
+                        data={filteredDues}
+                        columns={columns}
+                        emptyMessage="No recovery dues found for this period"
+                      />
+                    </div>
+                  ),
+                },
+                {
+                  id: '90-180',
+                  label: '90-180 Days',
+                  content: (
+                    <div className="mt-4 overflow-x-auto">
+                      <Table
+                        data={filteredDues}
+                        columns={columns}
+                        emptyMessage="No recovery dues found for this period"
+                      />
+                    </div>
+                  ),
+                },
+                {
+                  id: '180+',
+                  label: '180+ Days (NPA)',
+                  content: (
+                    <div className="mt-4 overflow-x-auto">
+                      <Table
+                        data={filteredDues}
+                        columns={columns}
+                        emptyMessage="No recovery dues found for this period"
+                      />
+                    </div>
+                  ),
+                },
+              ]}
+              defaultTab={daysOverdueTab}
+              onChange={setDaysOverdueTab}
+            />
+          </div>
         </div>
       </Card>
 
@@ -690,18 +695,18 @@ export default function RecoveryTab() {
             </div>
 
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-neutral-600">Customer Name</p>
-                  <p className="font-semibold text-neutral-900">{selectedDue.customerName}</p>
+                  <p className="font-semibold text-neutral-900 break-words">{selectedDue.customerName}</p>
                 </div>
                 <div>
                   <p className="text-sm text-neutral-600">Loan ID</p>
-                  <p className="font-semibold text-neutral-900">{selectedDue.loanId}</p>
+                  <p className="font-semibold text-neutral-900 break-words">{selectedDue.loanId}</p>
                 </div>
                 <div>
                   <p className="text-sm text-neutral-600">Total Due</p>
-                  <p className="font-semibold text-neutral-900">
+                  <p className="font-semibold text-neutral-900 break-words">
                     ₹{selectedDue.totalDue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
@@ -730,11 +735,11 @@ export default function RecoveryTab() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button variant="outline" onClick={() => setShowNoticeModal(false)}>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowNoticeModal(false)} className="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button variant="primary" onClick={confirmIssueNotice}>
+              <Button variant="primary" onClick={confirmIssueNotice} className="w-full sm:w-auto">
                 <FileText className="h-4 w-4 mr-2" />
                 Issue Notice
               </Button>
@@ -768,14 +773,14 @@ export default function RecoveryTab() {
             </div>
 
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-neutral-600">Customer Name</p>
-                  <p className="font-semibold text-neutral-900">{selectedDue.customerName}</p>
+                  <p className="font-semibold text-neutral-900 break-words">{selectedDue.customerName}</p>
                 </div>
                 <div>
                   <p className="text-sm text-neutral-600">Notice Type</p>
-                  <p className="font-semibold text-neutral-900">{selectedDue.noticeType}</p>
+                  <p className="font-semibold text-neutral-900 break-words">{selectedDue.noticeType}</p>
                 </div>
                 <div>
                   <p className="text-sm text-neutral-600">Issued Date</p>
@@ -785,18 +790,18 @@ export default function RecoveryTab() {
                 </div>
                 <div>
                   <p className="text-sm text-neutral-600">Total Due</p>
-                  <p className="font-semibold text-neutral-900">
+                  <p className="font-semibold text-neutral-900 break-words">
                     ₹{selectedDue.totalDue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button variant="outline" onClick={() => setShowApprovalModal(false)}>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowApprovalModal(false)} className="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button variant="primary" onClick={confirmApproveNotice}>
+              <Button variant="primary" onClick={confirmApproveNotice} className="w-full sm:w-auto">
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Approve Notice
               </Button>
@@ -830,22 +835,22 @@ export default function RecoveryTab() {
             </div>
 
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-neutral-600">Customer Name</p>
-                  <p className="font-semibold text-neutral-900">{selectedDue.customerName}</p>
+                  <p className="font-semibold text-neutral-900 break-words">{selectedDue.customerName}</p>
                 </div>
                 <div>
                   <p className="text-sm text-neutral-600">Phone</p>
-                  <p className="font-semibold text-neutral-900">{selectedDue.customerPhone}</p>
+                  <p className="font-semibold text-neutral-900 break-words">{selectedDue.customerPhone}</p>
                 </div>
                 <div>
                   <p className="text-sm text-neutral-600">Email</p>
-                  <p className="font-semibold text-neutral-900">{selectedDue.customerEmail}</p>
+                  <p className="font-semibold text-neutral-900 break-words">{selectedDue.customerEmail}</p>
                 </div>
                 <div>
                   <p className="text-sm text-neutral-600">Address</p>
-                  <p className="font-semibold text-neutral-900 text-sm">{selectedDue.customerAddress}</p>
+                  <p className="font-semibold text-neutral-900 text-sm break-words">{selectedDue.customerAddress}</p>
                 </div>
               </div>
 
@@ -879,11 +884,11 @@ export default function RecoveryTab() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button variant="outline" onClick={() => setShowSendModal(false)}>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowSendModal(false)} className="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button variant="primary" onClick={confirmSendNotice}>
+              <Button variant="primary" onClick={confirmSendNotice} className="w-full sm:w-auto">
                 <Send className="h-4 w-4 mr-2" />
                 Send Notice
               </Button>

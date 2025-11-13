@@ -1,6 +1,6 @@
 import React from 'react';
 import { StatsCard } from '@/components/ui';
-import { Users, DollarSign, PiggyBank, Briefcase } from 'lucide-react';
+import { Users, IndianRupee, PiggyBank, Briefcase } from 'lucide-react';
 
 interface BranchKpiCardProps {
   branch: {
@@ -27,7 +27,7 @@ const BranchKpiCard: React.FC<BranchKpiCardProps> = ({ branch }) => {
       <StatsCard
         title="Total Loan Value"
         value={`₹${totalLoanValue.toLocaleString('en-IN')}`}
-        icon={<DollarSign className="h-6 w-6 text-success-500" />}
+        icon={<IndianRupee className="h-6 w-6 text-success-500" />}
       />
       <StatsCard
         title="Total Deposit Value"

@@ -25,7 +25,7 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  DollarSign,
+  IndianRupee,
   Users,
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils';
@@ -628,7 +628,7 @@ export default function LoanReportsPage() {
                 </p>
               </div>
               <div className="bg-info-100 p-3 rounded-lg">
-                <DollarSign className="h-6 w-6 text-info-600" />
+                <IndianRupee className="h-6 w-6 text-info-600" />
               </div>
             </div>
           </Card>

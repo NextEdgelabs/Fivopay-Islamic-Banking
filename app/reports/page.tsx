@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui';
 import {
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   TrendingDown,
   FileText,
@@ -206,7 +206,7 @@ export default function ReportsPage() {
             title="Disbursed Amount"
             value="₹3.2 Cr"
             subtitle="This Month"
-            icon={<DollarSign className="h-6 w-6 text-primary-600" />}
+            icon={<IndianRupee className="h-6 w-6 text-primary-600" />}
             trend={{ value: 18.7, isPositive: true }}
             iconBg="bg-primary-100"
           />

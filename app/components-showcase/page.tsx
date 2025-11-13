@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
   Home, User, Mail, Lock, Search, Plus, Edit, Trash2, Download, 
-  Upload, Settings, Bell, Calendar, DollarSign, TrendingUp, Users,
-  CreditCard, Building, FileText, Package
+  Upload, Settings, Bell, Calendar, TrendingUp, Users,
+  CreditCard, Building, FileText, Package, IndianRupee
 } from 'lucide-react';
 import {
   Button, IconButton, Input, Textarea, Select, Checkbox, Radio, Toggle,
@@ -254,7 +254,7 @@ export default function ComponentShowcase() {
             <StatsCard
               title="Total Revenue"
               value="$45,231"
-              icon={<DollarSign className="h-6 w-6" />}
+              icon={<IndianRupee className="h-6 w-6" />}
               trend={{ value: 12.5, isPositive: true }}
               description="vs last month"
             />

@@ -1,6 +1,6 @@
 'use client';
 import { Card, Button } from '@/components/ui';
-import { Plus, Users, Building, DollarSign } from 'lucide-react';
+import { Plus, Users, Building, IndianRupee } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function QuickActions() {
@@ -18,7 +18,7 @@ export default function QuickActions() {
           Add Branch
         </Button>
         <Button variant="outline" onClick={() => router.push('/loans/add')}>
-          <DollarSign className="h-4 w-4 mr-2" />
+          <IndianRupee className="h-4 w-4 mr-2" />
           New Loan
         </Button>
         <Button variant="outline" onClick={() => router.push('/deposits/add')}>

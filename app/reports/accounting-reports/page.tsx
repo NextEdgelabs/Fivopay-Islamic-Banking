@@ -24,7 +24,7 @@ import {
   Search,
   RefreshCw,
   Printer,
-  DollarSign,
+  IndianRupee,
   Calculator,
   Banknote,
   AlertCircle,
@@ -618,7 +618,7 @@ export default function AccountingReportsPage() {
                 </p>
               </div>
               <div className="bg-blue-100 p-2 rounded">
-                <DollarSign className="h-5 w-5 text-blue-600" />
+                <IndianRupee className="h-5 w-5 text-blue-600" />
               </div>
             </div>
           </Card>

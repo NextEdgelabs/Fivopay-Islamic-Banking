@@ -16,7 +16,7 @@ import {
   Breadcrumbs,
   Tabs,
 } from '@/components/ui';
-import { Search, Plus, Edit, Trash2, DollarSign, Users, TrendingUp, AlertCircle, Eye, Download, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, IndianRupee, Users, TrendingUp, AlertCircle, Eye, Download, AlertTriangle } from 'lucide-react';
 import RecoveryTab from './components/RecoveryTab';
 import { useLoans } from '@/hooks/useLoans';
 import { useLoanMutations } from '@/hooks/useLoanMutations';
@@ -252,7 +252,7 @@ export default function LoansPage() {
               <p className="text-sm text-neutral-600">Total Value</p>
               <p className="text-2xl font-bold">₹{totalLoanValue.toLocaleString('en-IN')}</p>
             </div>
-            <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center"><DollarSign className="h-6 w-6 text-success-600" /></div>
+            <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center"><IndianRupee className="h-6 w-6 text-success-600" /></div>
           </div>
         </Card>
         <Card padding="sm">
@@ -323,7 +323,7 @@ export default function LoansPage() {
 
         {loans.length === 0 ? (
           <div className="text-center py-12">
-            <DollarSign className="h-12 w-12 mx-auto text-neutral-400 mb-3" />
+            <IndianRupee className="h-12 w-12 mx-auto text-neutral-400 mb-3" />
             <p className="text-neutral-500">No loans found for the current filters.</p>
           </div>
         ) : (
@@ -352,7 +352,7 @@ export default function LoansPage() {
     {
       id: 'all-loans',
       label: 'All Loans',
-      icon: <DollarSign className="h-4 w-4" />,
+      icon: <IndianRupee className="h-4 w-4" />,
       content: <AllLoansTab />,
     },
     {

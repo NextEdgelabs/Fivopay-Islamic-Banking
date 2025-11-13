@@ -31,7 +31,7 @@ import {
   Users,
   CreditCard,
   CheckCircle,
-  DollarSign,
+  IndianRupee,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -323,7 +323,7 @@ export default function CustomersPage() {
                 <p className="text-2xl font-bold text-neutral-900 mt-1">50</p>
               </div>
               <div className="w-12 h-12 bg-warning-100 rounded-stripe flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-warning-600" />
+                <IndianRupee className="h-6 w-6 text-warning-600" />
               </div>
             </div>
           </Card>
