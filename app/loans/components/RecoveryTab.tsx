@@ -24,7 +24,9 @@ import {
   Download,
   Send,
   IndianRupee,
+  Eye,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useCustomers } from '@/hooks/useCustomers';
 import { Customer } from '@/services/customers.service';
 import { useToast } from '@/components/ui/Toast';
@@ -143,6 +145,7 @@ const generateRecoveryDues = (customers: Customer[]): RecoveryDue[] => {
 export default function RecoveryTab() {
   const { customers, loading: customersLoading } = useCustomers();
   const { addToast } = useToast();
+  const router = useRouter();
 
   const [recoveryDues, setRecoveryDues] = useState<RecoveryDue[]>([]);
   const [filteredDues, setFilteredDues] = useState<RecoveryDue[]>([]);
@@ -369,20 +372,44 @@ export default function RecoveryTab() {
     { header: 'Customer Name', key: 'customerName' },
     { header: 'Loan ID', key: 'loanId' },
     { header: 'Total Due', key: 'totalDue', render: (value: number) => `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` },
+    { header: 'Penalty', key: 'penaltyAmount', render: (value: number, row: RecoveryDue) => {
+      const monthsOverdue = Math.floor(row.daysOverdue / 30);
+      return (
+        <div>
+          <p className="font-medium text-neutral-900">₹{value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+          <p className="text-xs text-neutral-500">{monthsOverdue} month{monthsOverdue !== 1 ? 's' : ''} @ 2%</p>
+        </div>
+      );
+    }},
     { header: 'Days Overdue', key: 'daysOverdue', render: (value: number) => `${value} days` },
     { header: 'Status', key: 'status', render: (status: RecoveryStatus) => getStatusBadge(status) },
     { header: 'Notice Type', key: 'noticeType', render: (noticeType?: NoticeType) => getNoticeTypeBadge(noticeType) || 'N/A' },
-    { header: 'Next Action', key: 'nextAction', render: (_: any, row: RecoveryDue) => {
-      if (shouldPromptNotice(row)) {
-        return <Button size="sm" variant="primary" onClick={() => handleIssueNotice(row)} className="text-xs sm:text-sm whitespace-nowrap">Issue Notice</Button>;
-      } else if (canApproveNotice(row)) {
-        return <Button size="sm" variant="primary" onClick={() => handleApproveNotice(row)} className="text-xs sm:text-sm whitespace-nowrap">Approve</Button>;
-      } else if (canSendNotice(row)) {
-        return <Button size="sm" variant="primary" onClick={() => handleSendNotice(row)} className="text-xs sm:text-sm whitespace-nowrap">Send Notice</Button>;
-      } else if (row.isNPA) {
-        return <Badge variant="error" className="text-xs sm:text-sm">NPA - Follow SOP</Badge>;
-      }
-      return <span className="text-neutral-500">-</span>;
+    { header: 'Actions', key: 'actions', render: (_: any, row: RecoveryDue) => {
+      return (
+        <div className="flex items-center gap-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={() => router.push(`/loans/recovery/${row.id}`)}
+            className="text-xs sm:text-sm"
+          >
+            <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            View
+          </Button>
+          {shouldPromptNotice(row) && (
+            <Button size="sm" variant="primary" onClick={() => handleIssueNotice(row)} className="text-xs sm:text-sm whitespace-nowrap">Issue Notice</Button>
+          )}
+          {canApproveNotice(row) && (
+            <Button size="sm" variant="primary" onClick={() => handleApproveNotice(row)} className="text-xs sm:text-sm whitespace-nowrap">Approve</Button>
+          )}
+          {canSendNotice(row) && (
+            <Button size="sm" variant="primary" onClick={() => handleSendNotice(row)} className="text-xs sm:text-sm whitespace-nowrap">Send Notice</Button>
+          )}
+          {row.isNPA && (
+            <Badge variant="error" className="text-xs sm:text-sm">NPA</Badge>
+          )}
+        </div>
+      );
     }},
   ];
 
