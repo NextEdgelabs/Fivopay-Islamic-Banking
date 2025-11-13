@@ -24,6 +24,7 @@ import {
   BarChart3,
   Banknote,
   NotebookPen,
+  Bot,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -189,7 +190,26 @@ export default function DashboardLayout({
             sidebarOpen={sidebarOpen}
             href="/reports"
           /> */}
+          {/* AI Companion Divider */}
+          {sidebarOpen ? (
+            <div className="pt-4 pb-2">
+              <div className="px-3 py-2">
+                <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                  AI Companion
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="pt-4 pb-2 border-t border-border-light mt-2"></div>
+          )}
           
+          <NavItem
+            icon={<Bot className="h-5 w-5" />}
+            label="AI Companion"
+            sidebarOpen={sidebarOpen}
+            href="/ai-companion"
+          />
+          {}
           {/* Financials Divider */}
           {sidebarOpen ? (
             <div className="pt-4 pb-2">
