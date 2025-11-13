@@ -165,12 +165,12 @@ export default function DashboardLayout({
             sidebarOpen={sidebarOpen}
             href="/loans"
           />
-          <NavItem
+          {/* <NavItem
             icon={<Banknote className="h-5 w-5" />}
             label="Recovery"
             sidebarOpen={sidebarOpen}
             href="/recovery"
-          />
+          /> */}
           <NavItem
             icon={<NotebookPen className="h-5 w-5" />}
             label="Deposits"
