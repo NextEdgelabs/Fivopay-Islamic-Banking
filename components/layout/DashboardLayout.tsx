@@ -11,7 +11,6 @@ import {
   Users,
   Building,
   Briefcase,
-  PiggyBank,
   Package,
   Settings,
   LogOut,
