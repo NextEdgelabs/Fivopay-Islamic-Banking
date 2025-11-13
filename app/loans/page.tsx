@@ -14,8 +14,10 @@ import {
   Badge,
   Skeleton,
   Breadcrumbs,
+  Tabs,
 } from '@/components/ui';
-import { Search, Plus, Edit, Trash2, DollarSign, Users, TrendingUp, AlertCircle, Eye, Download } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, DollarSign, Users, TrendingUp, AlertCircle, Eye, Download, AlertTriangle } from 'lucide-react';
+import RecoveryTab from './components/RecoveryTab';
 import { useLoans } from '@/hooks/useLoans';
 import { useLoanMutations } from '@/hooks/useLoanMutations';
 import { useToast } from '@/components/ui/Toast';
@@ -27,6 +29,7 @@ export default function LoansPage() {
   const { addToast } = useToast();
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState('all-loans');
   const itemsPerPage = 10;
   
   useEffect(() => {
@@ -230,6 +233,136 @@ export default function LoansPage() {
   const totalLoanValue = loans.reduce((acc, loan) => acc + (loan.loanAmount || loan.amount || 0), 0);
   const activeLoans = loans.filter(l => l.status === 'Active' || l.approvalStatus === 'approved');
 
+  // All Loans Tab Content
+  const AllLoansTab = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card padding="sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-neutral-600">Total Loans</p>
+              <p className="text-2xl font-bold">{loans.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-primary-100 rounded-stripe flex items-center justify-center"><Users className="h-6 w-6 text-primary-600" /></div>
+          </div>
+        </Card>
+        <Card padding="sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-neutral-600">Total Value</p>
+              <p className="text-2xl font-bold">₹{totalLoanValue.toLocaleString('en-IN')}</p>
+            </div>
+            <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center"><DollarSign className="h-6 w-6 text-success-600" /></div>
+          </div>
+        </Card>
+        <Card padding="sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-neutral-600">Active Loans</p>
+              <p className="text-2xl font-bold">{activeLoans.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-info-100 rounded-stripe flex items-center justify-center"><TrendingUp className="h-6 w-6 text-info-600" /></div>
+          </div>
+        </Card>
+        <Card padding="sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-neutral-600">Defaulted Loans</p>
+              <p className="text-2xl font-bold">{loans.filter(l => l.status === 'Defaulted').length}</p>
+            </div>
+            <div className="w-12 h-12 bg-error-100 rounded-stripe flex items-center justify-center"><AlertCircle className="h-6 w-6 text-error-600" /></div>
+          </div>
+        </Card>
+      </div>
+
+      <Card>
+        <div className="p-4 flex flex-col md:flex-row gap-4">
+          <div className="w-full md:w-1/3">
+            <Input
+              placeholder="Search loans by ID, App No, or Customer..."
+              value={filters.search || ''}
+              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+              leftIcon={<Search className="h-4 w-4" />}
+            />
+          </div>
+          <Select
+            name="status"
+            value={filters.status || ''}
+            onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+            options={[
+              { value: '', label: 'All Statuses' },
+              { value: 'Pending', label: 'Pending' },
+              { value: 'Under Review', label: 'Under Review' },
+              { value: 'Approved', label: 'Approved' },
+              { value: 'Rejected', label: 'Rejected' },
+              { value: 'Disbursed', label: 'Disbursed' },
+              { value: 'Active', label: 'Active' },
+              { value: 'Closed', label: 'Closed' },
+              { value: 'Defaulted', label: 'Defaulted' },
+            ]}
+          />
+          <Select
+            name="loanType"
+            value={filters.loanType || ''}
+            onChange={(e) => setFilters(prev => ({ ...prev, loanType: e.target.value }))}
+            options={[
+              { value: '', label: 'All Types' },
+              { value: 'Personal Loan', label: 'Personal Loan' },
+              { value: 'Home Loan', label: 'Home Loan' },
+              { value: 'Business Loan', label: 'Business Loan' },
+              { value: 'Education Loan', label: 'Education Loan' },
+              { value: 'Vehicle Loan', label: 'Vehicle Loan' },
+              { value: 'Gold Loan', label: 'Gold Loan' },
+            ]}
+          />
+          <Button variant="outline" onClick={() => { /* Implement Export */ }}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
+
+        {loans.length === 0 ? (
+          <div className="text-center py-12">
+            <DollarSign className="h-12 w-12 mx-auto text-neutral-400 mb-3" />
+            <p className="text-neutral-500">No loans found for the current filters.</p>
+          </div>
+        ) : (
+          <>
+            <Table columns={columns} data={paginatedLoans} onRowClick={(row) => router.push(`/loans/${row.id || row._id || ''}`)} />
+
+            {totalPages > 1 && (
+              <div className="p-4 border-t flex items-center justify-between">
+                <p className="text-sm text-neutral-600">
+                  Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, loans.length)} of {loans.length} loans
+                </p>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
+          </>
+        )}
+      </Card>
+    </div>
+  );
+
+  const TABS = [
+    {
+      id: 'all-loans',
+      label: 'All Loans',
+      icon: <DollarSign className="h-4 w-4" />,
+      content: <AllLoansTab />,
+    },
+    {
+      id: 'recovery',
+      label: 'Recovery',
+      icon: <AlertTriangle className="h-4 w-4" />,
+      content: <RecoveryTab />,
+    },
+  ];
+
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
@@ -242,120 +375,20 @@ export default function LoansPage() {
               Manage all loan applications and disbursements
             </p>
           </div>
-          <Button onClick={() => router.push('/loans/add')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Loan
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card padding="sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Total Loans</p>
-                <p className="text-2xl font-bold">{loans.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-primary-100 rounded-stripe flex items-center justify-center"><Users className="h-6 w-6 text-primary-600" /></div>
-            </div>
-          </Card>
-          <Card padding="sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Total Value</p>
-                <p className="text-2xl font-bold">₹{totalLoanValue.toLocaleString('en-IN')}</p>
-              </div>
-              <div className="w-12 h-12 bg-success-100 rounded-stripe flex items-center justify-center"><DollarSign className="h-6 w-6 text-success-600" /></div>
-            </div>
-          </Card>
-          <Card padding="sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Active Loans</p>
-                <p className="text-2xl font-bold">{activeLoans.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-info-100 rounded-stripe flex items-center justify-center"><TrendingUp className="h-6 w-6 text-info-600" /></div>
-            </div>
-          </Card>
-           <Card padding="sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Defaulted Loans</p>
-                <p className="text-2xl font-bold">{loans.filter(l => l.status === 'Defaulted').length}</p>
-              </div>
-              <div className="w-12 h-12 bg-error-100 rounded-stripe flex items-center justify-center"><AlertCircle className="h-6 w-6 text-error-600" /></div>
-            </div>
-          </Card>
+          {activeTab === 'all-loans' && (
+            <Button onClick={() => router.push('/loans/add')}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Loan
+            </Button>
+          )}
         </div>
 
         <Card>
-          <div className="p-4 flex flex-col md:flex-row gap-4">
-            <div className="w-full md:w-1/3">
-              <Input
-                placeholder="Search loans by ID, App No, or Customer..."
-                value={filters.search || ''}
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                leftIcon={<Search className="h-4 w-4" />}
-              />
-            </div>
-            <Select
-              name="status"
-              value={filters.status || ''}
-              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-              options={[
-                { value: '', label: 'All Statuses' },
-                { value: 'Pending', label: 'Pending' },
-                { value: 'Under Review', label: 'Under Review' },
-                { value: 'Approved', label: 'Approved' },
-                { value: 'Rejected', label: 'Rejected' },
-                { value: 'Disbursed', label: 'Disbursed' },
-                { value: 'Active', label: 'Active' },
-                { value: 'Closed', label: 'Closed' },
-                { value: 'Defaulted', label: 'Defaulted' },
-              ]}
-            />
-            <Select
-              name="loanType"
-              value={filters.loanType || ''}
-              onChange={(e) => setFilters(prev => ({ ...prev, loanType: e.target.value }))}
-              options={[
-                { value: '', label: 'All Types' },
-                { value: 'Personal Loan', label: 'Personal Loan' },
-                { value: 'Home Loan', label: 'Home Loan' },
-                { value: 'Business Loan', label: 'Business Loan' },
-                { value: 'Education Loan', label: 'Education Loan' },
-                { value: 'Vehicle Loan', label: 'Vehicle Loan' },
-                { value: 'Gold Loan', label: 'Gold Loan' },
-              ]}
-            />
-             <Button variant="outline" onClick={() => { /* Implement Export */ }}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-          </div>
-
-          {loans.length === 0 ? (
-            <div className="text-center py-12">
-              <DollarSign className="h-12 w-12 mx-auto text-neutral-400 mb-3" />
-              <p className="text-neutral-500">No loans found for the current filters.</p>
-            </div>
-          ) : (
-            <>
-              <Table columns={columns} data={paginatedLoans} onRowClick={(row) => router.push(`/loans/${row.id || row._id || ''}`)} />
-
-              {totalPages > 1 && (
-                <div className="p-4 border-t flex items-center justify-between">
-                   <p className="text-sm text-neutral-600">
-                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, loans.length)} of {loans.length} loans
-                  </p>
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
-                  />
-                </div>
-              )}
-            </>
-          )}
+          <Tabs
+            tabs={TABS}
+            defaultTab={activeTab}
+            onChange={setActiveTab}
+          />
         </Card>
       </div>
     </DashboardLayout>

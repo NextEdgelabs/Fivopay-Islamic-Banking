@@ -23,6 +23,8 @@ import {
   Book,
   Calculator,
   BarChart3,
+  Banknote,
+  NotebookPen,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -165,7 +167,13 @@ export default function DashboardLayout({
             href="/loans"
           />
           <NavItem
-            icon={<PiggyBank className="h-5 w-5" />}
+            icon={<Banknote className="h-5 w-5" />}
+            label="Recovery"
+            sidebarOpen={sidebarOpen}
+            href="/recovery"
+          />
+          <NavItem
+            icon={<NotebookPen className="h-5 w-5" />}
             label="Deposits"
             sidebarOpen={sidebarOpen}
             href="/deposits"
