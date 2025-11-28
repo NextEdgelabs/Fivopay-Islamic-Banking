@@ -32,6 +32,8 @@ import {
   Image as ImageIcon,
   TrendingUp,
   TrendingDown,
+  Wallet,
+  UserCheck,
 } from 'lucide-react';
 import { useEmployee } from '@/hooks/useEmployee';
 import { usePaymentRecords } from '@/hooks/usePaymentRecords';
@@ -39,6 +41,7 @@ import { usePaymentRecordMutations } from '@/hooks/usePaymentRecordMutations';
 import { useToast } from '@/components/ui/Toast';
 import { PaymentRecord, PaymentStatus, PaymentType } from '@/services/paymentRecords.service';
 import { Employee } from '@/services/employee.service';
+import { withdrawalRequestService, WithdrawalRequest } from '@/services/withdrawal-requests.service';
 
 const InfoItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | undefined | null }) => {
   if (!value) return null;
@@ -195,6 +198,12 @@ export default function ViewAgentPage() {
           mutationLoading={mutationLoading}
         />
       ),
+    },
+    {
+      id: 'withdrawals',
+      label: 'Assigned Withdrawals',
+      icon: <Wallet className="h-4 w-4" />,
+      content: <AssignedWithdrawalsTab agentId={agentId} employee={employee} />,
     },
   ];
 
@@ -836,6 +845,202 @@ const UnsettledCollectionTab = ({
             </div>
           </Modal>
         </>
+      )}
+    </div>
+  );
+};
+
+const AssignedWithdrawalsTab = ({ agentId, employee }: { agentId: string; employee: Employee }) => {
+  const [requests, setRequests] = React.useState<WithdrawalRequest[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const { addToast } = useToast();
+
+  React.useEffect(() => {
+    if (employee) {
+      loadRequests();
+    }
+  }, [agentId, employee]);
+
+  const loadRequests = () => {
+    if (!employee) return;
+    
+    setLoading(true);
+    try {
+      // Try matching with both _id and id, and also try the agentId parameter
+      const employeeIds = [
+        employee._id,
+        employee.id,
+        agentId,
+        employee.employeeId // Sometimes employeeId might be used
+      ].filter(Boolean) as string[];
+      
+      // Get all requests and filter by any matching ID
+      const stored = localStorage.getItem('withdrawal_requests');
+      if (!stored) {
+        setRequests([]);
+        setLoading(false);
+        return;
+      }
+
+      const allRequests: WithdrawalRequest[] = JSON.parse(stored);
+      const filtered = allRequests.filter(r => 
+        r.assignedAgentId && employeeIds.includes(r.assignedAgentId)
+      );
+      
+      setRequests(filtered);
+    } catch (error) {
+      console.error('Error loading withdrawal requests:', error);
+      addToast({ type: 'error', message: 'Failed to load withdrawal requests' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleComplete = (requestId: string) => {
+    try {
+      const updated = withdrawalRequestService.completeWithdrawalRequest(requestId);
+      if (updated) {
+        addToast({ type: 'success', message: 'Withdrawal marked as completed' });
+        loadRequests();
+      } else {
+        addToast({ type: 'error', message: 'Failed to complete withdrawal request' });
+      }
+    } catch (error) {
+      addToast({ type: 'error', message: 'Failed to complete withdrawal request' });
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="warning" className="flex items-center gap-1"><Clock className="h-3 w-3" /> Pending</Badge>;
+      case 'approved':
+        return <Badge variant="success" className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Approved</Badge>;
+      case 'rejected':
+        return <Badge variant="error" className="flex items-center gap-1"><XCircle className="h-3 w-3" /> Rejected</Badge>;
+      case 'completed':
+        return <Badge variant="primary" className="flex items-center gap-1"><UserCheck className="h-3 w-3" /> Completed</Badge>;
+      default:
+        return <Badge variant="neutral">{status}</Badge>;
+    }
+  };
+
+  const columns = [
+    {
+      key: 'customerName',
+      header: 'Customer',
+      render: (_: any, row: WithdrawalRequest) => (
+        <div>
+          <p className="font-medium text-neutral-900">{row.customerName}</p>
+          <p className="text-sm text-neutral-500">{row.accountNumber || row.customerId}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'branchName',
+      header: 'Branch',
+      render: (value: string) => <span className="text-neutral-900">{value}</span>,
+    },
+    {
+      key: 'amount',
+      header: 'Amount',
+      render: (value: number) => (
+        <span className="font-semibold text-neutral-900">₹{value.toLocaleString('en-IN')}</span>
+      ),
+    },
+    {
+      key: 'requestDate',
+      header: 'Request Date',
+      render: (value: string) => new Date(value).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (value: string) => getStatusBadge(value),
+    },
+    {
+      key: 'approvedDate',
+      header: 'Assigned Date',
+      render: (value: string | undefined) => (
+        value ? new Date(value).toLocaleDateString('en-IN') : 'N/A'
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (_: any, row: WithdrawalRequest) => (
+        <div className="flex gap-2">
+          {row.status === 'approved' && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => handleComplete(row.id)}
+            >
+              <UserCheck className="h-3 w-3 mr-1" />
+              Mark Complete
+            </Button>
+          )}
+          {row.status === 'completed' && (
+            <span className="text-sm text-neutral-500">Completed</span>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <p className="text-neutral-500">Loading assigned withdrawals...</p>
+      </div>
+    );
+  }
+
+  const pendingCount = requests.filter(r => r.status === 'approved').length;
+  const completedCount = requests.filter(r => r.status === 'completed').length;
+  const totalAmount = requests.reduce((sum, r) => sum + r.amount, 0);
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card padding="sm" className="bg-primary-50 border-primary-100">
+          <div className="text-sm text-primary-700 font-medium">Total Assigned</div>
+          <div className="text-2xl font-bold text-primary-900">{requests.length}</div>
+        </Card>
+        <Card padding="sm" className="bg-warning-50 border-warning-100">
+          <div className="text-sm text-warning-700 font-medium">Pending Completion</div>
+          <div className="text-2xl font-bold text-warning-900">{pendingCount}</div>
+        </Card>
+        <Card padding="sm" className="bg-success-50 border-success-100">
+          <div className="text-sm text-success-700 font-medium">Total Amount</div>
+          <div className="text-2xl font-bold text-success-900">₹{totalAmount.toLocaleString('en-IN')}</div>
+        </Card>
+      </div>
+
+      {requests.length === 0 ? (
+        <Card>
+          <div className="p-12 text-center">
+            <Wallet className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+            <p className="text-neutral-600">No withdrawal requests assigned to this agent</p>
+          </div>
+        </Card>
+      ) : (
+        <Card>
+          <div className="p-6 border-b border-neutral-200">
+            <h3 className="text-lg font-semibold text-neutral-900">Assigned Withdrawal Requests</h3>
+            <p className="text-sm text-neutral-600 mt-1">
+              {completedCount} completed • {pendingCount} pending
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <Table data={requests} columns={columns} emptyMessage="No withdrawal requests found." />
+          </div>
+        </Card>
       )}
     </div>
   );

@@ -28,6 +28,7 @@ export { default as Alert } from './Alert';
 export { default as Loading } from './Loading';
 export { default as Skeleton, SkeletonCard, SkeletonTable } from './Skeleton';
 export { ToastProvider, useToast } from './Toast';
+export { default as ConfirmDialog } from './ConfirmDialog';
 
 // Navigation Components
 export { default as Tabs } from './Tabs';

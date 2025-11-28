@@ -1,8 +1,8 @@
 'use client';
 import { useRouter, useParams } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, Button, Badge, Breadcrumbs, Skeleton, Tabs, Table, Pagination } from '@/components/ui';
-import { Edit, Trash2, MapPin, Phone, Mail, Clock, Users, Calendar, Award, Star, Building, DollarSign, CreditCard, TrendingUp, BarChart2, AlertCircle } from 'lucide-react';
+import { Card, Button, Badge, Breadcrumbs, Skeleton, Tabs, Table, Pagination, Modal, Select, Input } from '@/components/ui';
+import { Edit, Trash2, MapPin, Phone, Mail, Clock, Users, Calendar, Award, Star, Building, DollarSign, CreditCard, TrendingUp, BarChart2, AlertCircle, Wallet, CheckCircle, XCircle, UserCheck } from 'lucide-react';
 import { useBranch } from '@/hooks/useBranch';
 import { useBranchMutations } from '@/hooks/useBranchMutations';
 import { useToast } from '@/components/ui/Toast';
@@ -22,6 +22,420 @@ import KpiCardWithTrend from '@/components/analytics/KpiCardWithTrend';
 import PerformanceChart from '@/components/analytics/PerformanceChart';
 import ProductPerformance from '@/components/analytics/ProductPerformance';
 import { customerService } from '@/services/customers.service';
+import { withdrawalRequestService, WithdrawalRequest } from '@/services/withdrawal-requests.service';
+import { useBatches } from '@/hooks/useBatches';
+import { useEmployees } from '@/hooks/useEmployees';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { Textarea } from '@/components/ui';
+
+// Withdrawal Requests Tab Component
+const BranchWithdrawalRequestsTab = ({ branchId, branchName }: { branchId: string; branchName: string }) => {
+  const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequest | null>(null);
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [selectedAgentId, setSelectedAgentId] = useState('');
+  const [notes, setNotes] = useState('');
+  const [rejectionReason, setRejectionReason] = useState('');
+  const { addToast } = useToast();
+  const { batches } = useBatches();
+  const { employees } = useEmployees();
+
+  // Filter employees to get agents
+  const agents = employees.filter(emp => 
+    emp.role?.toLowerCase().includes('agent') || 
+    emp.designation?.toLowerCase().includes('agent') ||
+    emp.department?.toLowerCase().includes('agent')
+  );
+
+  useEffect(() => {
+    loadRequests();
+  }, [branchId]);
+
+  const loadRequests = () => {
+    setLoading(true);
+    try {
+      const data = withdrawalRequestService.getWithdrawalRequests(branchId);
+      setRequests(data);
+    } catch (error) {
+      console.error('Error loading withdrawal requests:', error);
+      addToast({ type: 'error', message: 'Failed to load withdrawal requests' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = (request: WithdrawalRequest) => {
+    setSelectedRequest(request);
+    
+    // Check if customer exists in any batch
+    const batchAgent = withdrawalRequestService.findCustomerBatchAgent(request.customerId, batches);
+    
+    if (batchAgent) {
+      // Auto-assign agent from batch
+      setSelectedAgentId(batchAgent.agentId);
+      addToast({ 
+        type: 'info', 
+        message: `Customer found in batch "${batchAgent.batchName}". Agent "${batchAgent.agentName}" will be assigned automatically.` 
+      });
+    } else {
+      // No batch found, need manual selection
+      setSelectedAgentId('');
+    }
+    
+    setIsApproveModalOpen(true);
+  };
+
+  const confirmApprove = () => {
+    if (!selectedRequest) return;
+    
+    if (!selectedAgentId) {
+      addToast({ type: 'error', message: 'Please select an agent' });
+      return;
+    }
+
+    const agent = agents.find(a => (a._id || a.id) === selectedAgentId);
+    if (!agent) {
+      addToast({ type: 'error', message: 'Selected agent not found' });
+      return;
+    }
+
+    try {
+      const updated = withdrawalRequestService.approveWithdrawalRequest(
+        selectedRequest.id,
+        selectedAgentId,
+        agent.fullName,
+        notes
+      );
+
+      if (updated) {
+        addToast({ type: 'success', message: 'Withdrawal request approved successfully' });
+        setIsApproveModalOpen(false);
+        setSelectedRequest(null);
+        setSelectedAgentId('');
+        setNotes('');
+        loadRequests();
+      } else {
+        addToast({ type: 'error', message: 'Failed to approve withdrawal request' });
+      }
+    } catch (error) {
+      addToast({ type: 'error', message: 'Failed to approve withdrawal request' });
+    }
+  };
+
+  const handleReject = (request: WithdrawalRequest) => {
+    setSelectedRequest(request);
+    setRejectionReason('');
+    setIsRejectModalOpen(true);
+  };
+
+  const confirmReject = () => {
+    if (!selectedRequest) return;
+    
+    if (!rejectionReason.trim()) {
+      addToast({ type: 'error', message: 'Please provide a rejection reason' });
+      return;
+    }
+
+    try {
+      const updated = withdrawalRequestService.rejectWithdrawalRequest(
+        selectedRequest.id,
+        rejectionReason
+      );
+
+      if (updated) {
+        addToast({ type: 'success', message: 'Withdrawal request rejected' });
+        setIsRejectModalOpen(false);
+        setSelectedRequest(null);
+        setRejectionReason('');
+        loadRequests();
+      } else {
+        addToast({ type: 'error', message: 'Failed to reject withdrawal request' });
+      }
+    } catch (error) {
+      addToast({ type: 'error', message: 'Failed to reject withdrawal request' });
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="warning" className="flex items-center gap-1"><Clock className="h-3 w-3" /> Pending</Badge>;
+      case 'approved':
+        return <Badge variant="success" className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Approved</Badge>;
+      case 'rejected':
+        return <Badge variant="error" className="flex items-center gap-1"><XCircle className="h-3 w-3" /> Rejected</Badge>;
+      case 'completed':
+        return <Badge variant="primary" className="flex items-center gap-1"><UserCheck className="h-3 w-3" /> Completed</Badge>;
+      default:
+        return <Badge variant="neutral">{status}</Badge>;
+    }
+  };
+
+  const columns = [
+    {
+      header: 'Customer',
+      key: 'customerName',
+      render: (_: any, row: WithdrawalRequest) => (
+        <div>
+          <p className="font-medium text-neutral-900">{row.customerName}</p>
+          <p className="text-sm text-neutral-500">{row.accountNumber || row.customerId}</p>
+        </div>
+      ),
+    },
+    {
+      header: 'Amount',
+      key: 'amount',
+      render: (amount: number) => (
+        <span className="font-semibold text-neutral-900">₹{amount.toLocaleString()}</span>
+      ),
+    },
+    {
+      header: 'Request Date',
+      key: 'requestDate',
+      render: (date: string) => new Date(date).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }),
+    },
+    {
+      header: 'Status',
+      key: 'status',
+      render: (status: string) => getStatusBadge(status),
+    },
+    {
+      header: 'Assigned Agent',
+      key: 'assignedAgentName',
+      render: (_: any, row: WithdrawalRequest) => (
+        row.assignedAgentName ? (
+          <div>
+            <p className="text-sm font-medium text-neutral-900">{row.assignedAgentName}</p>
+            {row.approvedDate && (
+              <p className="text-xs text-neutral-500">
+                Approved: {new Date(row.approvedDate).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+        ) : (
+          <span className="text-neutral-400 text-sm">Not assigned</span>
+        )
+      ),
+    },
+    {
+      header: 'Actions',
+      key: 'actions',
+      render: (_: any, row: WithdrawalRequest) => (
+        <div className="flex gap-2">
+          {row.status === 'pending' && (
+            <>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => handleApprove(row)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Approve
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => handleReject(row)}
+              >
+                <XCircle className="h-3 w-3 mr-1" />
+                Reject
+              </Button>
+            </>
+          )}
+          {row.status === 'approved' && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                const updated = withdrawalRequestService.completeWithdrawalRequest(row.id);
+                if (updated) {
+                  addToast({ type: 'success', message: 'Withdrawal marked as completed' });
+                  loadRequests();
+                }
+              }}
+            >
+              <UserCheck className="h-3 w-3 mr-1" />
+              Mark Complete
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  if (loading) return <Skeleton className="h-64 w-full" />;
+
+  const pendingCount = requests.filter(r => r.status === 'pending').length;
+  const approvedCount = requests.filter(r => r.status === 'approved').length;
+  const totalAmount = requests.reduce((sum, r) => sum + r.amount, 0);
+
+  return (
+    <div className="space-y-6 mt-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card padding="sm" className="bg-warning-50 border-warning-100">
+          <div className="text-sm text-warning-700 font-medium">Pending Requests</div>
+          <div className="text-2xl font-bold text-warning-900">{pendingCount}</div>
+        </Card>
+        <Card padding="sm" className="bg-success-50 border-success-100">
+          <div className="text-sm text-success-700 font-medium">Approved</div>
+          <div className="text-2xl font-bold text-success-900">{approvedCount}</div>
+        </Card>
+        <Card padding="sm" className="bg-primary-50 border-primary-100">
+          <div className="text-sm text-primary-700 font-medium">Total Amount</div>
+          <div className="text-2xl font-bold text-primary-900">₹{totalAmount.toLocaleString()}</div>
+        </Card>
+      </div>
+
+      {/* Requests Table */}
+      <Card>
+        <div className="p-6 border-b border-neutral-200">
+          <h3 className="text-lg font-semibold text-neutral-900">Withdrawal Requests</h3>
+        </div>
+        <Table data={requests} columns={columns} emptyMessage="No withdrawal requests found." />
+      </Card>
+
+      {/* Approve Modal */}
+      <Modal
+        isOpen={isApproveModalOpen}
+        onClose={() => {
+          setIsApproveModalOpen(false);
+          setSelectedRequest(null);
+          setSelectedAgentId('');
+          setNotes('');
+        }}
+        title="Approve Withdrawal Request"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => {
+              setIsApproveModalOpen(false);
+              setSelectedRequest(null);
+              setSelectedAgentId('');
+              setNotes('');
+            }}>Cancel</Button>
+            <Button onClick={confirmApprove} className="bg-green-600 hover:bg-green-700">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Approve Request
+            </Button>
+          </>
+        }
+      >
+        {selectedRequest && (
+          <div className="space-y-4 p-6">
+            <div className="bg-neutral-50 p-4 rounded-md">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-neutral-600">Customer:</span>
+                  <p className="font-medium text-neutral-900">{selectedRequest.customerName}</p>
+                </div>
+                <div>
+                  <span className="text-neutral-600">Amount:</span>
+                  <p className="font-medium text-neutral-900">₹{selectedRequest.amount.toLocaleString()}</p>
+                </div>
+                <div>
+                  <span className="text-neutral-600">Request Date:</span>
+                  <p className="font-medium text-neutral-900">
+                    {new Date(selectedRequest.requestDate).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-neutral-600">Account:</span>
+                  <p className="font-medium text-neutral-900">{selectedRequest.accountNumber || 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+
+            {withdrawalRequestService.findCustomerBatchAgent(selectedRequest.customerId, batches) && (
+              <div className="bg-blue-50 p-3 rounded-md">
+                <p className="text-sm text-blue-700">
+                  <strong>Auto-assigned:</strong> Customer is in a batch. Agent has been pre-selected.
+                </p>
+              </div>
+            )}
+
+            <Select
+              label="Assign Agent"
+              placeholder="Select an agent"
+              value={selectedAgentId}
+              onChange={(e) => setSelectedAgentId(e.target.value)}
+              options={[
+                { value: '', label: 'Select Agent' },
+                ...agents.map(agent => ({
+                  value: agent._id || agent.id || '',
+                  label: `${agent.fullName} (${agent.employeeId || ''})`
+                }))
+              ]}
+              required
+            />
+
+            <Textarea
+              label="Notes (Optional)"
+              placeholder="Add any notes about this approval"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </div>
+        )}
+      </Modal>
+
+      {/* Reject Modal */}
+      <Modal
+        isOpen={isRejectModalOpen}
+        onClose={() => {
+          setIsRejectModalOpen(false);
+          setSelectedRequest(null);
+          setRejectionReason('');
+        }}
+        title="Reject Withdrawal Request"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => {
+              setIsRejectModalOpen(false);
+              setSelectedRequest(null);
+              setRejectionReason('');
+            }}>Cancel</Button>
+            <Button variant="danger" onClick={confirmReject}>
+              <XCircle className="h-4 w-4 mr-2" />
+              Reject Request
+            </Button>
+          </>
+        }
+      >
+        {selectedRequest && (
+          <div className="space-y-4 p-6">
+            <div className="bg-neutral-50 p-4 rounded-md">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-neutral-600">Customer:</span>
+                  <p className="font-medium text-neutral-900">{selectedRequest.customerName}</p>
+                </div>
+                <div>
+                  <span className="text-neutral-600">Amount:</span>
+                  <p className="font-medium text-neutral-900">₹{selectedRequest.amount.toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+
+            <Input
+              label="Rejection Reason *"
+              placeholder="Please provide a reason for rejection"
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              required
+            />
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+};
 
 export default function ViewBranchPage() {
   const router = useRouter();
@@ -31,17 +445,38 @@ export default function ViewBranchPage() {
   const { deleteBranch, loading: isDeleting } = useBranchMutations();
   const { addToast } = useToast();
 
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'danger' | 'warning' | 'info';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    variant: 'warning'
+  });
+
   const handleDelete = async () => {
     if (!branch) return;
-    if (confirm(`Are you sure you want to delete ${branch.branchName}?`)) {
-      try {
-        await deleteBranch(branch.id || branch._id || '');
-        addToast({ type: 'success', message: 'Branch deleted successfully' });
-        router.push('/branches');
-      } catch (err) {
-        addToast({ type: 'error', message: 'Failed to delete branch' });
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Branch',
+      message: `Are you sure you want to delete ${branch.branchName}? This action cannot be undone.`,
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteBranch(branch.id || branch._id || '');
+          addToast({ type: 'success', message: 'Branch deleted successfully' });
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+          router.push('/branches');
+        } catch (err) {
+          addToast({ type: 'error', message: 'Failed to delete branch' });
+        }
       }
-    }
+    });
   };
 
   const getStatusBadge = (status: 'Active' | 'Inactive' | 'Under Maintenance') => {
@@ -92,6 +527,12 @@ export default function ViewBranchPage() {
       icon: <BarChart2 className="h-4 w-4" />,
       content: <BranchAnalyticsTab branchId={branch.id || branch._id || ''} />,
     },
+    {
+      id: 'withdrawals',
+      label: 'Withdrawal Requests',
+      icon: <Wallet className="h-4 w-4" />,
+      content: <BranchWithdrawalRequestsTab branchId={branch.id || branch._id || ''} branchName={branch.branchName} />,
+    },
   ];
 
   return (
@@ -114,6 +555,18 @@ export default function ViewBranchPage() {
         </Card>
 
         <Tabs tabs={TABS} />
+
+        {/* Confirmation Dialog */}
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen}
+          onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+          onConfirm={confirmDialog.onConfirm}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          variant={confirmDialog.variant}
+          confirmText="Confirm"
+          cancelText="Cancel"
+        />
       </div>
     </DashboardLayout>
   );

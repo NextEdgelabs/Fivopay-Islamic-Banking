@@ -25,6 +25,9 @@ import {
   Banknote,
   NotebookPen,
   Bot,
+  Group,
+  List,
+  IndianRupee,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -259,6 +262,37 @@ export default function DashboardLayout({
             label="Journal Entries"
             sidebarOpen={sidebarOpen}
             href="/journal-entries"
+          />
+          {/* Joint Liability Group Divider */}
+          {sidebarOpen ? (
+            <div className="pt-4 pb-2">
+              <div className="px-3 py-2">
+                <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                  Joint Liability Group
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="pt-4 pb-2 border-t border-border-light mt-2"></div>
+          )}
+          
+          <NavItem
+            icon={<Group className="h-5 w-5" />}
+            label="Joint Liability Group"
+            sidebarOpen={sidebarOpen}
+            href="/joint-liability/joint-liability-group"
+          />
+          <NavItem
+            icon={<List className="h-5 w-5" />}
+            label="Joint Liability Transactions"
+            sidebarOpen={sidebarOpen}
+            href="/joint-liability/joint-liability-transactions"
+          />
+          <NavItem
+            icon={<IndianRupee className="h-5 w-5" />}
+            label="Joint Liability Loans"
+            sidebarOpen={sidebarOpen}
+            href="/joint-liability/joint-liability-loans"
           />
           
           {/* Divider below Financials */}

@@ -494,7 +494,7 @@ const CustomerOverviewTab = ({ customer }: { customer: any }) => (
             }
           />
           <InfoItem icon={<Phone className="h-4 w-4 mr-2" />} label="Phone" value={customer.phone} />
-          <InfoItem icon={<Phone className="h-4 w-4 mr-2" />} label="Alternate Phone" value={customer.alternatePhone} />
+          <InfoItem icon={<Phone className="h-4 w-4 mr-2" />} label="Alternate Phone (Optional)" value={customer.alternatePhone} />
           <InfoItem icon={<Mail className="h-4 w-4 mr-2" />} label="Email" value={customer.email} />
           <InfoItem icon={<MapPin className="h-4 w-4 mr-2" />} label="Country" value={customer.country} />
         </div>

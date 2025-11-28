@@ -284,12 +284,13 @@ export default function EditCustomerPage() {
           />
 
           <Input
-            label="Alternate Phone"
+            label="Alternate Phone (Optional)"
             name="alternatePhone"
             type="tel"
             value={formData.alternatePhone}
             onChange={handleChange}
             leftIcon={<Phone className="h-4 w-4" />}
+            placeholder="+91 XXXXX XXXXX"
           />
 
           <Input

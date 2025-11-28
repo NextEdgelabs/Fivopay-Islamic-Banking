@@ -257,7 +257,7 @@ export default function AddCustomerPage() {
           />
 
           <Input
-            label="Alternate Phone"
+            label="Alternate Phone (Optional)"
             name="alternatePhone"
             type="tel"
             value={formData.alternatePhone}
