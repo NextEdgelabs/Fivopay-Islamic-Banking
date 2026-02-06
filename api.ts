@@ -1,5 +1,6 @@
 export const API = {
     domain: process.env.NEXT_PUBLIC_DOMAIN || "https://api.fivopay.nextlabsonline.com",
+    // domain:"http://localhost:4000",
   
     endPoints: {
         // Customer endpoints

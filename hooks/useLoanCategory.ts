@@ -19,8 +19,14 @@ export const useLoanCategory = (id: string): UseLoanCategoryResult => {
     setLoading(true);
     setError(null);
     try {
-      const data = await loanCategoryService.getById(id);
-      setCategory(data.data);
+      const response = await loanCategoryService.getById(id);
+      // Handle both response formats: data or result.loanCategory
+      const categoryData = response.data || response.result?.loanCategory;
+      if (categoryData) {
+        setCategory(categoryData);
+      } else {
+        throw new Error('Category data not found in response');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch loan category');
     } finally {

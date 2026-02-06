@@ -31,6 +31,7 @@ import { useToast } from '@/components/ui/Toast';
 import { useLoanCategoryMutations } from '@/hooks/useLoanCategoryMutations';
 import { useLoanCategory } from '@/hooks/useLoanCategory';
 import { LoanCategory, LoanCategoryStatus } from '@/services/loan-categories.service';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 export default function LoanCategoryDetailPage() {
   const router = useRouter();
@@ -39,17 +40,23 @@ export default function LoanCategoryDetailPage() {
   const { category, loading, error } = useLoanCategory(categoryId);
   const { deleteLoanCategory, loading: isDeleting } = useLoanCategoryMutations();
   const { addToast } = useToast();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleDelete = async () => {
     if (!category) return;
-    if (confirm(`Are you sure you want to delete ${category.categoryName}?`)) {
-      try {
-        await deleteLoanCategory(category._id);
-        addToast({ type: 'success', message: 'Category deleted successfully' });
-        router.push('/products/categories');
-      } catch (err) {
-        addToast({ type: 'error', message: 'Failed to delete category' });
-      }
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!category) return;
+    try {
+      await deleteLoanCategory(category._id);
+      addToast({ type: 'success', message: 'Category deleted successfully' });
+      router.push('/products/categories');
+    } catch (err) {
+      addToast({ type: 'error', message: err instanceof Error ? err.message : 'Failed to delete category' });
+    } finally {
+      setShowDeleteDialog(false);
     }
   };
 
@@ -126,6 +133,18 @@ export default function LoanCategoryDetailPage() {
 
         <Tabs tabs={TABS} />
       </div>
+
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={confirmDelete}
+        title="Delete Category"
+        message={category ? `Are you sure you want to delete "${category.categoryName}"? This action cannot be undone.` : ''}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        loading={isDeleting}
+      />
     </DashboardLayout>
   );
 }

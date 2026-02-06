@@ -161,8 +161,11 @@ export interface LoanCategoryFilters {
 
 export interface LoanCategoryResponse {
   success: boolean;
-  message: string;
-  data: LoanCategory;
+  message?: string;
+  data?: LoanCategory;
+  result?: {
+    loanCategory: LoanCategory;
+  };
 }
 
 export interface LoanCategoriesListResponse {
@@ -240,7 +243,16 @@ export const getLoanCategoryById = async (id: string): Promise<LoanCategoryRespo
       },
     });
     if (response.status === 200) {
-      return response.data;
+      // Transform the response to match the expected format
+      const apiResponse = response.data;
+      if (apiResponse.result?.loanCategory) {
+        return {
+          success: apiResponse.success,
+          data: apiResponse.result.loanCategory,
+        };
+      }
+      // Fallback for other response formats
+      return apiResponse;
     } else {
       throw new Error('Failed to fetch loan category');
     }

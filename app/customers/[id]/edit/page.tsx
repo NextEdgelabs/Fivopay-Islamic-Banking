@@ -207,11 +207,25 @@ export default function EditCustomerPage() {
     }
 
     try {
-      // Transform form data to match UpdateCustomerDto
-      const customerData = {
-        ...formData,
-        annualIncome: formData.annualIncome ? parseFloat(formData.annualIncome) : undefined,
-      } as any;
+      // Transform form data to match UpdateCustomerDto and remove empty strings
+      const customerData: any = {};
+      
+      // Iterate through formData and only include non-empty string values
+      Object.keys(formData).forEach((key) => {
+        const value = formData[key as keyof typeof formData];
+        
+        // Skip empty strings
+        if (value === '') {
+          return;
+        }
+        
+        // Handle annualIncome specially - convert to number or undefined
+        if (key === 'annualIncome') {
+          customerData[key] = value ? parseFloat(value as string) : undefined;
+        } else {
+          customerData[key] = value;
+        }
+      });
 
       await updateCustomer(customerId, customerData);
       addToast({
