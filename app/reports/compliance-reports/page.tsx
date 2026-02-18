@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -33,8 +33,10 @@ import {
   FileSpreadsheet,
   Lock,
   Activity,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils';
+import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
 import {
   BarChart,
   Bar,
@@ -280,6 +282,7 @@ export default function ComplianceReportsPage() {
   });
 
   const [showFilters, setShowFilters] = useState(true);
+  const chartsSectionRef = useRef<HTMLDivElement>(null);
 
   // Calculate KPIs
   const kpis = useMemo(() => {
@@ -670,6 +673,31 @@ export default function ComplianceReportsPage() {
               Regulatory compliance, KYC verification, and audit trail monitoring
             </p>
           </div>
+          <Button
+            variant="outline"
+            onClick={() => exportChartAsPNG(chartsSectionRef.current, 'compliance-charts', 'Compliance Reports')}
+          >
+            <ImageIcon className="h-4 w-4 mr-2" />
+            Export Charts
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() =>
+              exportKPIsAsCSV(
+                [
+                  { label: 'KYC Pending Verifications', value: String(kpis.kycPending) },
+                  { label: 'AML Flags Raised', value: String(kpis.amlFlags) },
+                  { label: 'Transactions Flagged', value: String(kpis.transactionsFlagged) },
+                  { label: 'Regulatory Reports Submitted', value: String(kpis.regulatorySubmitted) },
+                ],
+                'compliance-reports',
+                'Compliance & Audit Reports'
+              )
+            }
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export KPIs
+          </Button>
         </div>
 
         {/* KPI Cards */}
@@ -741,7 +769,9 @@ export default function ComplianceReportsPage() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div ref={chartsSectionRef} className="space-y-4">
+          <h2 className="text-lg font-semibold text-neutral-900">Compliance Analytics</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Alert Severity Donut Chart */}
           <Card className="p-6 bg-white border border-neutral-200">
             <h3 className="text-lg font-semibold text-neutral-900 mb-4">
@@ -796,6 +826,7 @@ export default function ComplianceReportsPage() {
               </ResponsiveContainer>
             </div>
           </Card>
+          </div>
         </div>
 
         {/* Quick Actions */}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -14,6 +14,7 @@ import {
   Modal,
   Select,
   Pagination,
+  Input,
 } from '@/components/ui';
 import {
   ArrowLeft,
@@ -31,6 +32,7 @@ import {
   Trash2,
   Building,
   TrendingUp,
+  Search,
 } from 'lucide-react';
 import { useBatch } from '@/hooks/useBatch';
 import { useBatchMutations } from '@/hooks/useBatchMutations';
@@ -66,7 +68,21 @@ export default function ViewBatchPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customersLoading, setCustomersLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [customerSearch, setCustomerSearch] = useState('');
   const itemsPerPage = 10;
+
+  const filteredCustomers = useMemo(() => {
+    if (!customerSearch.trim()) return customers;
+    const q = customerSearch.toLowerCase().trim();
+    return customers.filter(
+      (c) =>
+        (c.fullName || '').toLowerCase().includes(q) ||
+        (c.email || '').toLowerCase().includes(q) ||
+        (c.phone || '').toLowerCase().includes(q) ||
+        (c.memberId || '').toLowerCase().includes(q) ||
+        ((c as any).customerId || '').toLowerCase().includes(q)
+    );
+  }, [customers, customerSearch]);
 
   const { batch, loading, error, refetch } = useBatch(batchId);
   const { deleteBatch, updateBatchStatus, loading: isDeleting } = useBatchMutations();
@@ -386,38 +402,60 @@ export default function ViewBatchPage() {
 
   // Customers Tab
   const BatchCustomersTab = () => {
-    const totalPages = Math.ceil((batch?.totalCustomers || 0) / itemsPerPage);
+    const displayCustomers = filteredCustomers;
+    const totalPages = Math.ceil(displayCustomers.length / itemsPerPage) || 1;
+    const paginatedCustomers = displayCustomers.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
     const startIndex = (currentPage - 1) * itemsPerPage;
 
     return (
       <div className="space-y-6 mt-4">
         <Card>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-neutral-900">Customers in Batch</h3>
-            <Badge variant="neutral">
-              {customers.length} of {batch?.totalCustomers || 0} customers
-            </Badge>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="text-lg font-semibold text-neutral-900">Customers in Batch</h3>
+              <Badge variant="neutral">
+                {customers.length} of {batch?.totalCustomers || 0} customers
+              </Badge>
+            </div>
+            <div className="w-full sm:w-64">
+              <Input
+                placeholder="Search customers..."
+                value={customerSearch}
+                onChange={(e) => {
+                  setCustomerSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
+                leftIcon={<Search className="h-4 w-4" />}
+              />
+            </div>
           </div>
           
           {customersLoading ? (
             <div className="p-12 text-center">
               <p className="text-neutral-500">Loading customers...</p>
             </div>
-          ) : customers.length === 0 ? (
+          ) : displayCustomers.length === 0 ? (
             <div className="p-12 text-center">
-              <p className="text-neutral-500 mb-4">No customers in this batch</p>
-              <p className="text-sm text-neutral-400">Add customers to this batch to get started</p>
+              <p className="text-neutral-500 mb-4">
+                {customerSearch.trim() ? 'No customers match your search' : 'No customers in this batch'}
+              </p>
+              {!customerSearch.trim() && (
+                <p className="text-sm text-neutral-400">Add customers to this batch to get started</p>
+              )}
             </div>
           ) : (
             <>
               <div className="overflow-x-auto">
-                <Table data={customers} columns={customerColumns} />
+                <Table data={paginatedCustomers} columns={customerColumns} />
               </div>
               {totalPages > 1 && (
                 <div className="p-4 border-t mt-6 flex items-center justify-between">
                   <p className="text-sm text-neutral-600">
-                    Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, batch?.totalCustomers || 0)} of{' '}
-                    {batch?.totalCustomers || 0} customers
+                    Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, displayCustomers.length)} of{' '}
+                    {displayCustomers.length} customers
                   </p>
                   <Pagination
                     currentPage={currentPage}

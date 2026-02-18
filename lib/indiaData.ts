@@ -52,6 +52,15 @@ export const CITIES_BY_STATE: Record<string, string[]> = {
   // Add more states and cities as needed
 };
 
+export const LOAN_TYPES = [
+  'Personal Loan',
+  'Home Loan',
+  'Business Loan',
+  'Education Loan',
+  'Vehicle Loan',
+  'Gold Loan',
+];
+
 export const BRANCH_SERVICES = [
   'Deposits',
   'Loans',

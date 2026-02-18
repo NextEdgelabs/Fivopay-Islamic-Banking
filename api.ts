@@ -19,6 +19,7 @@ export const API = {
         createEmployee: "/api/v1/employee/create-employee",
         getAllEmployees: "/api/v1/employee/get-all-employees",
         getEmployeeById: "/api/v1/employee/get-employee-by-id",
+        getNextEmployeeId: "/api/v1/employee/get-next-employee-id",
         updateEmployee: "/api/v1/employee/update-employee",
         deleteEmployee: "/api/v1/employee/delete-employee",
 
@@ -88,5 +89,6 @@ export const API = {
 
         // share transactions
         getAllShareTransactions: "/api/v1/share-transaction/get-all-transactions",
+        recordShareTransaction: "/api/v1/share-transaction/record-transaction",
     }
 }   

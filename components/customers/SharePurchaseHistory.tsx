@@ -13,9 +13,10 @@ import { SharePurchase } from '@/services/shareTransactions.service';
 interface SharePurchaseHistoryProps {
   customerId: string;
   mode?: 'view' | 'edit' | 'add';
+  shareholderIdDefault?: string; // Customer's memberId for pre-filling share purchase form
 }
 
-export default function SharePurchaseHistory({ customerId, mode = 'view' }: SharePurchaseHistoryProps) {
+export default function SharePurchaseHistory({ customerId, mode = 'view', shareholderIdDefault }: SharePurchaseHistoryProps) {
   const router = useRouter();
   const { sharePurchases, loading, refetch } = useSharePurchases(customerId);
   const { deleteSharePurchase, approveSharePurchase, rejectSharePurchase } = useSharePurchaseMutations();
@@ -346,6 +347,7 @@ export default function SharePurchaseHistory({ customerId, mode = 'view' }: Shar
           customerId={customerId}
           purchase={editingPurchase}
           onClose={handleModalClose}
+          shareholderIdDefault={shareholderIdDefault}
         />
       )}
     </div>

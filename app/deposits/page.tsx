@@ -135,7 +135,7 @@ export default function DepositsPage() {
     },
     {
       key: 'interestRate',
-      header: 'Interest Rate',
+      header: 'Profit Rate',
       render: (value: number) => <div>{value}%</div>,
     },
     {

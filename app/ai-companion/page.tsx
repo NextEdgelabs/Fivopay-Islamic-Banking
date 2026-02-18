@@ -143,7 +143,7 @@ const qaDatabase: QA[] = [
   },
   {
     question: 'What is the total deposit amount?',
-    answer: 'Your **total deposit amount is ₹42.5 Crores** across all deposit products.\n\n**Deposit Breakdown:**\n• **Fixed Deposits**: ₹28.5 Crores (67%)\n• **Recurring Deposits**: ₹9.8 Crores (23%)\n• **Savings Accounts**: ₹3.2 Crores (8%)\n• **Current Accounts**: ₹1.0 Crores (2%)\n\n**Deposit Growth:**\n• Last Month: ₹40.2 Crores\n• This Month: ₹42.5 Crores\n• **Growth**: 5.7% month-over-month\n\n**CASA Ratio**: 9.9% (Current + Savings / Total Deposits)\n\nFixed deposits dominate your deposit portfolio, which provides stable funding but at higher interest costs.',
+    answer: 'Your **total deposit amount is ₹42.5 Crores** across all deposit products.\n\n**Deposit Breakdown:**\n• **Fixed Deposits**: ₹28.5 Crores (67%)\n• **Recurring Deposits**: ₹9.8 Crores (23%)\n• **Savings Accounts**: ₹3.2 Crores (8%)\n• **Current Accounts**: ₹1.0 Crores (2%)\n\n**Deposit Growth:**\n• Last Month: ₹40.2 Crores\n• This Month: ₹42.5 Crores\n• **Growth**: 5.7% month-over-month\n\n**CASA Ratio**: 9.9% (Current + Savings / Total Deposits)\n\nFixed deposits dominate your deposit portfolio, which provides stable funding but at higher profit costs.',
     hasChart: true,
     chartType: 'pie',
     chartTitle: 'Deposit Distribution',
@@ -187,8 +187,8 @@ const qaDatabase: QA[] = [
     ],
   },
   {
-    question: 'What is the average interest rate on loans?',
-    answer: 'Your **weighted average interest rate is 12.8%** across all loan products.\n\n**By Product:**\n• **Personal Loans**: 15.5% (highest risk)\n• **Business Loans**: 13.2%\n• **Education Loans**: 11.5% (subsidized)\n• **Auto Loans**: 10.8%\n• **Home Loans**: 9.5% (lowest risk)\n\n**Industry Benchmark**: 12-14%\n\nYour average rate is **competitive** and aligned with market standards. Personal loans command higher rates due to unsecured nature, while home loans have lower rates due to collateral.',
+    question: 'What is the average profit rate on loans?',
+    answer: 'Your **weighted average profit rate is 12.8%** across all loan products.\n\n**By Product:**\n• **Personal Loans**: 15.5% (highest risk)\n• **Business Loans**: 13.2%\n• **Education Loans**: 11.5% (subsidized)\n• **Auto Loans**: 10.8%\n• **Home Loans**: 9.5% (lowest risk)\n\n**Industry Benchmark**: 12-14%\n\nYour average rate is **competitive** and aligned with market standards. Personal loans command higher rates due to unsecured nature, while home loans have lower rates due to collateral.',
   },
   {
     question: 'Show me disbursement trends',
@@ -219,7 +219,7 @@ const qaDatabase: QA[] = [
   },
   {
     question: 'Show me product-wise profitability',
-    answer: 'Here\'s the profitability analysis by product:\n\n**Most Profitable Products:**\n1. **Personal Loans**: 18.5% margin (₹2.31 Cr profit)\n2. **Business Loans**: 16.2% margin (₹84.2 Lakhs profit)\n3. **Home Loans**: 12.8% margin (₹2.02 Cr profit)\n4. **Education Loans**: 10.5% margin (₹18.9 Lakhs profit)\n5. **Auto Loans**: 9.2% margin (₹4.6 Lakhs profit)\n\n**Total Profit**: ₹5.41 Crores\n**Average Margin**: 15.1%\n\nPersonal loans show the highest profitability due to higher interest rates, while auto loans have lower margins due to competitive pricing.',
+    answer: 'Here\'s the profitability analysis by product:\n\n**Most Profitable Products:**\n1. **Personal Loans**: 18.5% margin (₹2.31 Cr profit)\n2. **Business Loans**: 16.2% margin (₹84.2 Lakhs profit)\n3. **Home Loans**: 12.8% margin (₹2.02 Cr profit)\n4. **Education Loans**: 10.5% margin (₹18.9 Lakhs profit)\n5. **Auto Loans**: 9.2% margin (₹4.6 Lakhs profit)\n\n**Total Profit**: ₹5.41 Crores\n**Average Margin**: 15.1%\n\nPersonal loans show the highest profitability due to higher profit rates, while auto loans have lower margins due to competitive pricing.',
     hasChart: true,
     chartType: 'bar',
     chartTitle: 'Product Profitability (Margin %)',
@@ -233,7 +233,7 @@ const qaDatabase: QA[] = [
   },
   {
     question: 'What is my cost of funds?',
-    answer: 'Your **weighted average cost of funds is 6.8%**.\n\n**Cost Breakdown by Source:**\n• **Fixed Deposits**: 7.2% (₹28.5 Cr, 67% of deposits)\n• **Recurring Deposits**: 6.5% (₹9.8 Cr, 23% of deposits)\n• **Savings Accounts**: 4.0% (₹3.2 Cr, 8% of deposits)\n• **Current Accounts**: 0.5% (₹1.0 Cr, 2% of deposits)\n\n**Total Deposits**: ₹42.5 Crores\n**Weighted Average**: 6.8%\n\n**Net Interest Margin**: 6.0% (Average lending rate 12.8% - Cost of funds 6.8%)\n\nYour cost of funds is **competitive**. Increasing CASA ratio can further reduce cost of funds.',
+    answer: 'Your **weighted average cost of funds is 6.8%**.\n\n**Cost Breakdown by Source:**\n• **Fixed Deposits**: 7.2% (₹28.5 Cr, 67% of deposits)\n• **Recurring Deposits**: 6.5% (₹9.8 Cr, 23% of deposits)\n• **Savings Accounts**: 4.0% (₹3.2 Cr, 8% of deposits)\n• **Current Accounts**: 0.5% (₹1.0 Cr, 2% of deposits)\n\n**Total Deposits**: ₹42.5 Crores\n**Weighted Average**: 6.8%\n\n**Net profit Margin**: 6.0% (Average lending rate 12.8% - Cost of funds 6.8%)\n\nYour cost of funds is **competitive**. Increasing CASA ratio can further reduce cost of funds.',
   },
   {
     question: 'How many loan applications are pending approval?',

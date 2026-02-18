@@ -61,7 +61,6 @@ export default function LoansPage() {
   };
 
   const mapApprovalStatus = (approvalStatus?: string): string => {
-    debugger;
     if (!approvalStatus) return 'Pending';
     const statusMap: Record<string, string> = {
       'pending': 'Pending',
@@ -207,6 +206,14 @@ export default function LoansPage() {
       },
     },
     {
+      key: 'loanSource',
+      header: 'Channel',
+      render: (value: string, row: any) => {
+        const source = value ?? row.loanSource ?? 'online';
+        return <Badge variant={source === 'online' ? 'primary' : 'neutral'}>{source === 'online' ? 'Online' : 'Walk-in'}</Badge>;
+      },
+    },
+    {
       key: 'status',
       header: 'Status',
       render: (value: string, row: any) => {
@@ -313,6 +320,16 @@ export default function LoansPage() {
               { value: 'Education Loan', label: 'Education Loan' },
               { value: 'Vehicle Loan', label: 'Vehicle Loan' },
               { value: 'Gold Loan', label: 'Gold Loan' },
+            ]}
+          />
+          <Select
+            name="loanSource"
+            value={filters.loanSource || ''}
+            onChange={(e) => setFilters(prev => ({ ...prev, loanSource: e.target.value as 'walkin' | 'online' | undefined }))}
+            options={[
+              { value: '', label: 'All Channels' },
+              { value: 'walkin', label: 'Walk-in' },
+              { value: 'online', label: 'Online' },
             ]}
           />
           <Button variant="outline" onClick={() => { /* Implement Export */ }}>

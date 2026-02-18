@@ -72,6 +72,7 @@ export interface Loan {
   paidAmount?: number;
   branchId?: string;
   branchName?: string;
+  loanSource?: 'walkin' | 'online';
   processedBy?: string;
   approvedBy?: string;
   rejectedBy?: string;
@@ -92,6 +93,7 @@ export interface CreateLoanDto {
   loanType?: string;
   tenure?: number;
   branchId?: string;
+  loanSource?: 'walkin' | 'online';
   remarks?: string;
 }
 
@@ -106,6 +108,7 @@ export interface UpdateLoanDto {
   // Frontend compatibility
   status?: string;
   interestRate?: number;
+  loanSource?: 'walkin' | 'online';
   tenure?: number;
   remarks?: string;
 }
@@ -119,6 +122,7 @@ export interface LoanFilters {
   customerId?: string;
   userId?: string;
   organisation?: string;
+  loanSource?: 'walkin' | 'online';
 }
 
 export interface LoansListResponse {
@@ -230,6 +234,7 @@ function normalizeLoan(loan: any): Loan {
     customerName: customerName || loan.customerName || '',
     // Map product to loanType for UI compatibility
     loanType: productName || loan.loanType || '',
+    loanSource: loan.loanSource || 'online',
     // Ensure product and category are strings or objects (keep original for reference)
     product: loan.product,
     category: loan.category,

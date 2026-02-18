@@ -87,7 +87,7 @@ const initialAccounts: ChartOfAccount[] = [
   {
     id: 'acc-4000',
     accountId: '4000',
-    accountName: 'Interest Income',
+    accountName: 'Profit Income',
     accountType: 'Income',
     balance: 5100,
     description: 'Revenue earned this period',
@@ -284,11 +284,11 @@ export default function AccountManagementPage() {
               items={[
                 { label: 'Dashboard', href: '/dashboard' },
                 { label: 'Financials', href: '#' },
-                { label: 'Account Management' },
+                { label: 'Ledger Management' },
               ]}
             />
             <h1 className="text-3xl font-bold text-neutral-900 mt-2">
-              Account Management
+              Ledger Management
             </h1>
             <p className="text-neutral-600 mt-1">
               Manage Chart of Accounts
@@ -314,7 +314,7 @@ export default function AccountManagementPage() {
           <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-700 mb-1 font-medium">Total Accounts</p>
+                <p className="text-sm text-blue-700 mb-1 font-medium">Total Ledgers</p>
                 <p className="text-2xl font-bold text-blue-900">
                   {stats.totalAccounts}
                 </p>
@@ -328,7 +328,7 @@ export default function AccountManagementPage() {
           <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-700 mb-1 font-medium">Active Accounts</p>
+                <p className="text-sm text-green-700 mb-1 font-medium">Active Ledgers</p>
                 <p className="text-2xl font-bold text-green-900">
                   {stats.activeAccounts}
                 </p>
@@ -416,10 +416,10 @@ export default function AccountManagementPage() {
               <thead className="bg-neutral-50 border-b border-border-light">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    Account ID
+                    Ledger ID
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    Account Name
+                    Ledger Name
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                     Type

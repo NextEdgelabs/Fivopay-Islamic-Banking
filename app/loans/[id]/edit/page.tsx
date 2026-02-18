@@ -23,6 +23,7 @@ export default function EditLoanPage() {
     tenure: '',
     interestRate: '',
     status: '' as any,
+    loanSource: 'online' as 'walkin' | 'online',
   });
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function EditLoanPage() {
         tenure: loan?.tenure?.toString() || '',
         interestRate: loan?.interestRate?.toString() || '',
         status: loan.status,
+        loanSource: (loan?.loanSource || 'online') as 'walkin' | 'online',
       });
     }
   }, [loan]);
@@ -50,6 +52,7 @@ export default function EditLoanPage() {
         tenure: parseInt(formData.tenure),
         interestRate: parseFloat(formData.interestRate),
         status: formData.status as any,
+        loanSource: formData.loanSource,
       });
       addToast({ type: 'success', message: 'Loan updated successfully!' });
       router.push(`/loans/${loanId}`);
@@ -135,7 +138,7 @@ export default function EditLoanPage() {
                 required
               />
               <Input
-                label="Interest Rate (%)"
+                label="Profit Rate (%)"
                 name="interestRate"
                 type="number"
                 step="0.1"
@@ -158,6 +161,16 @@ export default function EditLoanPage() {
                   { value: 'Closed', label: 'Closed' },
                 ]}
                 required
+              />
+              <Select
+                label="Loan Status (Channel)"
+                name="loanSource"
+                value={formData.loanSource}
+                onChange={handleChange}
+                options={[
+                  { value: 'walkin', label: 'Walk-in' },
+                  { value: 'online', label: 'Online' },
+                ]}
               />
             </div>
           </Card>

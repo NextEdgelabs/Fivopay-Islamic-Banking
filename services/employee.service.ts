@@ -245,6 +245,26 @@ class EmployeeService {
     }
   }
 
+  async getNextEmployeeId(): Promise<{ success: boolean; data: { employeeId: string } }> {
+    try {
+      const token = getAuthToken();
+      const response = await axios.get(`${API.domain}${API.endPoints.getNextEmployeeId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+      });
+
+      if (response.status === 200 && response.data?.data?.employeeId) {
+        return response.data;
+      } else {
+        throw new Error('Failed to generate employee ID');
+      }
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to generate employee ID');
+    }
+  }
+
   async getById(employeeId: string): Promise<EmployeeResponse> {
     try {
       const token = getAuthToken();

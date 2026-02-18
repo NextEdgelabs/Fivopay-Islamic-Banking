@@ -507,28 +507,66 @@ export const getCustomerSharePurchases = async (customerId: string): Promise<Sha
   return [];
 };
 
+function mapPaymentMethodToBackend(method: string): string {
+  const m = (method || '').toLowerCase();
+  if (m.includes('cash')) return 'cash';
+  if (m.includes('bank') || m.includes('transfer')) return 'bank_transfer';
+  if (m.includes('cheque') || m.includes('check')) return 'cheque';
+  return 'razorpay'; // Online
+}
+
 export const createSharePurchase = async (data: CreateSharePurchaseDto): Promise<SharePurchase> => {
-  // This would be implemented based on your backend API
-  // For now, returning mock data
-  return {
-    id: 'mock-id',
-    customerId: data.customerId,
-    purchaseDate: data.purchaseDate,
-    shareType: data.shareType,
-    numberOfShares: data.numberOfShares,
-    quantity: data.quantity,
-    pricePerShare: data.pricePerShare,
-    totalAmount: data.totalAmount,
-    paymentMethod: data.paymentMethod,
-    status: data.status || 'Pending',
-    approvalStatus: 'Pending Approval',
-    certificateNumber: data.certificateNumber,
-    shareholderId: data.shareholderId,
-    transactionReference: data.transactionReference,
-    notes: data.notes,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  try {
+    const token = getAuthToken();
+    const response = await axios.post(
+      `${API.domain}${API.endPoints.recordShareTransaction}`,
+      {
+        customerId: data.customerId,
+        transactionType: 'purchase',
+        quantity: data.quantity || data.numberOfShares,
+        pricePerShare: data.pricePerShare,
+        paymentMethod: mapPaymentMethodToBackend(data.paymentMethod),
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
+    );
+    if (response.status === 200 || response.status === 201) {
+      const result = response.data?.result || response.data?.data;
+      const status = result?.status;
+      const approvalStatus =
+        status === 'Completed' || status === 'Verified'
+          ? 'Approved'
+          : status === 'Rejected'
+          ? 'Rejected'
+          : 'Pending Approval';
+      return {
+        id: result?._id || result?.id || '',
+        customerId: data.customerId,
+        purchaseDate: data.purchaseDate,
+        shareType: data.shareType || 'Equity',
+        numberOfShares: data.quantity || data.numberOfShares,
+        quantity: data.quantity || data.numberOfShares,
+        pricePerShare: data.pricePerShare,
+        totalAmount: data.totalAmount,
+        paymentMethod: data.paymentMethod,
+        status: status === 'Completed' ? 'Completed' : status === 'Rejected' ? 'Cancelled' : 'Pending',
+        approvalStatus,
+        certificateNumber: result?.transactionId,
+        shareholderId: data.shareholderId,
+        transactionReference: result?.transactionId,
+        notes: data.notes,
+        createdAt: result?.createdAt || new Date().toISOString(),
+        updatedAt: result?.updatedAt || new Date().toISOString(),
+      };
+    }
+    throw new Error('Failed to create share purchase');
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || 'Failed to create share purchase');
+  }
 };
 
 export const updateSharePurchase = async (data: UpdateSharePurchaseDto): Promise<SharePurchase> => {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -29,8 +29,10 @@ import {
   Award,
   Clock,
   AlertCircle,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils';
+import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
 import {
   BarChart,
   Bar,
@@ -226,6 +228,7 @@ export default function CollectionReportsPage() {
   });
 
   const [showFilters, setShowFilters] = useState(true);
+  const chartsSectionRef = useRef<HTMLDivElement>(null);
 
   // Calculate KPIs
   const kpis = useMemo(() => {
@@ -643,7 +646,8 @@ export default function CollectionReportsPage() {
     <DashboardLayout>
       <div className="p-6 max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div>
+        <div className="flex items-start justify-between gap-4">
+          <div>
           <Breadcrumbs
             items={[
               { label: 'Dashboard', href: '/dashboard' },
@@ -657,6 +661,34 @@ export default function CollectionReportsPage() {
           <p className="text-neutral-600 mt-1">
             Track loan recovery and field agent performance
           </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => exportChartAsPNG(chartsSectionRef.current, 'collection-charts', 'Collection Reports')}
+          >
+            <ImageIcon className="h-4 w-4 mr-2" />
+            Export Charts
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() =>
+              exportKPIsAsCSV(
+                [
+                  { label: 'Total Collections', value: `₹${kpis.todayCollections.toLocaleString('en-IN')}` },
+                  { label: 'MTD Collections', value: `₹${kpis.mtdCollections.toLocaleString('en-IN')}` },
+                  { label: 'Cash Deposited', value: `₹${kpis.totalDeposited.toLocaleString('en-IN')}` },
+                  { label: 'Pending', value: `₹${kpis.totalPending.toLocaleString('en-IN')}` },
+                  { label: 'Agents Active Today', value: String(kpis.activeAgentsToday) },
+                  { label: 'Avg Collection Success Rate', value: `${kpis.avgSuccessRate}%` },
+                ],
+                'collection-reports',
+                'Collections & Agent Reports'
+              )
+            }
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export KPIs
+          </Button>
         </div>
 
         {/* KPI Cards */}
@@ -729,7 +761,9 @@ export default function CollectionReportsPage() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div ref={chartsSectionRef} className="space-y-4">
+          <h2 className="text-lg font-semibold text-neutral-900">Collection Analytics</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Collections by Agent */}
           <Card className="p-6">
             <h3 className="text-lg font-semibold text-neutral-900 mb-4">
@@ -775,6 +809,7 @@ export default function CollectionReportsPage() {
             </h3>
             <RegionHeatmap data={regionData} />
           </Card>
+          </div>
         </div>
 
         {/* Filters */}

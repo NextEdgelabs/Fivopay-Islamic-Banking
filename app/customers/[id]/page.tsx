@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
   Card,
@@ -63,7 +63,9 @@ const InfoItem = ({ icon, label, value }: { icon: React.ReactNode, label: string
 export default function ViewCustomerPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const customerId = params?.id as string;
+  const tabParam = searchParams?.get('tab');
   const { addToast } = useToast();
 
   const { customer, transactions, activities, loading, error, refetch } = useCustomer(customerId);
@@ -197,7 +199,7 @@ export default function ViewCustomerPage() {
       id: 'shares',
       label: 'Share Purchase History',
       icon: <TrendingUp className="h-4 w-4" />,
-      content: <SharePurchaseHistory customerId={customerId} mode="view" />,
+      content: <SharePurchaseHistory customerId={customerId} mode="edit" shareholderIdDefault={customer?.memberId || customer?.customerId} />,
     }] : []),
     {
       id: 'loans',
@@ -245,7 +247,7 @@ export default function ViewCustomerPage() {
         </Card>
 
         {/* Top-level Tabs */}
-        <Tabs tabs={TABS} defaultTab="overview" />
+        <Tabs tabs={TABS} defaultTab={tabParam && TABS.some(t => t.id === tabParam) ? tabParam : 'overview'} />
 
         {/* Delete Confirmation Modal */}
         <Modal
@@ -1027,11 +1029,11 @@ const CustomerDepositsTab = ({ deposits }: { deposits: any[] }) => (
                   <p className="font-semibold">₹{deposit.currentBalance.toLocaleString('en-IN')}</p>
                 </div>
                 <div>
-                  <p className="text-neutral-600">Interest Rate</p>
+                  <p className="text-neutral-600">Profit Rate</p>
                   <p className="font-semibold">{deposit.interestRate}%</p>
                 </div>
                 <div>
-                  <p className="text-neutral-600">Interest Earned</p>
+                  <p className="text-neutral-600">Profit Earned</p>
                   <p className="font-semibold">₹{deposit.interestEarned.toLocaleString('en-IN')}</p>
                 </div>
               </div>

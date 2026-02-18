@@ -98,7 +98,7 @@ const chartOfAccounts: ChartOfAccount[] = [
   {
     id: 'acc-4000',
     accountId: '4000',
-    accountName: 'Interest Income',
+    accountName: 'Profit Income',
     accountType: 'Income',
     balance: 5100,
     description: 'Revenue earned this period',

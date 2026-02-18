@@ -61,6 +61,7 @@ export default function AddLoanPage() {
     tenure: '',
     interestRate: '',
     branchId: '',
+    loanSource: 'online' as 'walkin' | 'online',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -134,8 +135,9 @@ export default function AddLoanPage() {
         amount: parseFloat(formData.loanAmount),
         tenure: parseInt(formData.tenure),
         branchId: formData.branchId,
-        userId: '',
+        userId: formData.customerId,
         product: '',
+        loanSource: formData.loanSource,
       });
       addToast({ type: 'success', message: 'Loan application created successfully!' });
       router.push('/loans');
@@ -218,6 +220,16 @@ export default function AddLoanPage() {
                 required
               />
               <Select
+                label="Loan Status"
+                name="loanSource"
+                value={formData.loanSource}
+                onChange={handleChange}
+                options={[
+                  { value: 'walkin', label: 'Walk-in' },
+                  { value: 'online', label: 'Online' },
+                ]}
+              />
+              <Select
                 label="Branch"
                 name="branchId"
                 value={formData.branchId}
@@ -250,7 +262,7 @@ export default function AddLoanPage() {
                 required
               />
               <Input
-                label="Interest Rate (% p.a.)"
+                label="Profit Rate (% p.a.)"
                 name="interestRate"
                 type="number"
                 value={formData.interestRate}

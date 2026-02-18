@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -27,8 +27,10 @@ import {
   XCircle,
   IndianRupee,
   Users,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils';
+import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
 import {
   BarChart,
   Bar,
@@ -64,6 +66,7 @@ interface DisbursedLoan {
   interest: number; // rate
   emi: number;
   nextPayment: string;
+  bounceCount?: number;
 }
 
 interface LoanAging {
@@ -73,6 +76,7 @@ interface LoanAging {
   daysOverdue: number;
   outstandingPrincipal: number;
   bucket: '0-30' | '31-60' | '61-90' | '90+';
+  bounceCount?: number;
 }
 
 // Generate dummy data
@@ -128,6 +132,7 @@ const generateDisbursedLoans = (): DisbursedLoan[] => {
       interest: parseFloat(interest.toFixed(2)),
       emi: Math.round(emi),
       nextPayment: nextPayment.toISOString(),
+      bounceCount: Math.random() < 0.15 ? Math.floor(Math.random() * 3) + 1 : 0,
     });
   }
 
@@ -153,6 +158,7 @@ const generateLoanAging = (): LoanAging[] => {
       daysOverdue,
       outstandingPrincipal: Math.floor(Math.random() * 1500000) + 100000,
       bucket,
+      bounceCount: Math.random() < 0.2 ? Math.floor(Math.random() * 2) + 1 : 0,
     });
   }
 
@@ -213,9 +219,17 @@ export default function LoanReportsPage() {
     approvalManager: '',
     branch: '',
     search: '',
+    emiPending: '',
+    bounce: '',
   });
 
   const [showFilters, setShowFilters] = useState(true);
+  const chartsSectionRef = useRef<HTMLDivElement>(null);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   // Calculate KPIs
   const kpis = useMemo(() => {
@@ -284,6 +298,8 @@ export default function LoanReportsPage() {
 
   const filteredDisbursed = useMemo(() => {
     let filtered = [...allDisbursedLoans];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     if (filters.dateFrom) {
       const fromDate = new Date(filters.dateFrom);
@@ -293,6 +309,24 @@ export default function LoanReportsPage() {
       const toDate = new Date(filters.dateTo);
       toDate.setHours(23, 59, 59, 999);
       filtered = filtered.filter(l => new Date(l.disbursedDate) <= toDate);
+    }
+    if (filters.emiPending === 'yes') {
+      filtered = filtered.filter(l => {
+        const nextDate = new Date(l.nextPayment);
+        nextDate.setHours(0, 0, 0, 0);
+        return nextDate < today;
+      });
+    } else if (filters.emiPending === 'no') {
+      filtered = filtered.filter(l => {
+        const nextDate = new Date(l.nextPayment);
+        nextDate.setHours(0, 0, 0, 0);
+        return nextDate >= today;
+      });
+    }
+    if (filters.bounce === 'yes') {
+      filtered = filtered.filter(l => Number(l.bounceCount) > 0);
+    } else if (filters.bounce === 'no') {
+      filtered = filtered.filter(l => !Number(l.bounceCount));
     }
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
@@ -309,6 +343,11 @@ export default function LoanReportsPage() {
   const filteredAging = useMemo(() => {
     let filtered = [...allLoanAging];
 
+    if (filters.bounce === 'yes') {
+      filtered = filtered.filter(a => Number(a.bounceCount) > 0);
+    } else if (filters.bounce === 'no') {
+      filtered = filtered.filter(a => !Number(a.bounceCount));
+    }
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(
@@ -372,6 +411,8 @@ export default function LoanReportsPage() {
       approvalManager: '',
       branch: '',
       search: '',
+      emiPending: '',
+      bounce: '',
     });
   };
 
@@ -509,11 +550,35 @@ export default function LoanReportsPage() {
       header: 'Next Payment',
       sortable: true,
       width: '140px',
-      render: (date: string) => new Date(date).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }),
+      render: (date: string, row: DisbursedLoan) => {
+        const isPending = new Date(date) < new Date();
+        return (
+          <div className="flex items-center gap-2">
+            <span>
+              {new Date(date).toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              })}
+            </span>
+            {isPending && (
+              <Badge variant="warning" className="text-xs">EMI Pending</Badge>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'bounceCount',
+      header: 'Bounce',
+      sortable: true,
+      width: '100px',
+      render: (count: number | undefined) =>
+        (count || 0) > 0 ? (
+          <Badge variant="error">{count || 0} bounce{(count || 0) > 1 ? 's' : ''}</Badge>
+        ) : (
+          <span className="text-sm text-neutral-500">-</span>
+        ),
     },
   ];
 
@@ -569,13 +634,26 @@ export default function LoanReportsPage() {
         );
       },
     },
+    {
+      key: 'bounceCount',
+      header: 'Bounce',
+      sortable: true,
+      width: '100px',
+      render: (count: number | undefined) =>
+        (count || 0) > 0 ? (
+          <Badge variant="error">{count || 0} bounce{(count || 0) > 1 ? 's' : ''}</Badge>
+        ) : (
+          <span className="text-sm text-neutral-500">-</span>
+        ),
+    },
   ];
 
   return (
     <DashboardLayout>
       <div className="p-6 max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div>
+        <div className="flex items-start justify-between gap-4">
+          <div>
           <Breadcrumbs
             items={[
               { label: 'Dashboard', href: '/dashboard' },
@@ -589,6 +667,32 @@ export default function LoanReportsPage() {
           <p className="text-neutral-600 mt-1">
             Track loan flow from application to closure
           </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => exportChartAsPNG(chartsSectionRef.current, 'loan-charts', 'Loan Reports')}
+          >
+            <ImageIcon className="h-4 w-4 mr-2" />
+            Export Charts
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() =>
+              exportKPIsAsCSV(
+                [
+                  { label: 'Applications Received', value: String(kpis.applicationsReceived) },
+                  { label: 'Approved', value: String(kpis.approved) },
+                  { label: 'Disbursed', value: String(kpis.disbursed) },
+                  { label: 'Active Loans', value: String(kpis.activeLoans) },
+                ],
+                'loan-reports',
+                'Loan Lifecycle Reports'
+              )
+            }
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export KPIs
+          </Button>
         </div>
 
         {/* KPI Cards */}
@@ -647,13 +751,75 @@ export default function LoanReportsPage() {
           </Card>
         </div>
 
-        {/* Loan Pipeline Funnel */}
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-4">
-            Loan Pipeline Funnel
-          </h2>
-          <LoanPipelineFunnel data={pipelineData} />
-        </Card>
+        {/* Charts Section - Pipeline + Chart Grid */}
+        <div ref={chartsSectionRef} className="space-y-6">
+          <h2 className="text-lg font-semibold text-neutral-900">Loan Analytics</h2>
+          {/* Loan Pipeline Funnel */}
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold text-neutral-900 mb-4">
+              Loan Pipeline Funnel
+            </h2>
+            <LoanPipelineFunnel data={pipelineData} />
+          </Card>
+          {/* Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">Loans by Product Type</h3>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={loansByProductData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis dataKey="name" stroke="#6B7280" style={{ fontSize: '12px' }} />
+                    <YAxis stroke="#6B7280" style={{ fontSize: '12px' }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #E5E7EB',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="value" fill="#635BFF" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">Loan Disbursements Over Time</h3>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={disbursementTrendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis dataKey="month" stroke="#6B7280" style={{ fontSize: '12px' }} />
+                    <YAxis
+                      stroke="#6B7280"
+                      style={{ fontSize: '12px' }}
+                      tickFormatter={(value) => `₹${(value / 100000).toFixed(0)}L`}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #E5E7EB',
+                        borderRadius: '8px',
+                      }}
+                      formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="amount"
+                      stroke="#635BFF"
+                      strokeWidth={2}
+                      name="Disbursed Amount"
+                      dot={{ fill: '#635BFF', r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
+        </div>
 
         {/* Filters */}
         <Card className="p-6">
@@ -674,7 +840,7 @@ export default function LoanReportsPage() {
           </div>
 
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Input
                 type="date"
                 label="Date From"
@@ -741,7 +907,29 @@ export default function LoanReportsPage() {
                   })),
                 ]}
               />
-              <div className="md:col-span-2 lg:col-span-3">
+              <Select
+                label="EMI Pending"
+                placeholder="All"
+                value={filters.emiPending}
+                onChange={(e) => setFilters(prev => ({ ...prev, emiPending: e.target.value }))}
+                options={[
+                  { value: '', label: 'All' },
+                  { value: 'yes', label: 'Yes (Pending)' },
+                  { value: 'no', label: 'No (Up to date)' },
+                ]}
+              />
+              <Select
+                label="Bounce"
+                placeholder="All"
+                value={filters.bounce}
+                onChange={(e) => setFilters(prev => ({ ...prev, bounce: e.target.value }))}
+                options={[
+                  { value: '', label: 'All' },
+                  { value: 'yes', label: 'Yes (Has bounce)' },
+                  { value: 'no', label: 'No (No bounce)' },
+                ]}
+              />
+              <div className="md:col-span-2 lg:col-span-4">
                 <Input
                   label="Search"
                   placeholder="Search by Application ID, Loan ID, or Customer Name..."
@@ -883,72 +1071,6 @@ export default function LoanReportsPage() {
             }}
           />
         </Card>
-
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Loans by Product Type */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-              Loans by Product Type
-            </h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={loansByProductData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="name" stroke="#6B7280" style={{ fontSize: '12px' }} />
-                  <YAxis stroke="#6B7280" style={{ fontSize: '12px' }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="value" fill="#635BFF" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          {/* Loan Disbursements Over Time */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-              Loan Disbursements Over Time
-            </h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={disbursementTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="month" stroke="#6B7280" style={{ fontSize: '12px' }} />
-                  <YAxis
-                    stroke="#6B7280"
-                    style={{ fontSize: '12px' }}
-                    tickFormatter={(value) => `₹${(value / 100000).toFixed(0)}L`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px',
-                    }}
-                    formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="amount"
-                    stroke="#635BFF"
-                    strokeWidth={2}
-                    name="Disbursed Amount"
-                    dot={{ fill: '#635BFF', r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </div>
       </div>
     </DashboardLayout>
   );

@@ -212,7 +212,7 @@ export default function AddDepositPage() {
                     required
                   />
                   <Input
-                    label="Interest Rate (% p.a.)"
+                    label="Profit Rate (% p.a.)"
                     name="interestRate"
                     type="number"
                     value={selectedProduct?.interestRates?.[parseInt(formData.tenure)] || ''}

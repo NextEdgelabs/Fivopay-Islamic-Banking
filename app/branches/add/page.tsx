@@ -6,14 +6,14 @@ import { Card, Button, Input, Select, Breadcrumbs, Textarea, Checkbox } from '@/
 import { Save, X } from 'lucide-react';
 import { useBranchMutations } from '@/hooks/useBranchMutations';
 import { useToast } from '@/components/ui/Toast';
-import { INDIAN_STATES, CITIES_BY_STATE, BRANCH_SERVICES } from '@/lib/indiaData';
+import { INDIAN_STATES, CITIES_BY_STATE, BRANCH_SERVICES, LOAN_TYPES } from '@/lib/indiaData';
 import { CreateBranchDto } from '@/services/branches';
 
 export default function AddBranchPage() {
   const router = useRouter();
   const { createBranch, loading } = useBranchMutations();
   const { addToast } = useToast();
-  const [formData, setFormData] = useState<Omit<CreateBranchDto, 'status'>>({
+  const [formData, setFormData] = useState<Omit<CreateBranchDto, 'status'> & { loanTypes: string[] }>({
     branchName: '',
     branchType: 'Main Branch',
     addressLine1: '',
@@ -35,6 +35,7 @@ export default function AddBranchPage() {
       sunday: 'Closed',
     },
     services: [],
+    loanTypes: [] as string[],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -69,6 +70,15 @@ export default function AddBranchPage() {
     }));
   };
 
+  const handleLoanTypeToggle = (loanType: string) => {
+    setFormData(prev => ({
+      ...prev,
+      loanTypes: prev.loanTypes.includes(loanType)
+        ? prev.loanTypes.filter(t => t !== loanType)
+        : [...prev.loanTypes, loanType]
+    }));
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.branchName.trim()) newErrors.branchName = 'Branch name is required';
@@ -81,7 +91,7 @@ export default function AddBranchPage() {
     if (!formData.managerName.trim()) newErrors.managerName = 'Manager name is required';
     if (!formData.managerPhone.trim() || !/^\+?[1-9]\d{1,14}$/.test(formData.managerPhone)) newErrors.managerPhone = 'Valid manager phone is required';
     if (!formData.openingDate) newErrors.openingDate = 'Opening date is required';
-    if (formData.services.length === 0) newErrors.services = 'At least one service must be selected';
+    if (formData.services.length === 0 && formData.loanTypes.length === 0) newErrors.services = 'At least one service or loan type must be selected';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -95,12 +105,18 @@ export default function AddBranchPage() {
     }
 
     try {
+      const servicesWithLoanTypes = [
+        ...formData.services,
+        ...formData.loanTypes.map(t => `Loan: ${t}`),
+      ];
       const dataToSubmit = {
         ...formData,
+        services: servicesWithLoanTypes,
         latitude: formData.latitude ? parseFloat(String(formData.latitude)) : undefined,
         longitude: formData.longitude ? parseFloat(String(formData.longitude)) : undefined,
         status: 'Active' as const,
       };
+      delete (dataToSubmit as any).loanTypes;
 
       await createBranch(dataToSubmit);
       addToast({ type: 'success', message: 'Branch created successfully' });
@@ -193,6 +209,23 @@ export default function AddBranchPage() {
                     onCheckedChange={() => handleServiceToggle(service)}
                   />
                   <span className="text-sm">{service}</span>
+                </label>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Types of Loan Offered</h2>
+            <p className="text-sm text-neutral-600 mb-4">Select the loan types this branch offers</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {LOAN_TYPES.map(loanType => (
+                <label key={loanType} className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    id={loanType}
+                    checked={formData.loanTypes.includes(loanType)}
+                    onCheckedChange={() => handleLoanTypeToggle(loanType)}
+                  />
+                  <span className="text-sm">{loanType}</span>
                 </label>
               ))}
             </div>

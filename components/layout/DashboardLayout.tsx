@@ -241,9 +241,9 @@ export default function DashboardLayout({
 
           <NavItem
             icon={<Calculator className="h-5 w-5" />}
-            label="Account Management"
+            label="Ledger Management"
             sidebarOpen={sidebarOpen}
-            href="/account-management"
+            href="/ledger-management"
           />
           <NavItem
             icon={<BarChart3 className="h-5 w-5" />}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -31,8 +31,10 @@ import {
   CheckCircle,
   XCircle,
   FileSpreadsheet,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils';
+import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
 import {
   LineChart,
   Line,
@@ -233,6 +235,7 @@ export default function AccountingReportsPage() {
   });
 
   const [showFilters, setShowFilters] = useState(true);
+  const chartsSectionRef = useRef<HTMLDivElement>(null);
 
   // Calculate KPIs
   const kpis = useMemo(() => {
@@ -596,6 +599,32 @@ export default function AccountingReportsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => exportChartAsPNG(chartsSectionRef.current, 'accounting-charts', 'Accounting Reports')}
+            >
+              <ImageIcon className="h-4 w-4 mr-2" />
+              Export Charts
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() =>
+                exportKPIsAsCSV(
+                  [
+                    { label: 'Total Interest Income', value: `₹${kpis.totalInterestIncome.toLocaleString('en-IN')}` },
+                    { label: 'Fee Income', value: `₹${kpis.feeIncome.toLocaleString('en-IN')}` },
+                    { label: 'Total Disbursed', value: `₹${kpis.totalDisbursed.toLocaleString('en-IN')}` },
+                    { label: 'Provisioned Amount', value: `₹${kpis.provisionedAmount.toLocaleString('en-IN')}` },
+                    { label: 'Net Cash Flow', value: `${kpis.netCashFlow >= 0 ? '+' : ''}₹${kpis.netCashFlow.toLocaleString('en-IN')}` },
+                  ],
+                  'accounting-reports',
+                  'Accounting & Finance Reports'
+                )
+              }
+            >
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Export KPIs
+            </Button>
             <Button variant="outline" onClick={() => window.print()}>
               <Printer className="h-4 w-4 mr-2" />
               Print
@@ -685,7 +714,9 @@ export default function AccountingReportsPage() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div ref={chartsSectionRef} className="space-y-4">
+          <h2 className="text-lg font-semibold text-neutral-900">Financial Charts</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Cash Flow Trend */}
           <Card className="p-6 bg-white border border-neutral-200">
             <h3 className="text-lg font-semibold text-neutral-900 mb-4">
@@ -777,6 +808,7 @@ export default function AccountingReportsPage() {
               </ResponsiveContainer>
             </div>
           </Card>
+          </div>
         </div>
 
         {/* Filters */}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -27,8 +27,10 @@ import {
   RefreshCw,
   Eye,
   X,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils';
+import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
 import {
   LineChart,
   Line,
@@ -151,6 +153,7 @@ export default function TransactionReportsPage() {
   });
 
   const [showFilters, setShowFilters] = useState(true);
+  const chartsSectionRef = useRef<HTMLDivElement>(null);
 
   // Filter transactions based on active tab and filters
   const filteredTransactions = useMemo(() => {
@@ -425,6 +428,34 @@ export default function TransactionReportsPage() {
             <p className="text-neutral-600 mt-1">
               Comprehensive transaction analysis and reporting
             </p>
+          </div>
+          <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => exportChartAsPNG(chartsSectionRef.current, 'transaction-charts', 'Transactional Reports')}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50 text-sm font-medium"
+          >
+            <ImageIcon className="h-4 w-4" />
+            Export Charts
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              exportKPIsAsCSV(
+                [
+                  { label: 'Total Count', value: summaryStats.totalCount.toLocaleString() },
+                  { label: 'Total Amount', value: `₹${summaryStats.totalAmount.toLocaleString('en-IN')}` },
+                  { label: 'Avg Transaction Value', value: `₹${Math.round(summaryStats.avgValue).toLocaleString('en-IN')}` },
+                ],
+                'transaction-reports',
+                'Transactional Reports'
+              )
+            }
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50 text-sm font-medium"
+          >
+            <Download className="h-4 w-4" />
+            Export KPIs
+          </button>
           </div>
         </div>
 
@@ -788,7 +819,9 @@ export default function TransactionReportsPage() {
         </Card>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div ref={chartsSectionRef} className="space-y-4">
+          <h2 className="text-lg font-semibold text-neutral-900">Transaction Analytics</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Daily Transaction Trends */}
           <Card className="p-6">
             <h3 className="text-lg font-semibold text-neutral-900 mb-4">
@@ -885,6 +918,7 @@ export default function TransactionReportsPage() {
               </ResponsiveContainer>
             </div>
           </Card>
+          </div>
         </div>
       </div>
     </DashboardLayout>

@@ -90,7 +90,7 @@ const chartOfAccounts: ChartOfAccount[] = [
   {
     id: 'acc-4000',
     accountId: '4000',
-    accountName: 'Interest Income',
+    accountName: 'Profit Income',
     accountType: 'Income',
     balance: 5100,
     description: 'Revenue earned this period',
@@ -126,7 +126,7 @@ const chartOfAccounts: ChartOfAccount[] = [
   {
     id: 'acc-4001',
     accountId: '4001',
-    accountName: 'Processing Fee Income',
+    accountName: 'Profit Fee Income',
     accountType: 'Income',
     balance: 15000,
     description: 'Fees collected from loan processing',
@@ -258,7 +258,7 @@ const generateJournalEntries = (): JournalEntry[] => {
         {
           id: 'je-5-3',
           accountId: '4000',
-          accountName: 'Interest Income',
+          accountName: 'Profit Income',
           debit: 0,
           credit: 500.00,
           isMainEntry: false,
@@ -290,7 +290,7 @@ const generateJournalEntries = (): JournalEntry[] => {
         {
           id: 'je-6-3',
           accountId: '4000',
-          accountName: 'Interest Income',
+          accountName: 'Profit Income',
           debit: 0,
           credit: 400.00,
           isMainEntry: false,
@@ -386,7 +386,7 @@ const generateJournalEntries = (): JournalEntry[] => {
         {
           id: 'je-10-2',
           accountId: '4001',
-          accountName: 'Processing Fee Income',
+          accountName: 'Profit Fee Income',
           debit: 0,
           credit: 3000.00,
           isMainEntry: false,
@@ -458,7 +458,7 @@ const generateJournalEntries = (): JournalEntry[] => {
         {
           id: 'je-13-2',
           accountId: '4001',
-          accountName: 'Processing Fee Income',
+          accountName: 'Profit Fee Income',
           debit: 0,
           credit: 3750.00,
           isMainEntry: false,
@@ -490,7 +490,7 @@ const generateJournalEntries = (): JournalEntry[] => {
         {
           id: 'je-14-3',
           accountId: '4000',
-          accountName: 'Interest Income',
+          accountName: 'Profit Income',
           debit: 0,
           credit: 500.00,
           isMainEntry: false,
@@ -525,7 +525,7 @@ const generateJournalEntries = (): JournalEntry[] => {
       id: 'je-16',
       transactionId: 'T16',
       date: new Date().toISOString(), // Today
-      description: 'Additional Interest Income',
+      description: 'Additional Profit Income',
       entries: [
         {
           id: 'je-16-1',
@@ -538,7 +538,7 @@ const generateJournalEntries = (): JournalEntry[] => {
         {
           id: 'je-16-2',
           accountId: '4000',
-          accountName: 'Interest Income',
+          accountName: 'Profit Income',
           debit: 0,
           credit: 1200.00,
           isMainEntry: false,

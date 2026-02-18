@@ -12,25 +12,32 @@ interface SharePurchaseModalProps {
   customerId: string;
   purchase?: SharePurchase | null;
   onClose: (shouldRefresh?: boolean) => void;
+  shareholderIdDefault?: string; // e.g. customer's memberId
 }
 
-export default function SharePurchaseModal({ customerId, purchase, onClose }: SharePurchaseModalProps) {
+export default function SharePurchaseModal({ customerId, purchase, onClose, shareholderIdDefault }: SharePurchaseModalProps) {
   const { createSharePurchase, updateSharePurchase, loading } = useSharePurchaseMutations();
   const { perSharePrice } = useOrganizationSettings();
   const { addToast } = useToast();
 
   const [formData, setFormData] = useState({
     quantity: '',
-    purchaseDate: '',
+    purchaseDate: new Date().toISOString().split('T')[0],
     pricePerShare: '',
     certificateNumber: '',
-    shareholderId: '',
-    paymentMethod: '',
+    shareholderId: shareholderIdDefault || '',
+    paymentMethod: 'Cash',
     transactionReference: '',
     notes: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!purchase && shareholderIdDefault) {
+      setFormData((prev) => ({ ...prev, shareholderId: shareholderIdDefault }));
+    }
+  }, [shareholderIdDefault, purchase]);
 
   useEffect(() => {
     // Set default price per share from settings
@@ -92,20 +99,8 @@ export default function SharePurchaseModal({ customerId, purchase, onClose }: Sh
       newErrors.pricePerShare = 'Price per share must be greater than 0';
     }
 
-    if (!formData.certificateNumber.trim()) {
-      newErrors.certificateNumber = 'Certificate number is required';
-    }
-
-    if (!formData.shareholderId.trim()) {
-      newErrors.shareholderId = 'Shareholder ID is required';
-    }
-
     if (!formData.paymentMethod) {
       newErrors.paymentMethod = 'Payment method is required';
-    }
-
-    if (!formData.transactionReference.trim()) {
-      newErrors.transactionReference = 'Transaction reference is required';
     }
 
     setErrors(newErrors);
@@ -124,16 +119,20 @@ export default function SharePurchaseModal({ customerId, purchase, onClose }: Sh
     }
 
     try {
+      const totalAmt = (parseFloat(formData.quantity) || 0) * (parseFloat(formData.pricePerShare) || 0);
       const shareData = {
         customerId,
         quantity: parseFloat(formData.quantity),
         purchaseDate: formData.purchaseDate,
         pricePerShare: parseFloat(formData.pricePerShare),
-        certificateNumber: formData.certificateNumber,
-        shareholderId: formData.shareholderId,
+        totalAmount: totalAmt,
+        shareType: 'Equity' as const,
+        numberOfShares: parseFloat(formData.quantity),
+        certificateNumber: formData.certificateNumber || undefined,
+        shareholderId: formData.shareholderId || undefined,
         paymentMethod: formData.paymentMethod as 'Cash' | 'Bank Transfer' | 'Cheque' | 'Online',
-        transactionReference: formData.transactionReference,
-        notes: formData.notes,
+        transactionReference: formData.transactionReference || undefined,
+        notes: formData.notes || undefined,
       };
 
       if (purchase) {
@@ -162,8 +161,15 @@ export default function SharePurchaseModal({ customerId, purchase, onClose }: Sh
   const totalAmount = (parseFloat(formData.quantity) || 0) * (parseFloat(formData.pricePerShare) || 0);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      {/* Semi-transparent overlay - matches Modal component */}
+      <div
+        className="fixed inset-0 bg-neutral-900/50 backdrop-blur-sm transition-opacity"
+        onClick={() => onClose()}
+        aria-hidden="true"
+      />
+      {/* Dialog content - above overlay */}
+      <div className="relative z-10 bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-border-light p-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-neutral-900">
@@ -218,40 +224,38 @@ export default function SharePurchaseModal({ customerId, purchase, onClose }: Sh
                 helperText={`Default: ₹${perSharePrice}`}
               />
 
-              <Input
-                label="Certificate Number"
-                name="certificateNumber"
-                value={formData.certificateNumber}
-                onChange={handleChange}
-                error={errors.certificateNumber}
-                required
-                placeholder="CERT-2024-XXX"
-              />
-
-              <Input
-                label="Shareholder ID"
-                name="shareholderId"
-                value={formData.shareholderId}
-                onChange={handleChange}
-                error={errors.shareholderId}
-                required
-                placeholder="SH001"
-              />
-
               <Select
-                label="Payment Method"
+                label="Payment Mode *"
                 name="paymentMethod"
                 value={formData.paymentMethod}
                 onChange={handleChange}
                 error={errors.paymentMethod}
                 required
                 options={[
-                  { value: '', label: 'Select payment method' },
                   { value: 'Cash', label: 'Cash' },
                   { value: 'Bank Transfer', label: 'Bank Transfer' },
                   { value: 'Cheque', label: 'Cheque' },
                   { value: 'Online', label: 'Online' },
                 ]}
+                helperText="Select how the customer paid for shares"
+              />
+
+              <Input
+                label="Certificate Number (Optional)"
+                name="certificateNumber"
+                value={formData.certificateNumber}
+                onChange={handleChange}
+                error={errors.certificateNumber}
+                placeholder="Auto-generated if left empty"
+              />
+
+              <Input
+                label="Shareholder ID (Optional)"
+                name="shareholderId"
+                value={formData.shareholderId}
+                onChange={handleChange}
+                error={errors.shareholderId}
+                placeholder="Customer's Member ID"
               />
             </div>
           </div>
@@ -261,13 +265,12 @@ export default function SharePurchaseModal({ customerId, purchase, onClose }: Sh
             <h3 className="text-lg font-medium text-neutral-900 mb-4">Transaction Details</h3>
             <div className="space-y-4">
               <Input
-                label="Transaction Reference"
+                label="Transaction Reference (Optional)"
                 name="transactionReference"
                 value={formData.transactionReference}
                 onChange={handleChange}
                 error={errors.transactionReference}
-                required
-                placeholder="TXN-2024-XXX"
+                placeholder="Auto-generated if left empty"
               />
 
               <Textarea

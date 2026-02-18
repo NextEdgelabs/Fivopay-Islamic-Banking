@@ -47,7 +47,7 @@ export default function ViewLoanPage() {
 
   const handleApprove = async () => {
     if (!loan) return;
-    const rate = prompt('Enter interest rate (%):');
+    const rate = prompt('Enter profit rate (%):');
     if (rate) {
       try {
         await approveLoan(loan._id || '', 'Admin', parseFloat(rate));
@@ -209,6 +209,10 @@ const LoanOverviewTab = ({ loan, getStatusBadge }: { loan: any, getStatusBadge: 
                   <p className="mt-1">{getStatusBadge(loan.approvalStatus)}</p>
                 </div>
                 <div>
+                  <label className="text-sm font-medium text-neutral-700">Loan Channel</label>
+                  <p className="mt-1"><Badge variant={(loan.loanSource || 'online') === 'online' ? 'primary' : 'neutral'}>{(loan.loanSource || 'online') === 'online' ? 'Online' : 'Walk-in'}</Badge></p>
+                </div>
+                <div>
                   <label className="text-sm font-medium text-neutral-700">Loan Amount</label>
                   <p className="mt-1 text-2xl font-bold text-primary-600">
                     ₹{loan.loanAmount?.toLocaleString('en-IN') || ''}
@@ -221,7 +225,7 @@ const LoanOverviewTab = ({ loan, getStatusBadge }: { loan: any, getStatusBadge: 
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-neutral-700">Interest Rate</label>
+                  <label className="text-sm font-medium text-neutral-700">Profit Rate</label>
                   <p className="mt-1 text-neutral-900">{loan.interestRate?.toString() || ''}% p.a.</p>
                 </div>
                 <div>

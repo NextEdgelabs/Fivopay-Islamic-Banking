@@ -32,6 +32,7 @@ import {
   CreditCard,
   CheckCircle,
   IndianRupee,
+  TrendingUp,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -167,10 +168,18 @@ export default function CustomersPage() {
             ariaLabel="View customer"
           />
           <IconButton
+            icon={<TrendingUp className="h-4 w-4" />}
+            variant="ghost"
+            size="sm"
+            onClick={(e) => { e.stopPropagation(); router.push(`/customers/${row._id || row.id}?tab=shares`)}}
+            ariaLabel="Share purchase"
+            title="Share purchase"
+          />
+          <IconButton
             icon={<Edit className="h-4 w-4" />}
             variant="ghost"
             size="sm"
-            onClick={(e) => { e.stopPropagation(); router.push(`/customers/${row.id}/edit`)}}
+            onClick={(e) => { e.stopPropagation(); router.push(`/customers/${row._id || row.id}/edit`)}}
             ariaLabel="Edit customer"
           />
           <IconButton

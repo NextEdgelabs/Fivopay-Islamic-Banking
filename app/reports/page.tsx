@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui';
@@ -21,7 +21,10 @@ import {
   Shield,
   Activity,
   ArrowRight,
+  Download,
+  Image as ImageIcon,
 } from 'lucide-react';
+import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
 import {
   LineChart as RechartsLineChart,
   Line,
@@ -157,15 +160,51 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
 };
 
 export default function ReportsPage() {
+  const chartsSectionRef = useRef<HTMLDivElement>(null);
+  const reportName = 'Reports Overview';
+
+  const kpisForExport = [
+    { label: 'Total Deposits', value: '₹2.45 Cr' },
+    { label: 'Total Withdrawals', value: '₹1.82 Cr' },
+    { label: 'Active Loans', value: '1,247' },
+    { label: 'Loan Applications', value: '23' },
+    { label: 'Disbursed Amount', value: '₹3.2 Cr' },
+    { label: 'Outstanding Principal', value: '₹12.8 Cr' },
+    { label: 'Collection Rate', value: '94.2%' },
+    { label: 'Agent Cash-in-Hand', value: '₹45.8L' },
+    { label: 'NPA / Delinquency', value: '3.8%' },
+    { label: 'Net Interest Income', value: '₹28.5L' },
+  ];
+
   return (
     <DashboardLayout>
       <div className="p-6 max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">Reports</h1>
-          <p className="text-neutral-600">
-            Comprehensive financial insights and analytics at your fingertips
-          </p>
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-neutral-900 mb-2">Reports</h1>
+            <p className="text-neutral-600">
+              Comprehensive financial insights and analytics at your fingertips
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => exportChartAsPNG(chartsSectionRef.current, 'reports-charts', reportName)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50 text-sm font-medium"
+            >
+              <ImageIcon className="h-4 w-4" />
+              Export Charts
+            </button>
+            <button
+              type="button"
+              onClick={() => exportKPIsAsCSV(kpisForExport, 'reports-overview', reportName)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50 text-sm font-medium"
+            >
+              <Download className="h-4 w-4" />
+              Export KPIs
+            </button>
+          </div>
         </div>
 
         {/* KPI Cards Grid */}
@@ -253,7 +292,9 @@ export default function ReportsPage() {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div ref={chartsSectionRef} className="space-y-4">
+          <h2 className="text-xl font-semibold text-neutral-900">Analytics Overview</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Daily Transaction Volume - Line Chart */}
           <Card className="p-6">
             <div className="flex items-center gap-2 mb-4">
@@ -372,6 +413,7 @@ export default function ReportsPage() {
               </ResponsiveContainer>
             </div>
           </Card>
+          </div>
         </div>
 
         {/* Quick Access Reports Section */}

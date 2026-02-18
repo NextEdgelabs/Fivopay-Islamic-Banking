@@ -20,10 +20,11 @@ import {
   MapPin,
   Briefcase,
   Shield,
+  Sparkles,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useEmployeeMutations } from '@/hooks/useEmployeeMutations';
-import { CreateEmployeeDto } from '@/services/employee.service';
+import { CreateEmployeeDto, employeeService } from '@/services/employee.service';
 import { useBranches } from '@/hooks/useBranches';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { INDIAN_STATES, CITIES_BY_STATE } from '@/lib/indiaData';
@@ -74,6 +75,7 @@ export default function AddEmployeePage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedState, setSelectedState] = useState('');
+  const [isGeneratingId, setIsGeneratingId] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -98,6 +100,21 @@ export default function AddEmployeePage() {
 
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleGenerateEmployeeId = async () => {
+    setIsGeneratingId(true);
+    try {
+      const res = await employeeService.getNextEmployeeId();
+      if (res?.data?.employeeId) {
+        setFormData(prev => ({ ...prev, employeeId: res.data.employeeId }));
+        if (errors.employeeId) setErrors(prev => ({ ...prev, employeeId: '' }));
+      }
+    } catch (error: any) {
+      addToast({ type: 'error', message: error.message || 'Failed to generate employee ID' });
+    } finally {
+      setIsGeneratingId(false);
     }
   };
 
@@ -200,14 +217,30 @@ export default function AddEmployeePage() {
           <Card>
             <h3 className="text-lg font-semibold text-neutral-900 mb-4">Basic Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input
-                label="Employee ID *"
-                name="employeeId"
-                value={formData.employeeId}
-                onChange={handleChange}
-                error={errors.employeeId}
-                required
-              />
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Input
+                    label="Employee ID *"
+                    name="employeeId"
+                    value={formData.employeeId}
+                    onChange={handleChange}
+                    error={errors.employeeId}
+                    required
+                  />
+                </div>
+                <div className="flex items-end pb-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleGenerateEmployeeId}
+                    loading={isGeneratingId}
+                    className="whitespace-nowrap"
+                  >
+                    <Sparkles className="h-4 w-4 mr-1" />
+                    Generate
+                  </Button>
+                </div>
+              </div>
               <Select
                 label="Organization *"
                 name="organisation"

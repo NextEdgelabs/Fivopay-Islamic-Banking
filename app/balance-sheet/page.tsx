@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
   Card,
   Button,
   Breadcrumbs,
+  Input,
+  Select,
 } from '@/components/ui';
 import {
   Download,
@@ -15,6 +17,9 @@ import {
   Wallet,
   Building2,
   Coins,
+  Filter,
+  RefreshCw,
+  Search,
 } from 'lucide-react';
 
 // Type definitions
@@ -69,7 +74,7 @@ const chartOfAccounts: ChartOfAccount[] = [
   {
     id: 'acc-4000',
     accountId: '4000',
-    accountName: 'Interest Income',
+    accountName: 'profit Income',
     accountType: 'Income',
     balance: 5100,
     description: 'Revenue earned this period',
@@ -105,10 +110,33 @@ const chartOfAccounts: ChartOfAccount[] = [
 ];
 
 export default function BalanceSheetPage() {
+  const today = new Date().toISOString().split('T')[0];
+  const [filters, setFilters] = useState({
+    dateFrom: today,
+    dateTo: today,
+    accountType: '',
+    search: '',
+  });
+  const [showFilters, setShowFilters] = useState(true);
+
   // Calculate Balance Sheet Data
   const balanceSheetData = useMemo(() => {
+    let filteredAccounts = [...chartOfAccounts];
+
+    if (filters.accountType) {
+      filteredAccounts = filteredAccounts.filter(acc => acc.accountType === filters.accountType);
+    }
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filteredAccounts = filteredAccounts.filter(
+        acc =>
+          acc.accountName.toLowerCase().includes(searchLower) ||
+          acc.accountId.toLowerCase().includes(searchLower)
+      );
+    }
+
     // Assets
-    const currentAssets = chartOfAccounts
+    const currentAssets = filteredAccounts
       .filter(acc => acc.accountType === 'Asset')
       .map(acc => ({
         accountId: acc.accountId,
@@ -120,7 +148,7 @@ export default function BalanceSheetPage() {
     const totalAssets = currentAssets.reduce((sum, acc) => sum + acc.balance, 0);
 
     // Liabilities
-    const currentLiabilities = chartOfAccounts
+    const currentLiabilities = filteredAccounts
       .filter(acc => acc.accountType === 'Liability')
       .map(acc => ({
         accountId: acc.accountId,
@@ -132,7 +160,7 @@ export default function BalanceSheetPage() {
     const totalLiabilities = currentLiabilities.reduce((sum, acc) => sum + acc.balance, 0);
 
     // Equity
-    const shareCapital = chartOfAccounts
+    const shareCapital = filteredAccounts
       .filter(acc => acc.accountType === 'Equity')
       .map(acc => ({
         accountId: acc.accountId,
@@ -142,11 +170,11 @@ export default function BalanceSheetPage() {
       }));
 
     // Calculate Net Income (Income - Expenses)
-    const totalIncome = chartOfAccounts
+    const totalIncome = filteredAccounts
       .filter(acc => acc.accountType === 'Income')
       .reduce((sum, acc) => sum + acc.balance, 0);
 
-    const totalExpenses = chartOfAccounts
+    const totalExpenses = filteredAccounts
       .filter(acc => acc.accountType === 'Expense')
       .reduce((sum, acc) => sum + acc.balance, 0);
 
@@ -175,13 +203,40 @@ export default function BalanceSheetPage() {
       totalLiabilitiesAndEquity,
       isBalanced,
     };
-  }, []);
+  }, [filters]);
 
-  const currentDate = new Date().toLocaleDateString('en-IN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const dateRangeDisplay =
+    filters.dateFrom && filters.dateTo
+      ? filters.dateFrom === filters.dateTo
+        ? new Date(filters.dateTo).toLocaleDateString('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })
+        : `${new Date(filters.dateFrom).toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          })} – ${new Date(filters.dateTo).toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          })}`
+      : new Date().toLocaleDateString('en-IN', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+
+  const resetFilters = () => {
+    const now = new Date().toISOString().split('T')[0];
+    setFilters({
+      dateFrom: now,
+      dateTo: now,
+      accountType: '',
+      search: '',
+    });
+  };
 
   return (
     <DashboardLayout>
@@ -200,7 +255,7 @@ export default function BalanceSheetPage() {
               Balance Sheet
             </h1>
             <p className="text-neutral-600 mt-1">
-              As of {currentDate}
+              {filters.dateFrom === filters.dateTo ? `As of ${dateRangeDisplay}` : `Period: ${dateRangeDisplay}`}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -214,6 +269,64 @@ export default function BalanceSheetPage() {
             </Button>
           </div>
         </div>
+
+        {/* Filters */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-5 w-5 text-neutral-600" />
+              <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
+              </Button>
+              <Button variant="outline" size="sm" onClick={resetFilters}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Reset
+              </Button>
+            </div>
+          </div>
+          {showFilters && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Input
+                type="date"
+                label="Date From"
+                value={filters.dateFrom}
+                onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+              />
+              <Input
+                type="date"
+                label="Date To"
+                value={filters.dateTo}
+                onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+              />
+              <Select
+                label="Account Type"
+                placeholder="All Types"
+                value={filters.accountType}
+                onChange={(e) => setFilters({ ...filters, accountType: e.target.value })}
+                options={[
+                  { value: '', label: 'All Types' },
+                  { value: 'Asset', label: 'Asset' },
+                  { value: 'Liability', label: 'Liability' },
+                  { value: 'Equity', label: 'Equity' },
+                  { value: 'Income', label: 'Income' },
+                  { value: 'Expense', label: 'Expense' },
+                ]}
+              />
+              <div className="md:col-span-2 lg:col-span-2">
+                <Input
+                  label="Search"
+                  placeholder="Search by account name or ID..."
+                  value={filters.search}
+                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  leftIcon={<Search className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+          )}
+        </Card>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

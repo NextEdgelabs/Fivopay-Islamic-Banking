@@ -154,7 +154,7 @@ const DepositOverviewTab = ({ deposit, getStatusBadge }: { deposit: any, getStat
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-neutral-700">Interest Rate</label>
+                  <label className="text-sm font-medium text-neutral-700">Profit Rate</label>
                   <p className="mt-1 text-2xl font-bold text-neutral-900">{deposit.interestRate}%</p>
                 </div>
                 {deposit.maturityAmount && (
@@ -207,7 +207,7 @@ const DepositOverviewTab = ({ deposit, getStatusBadge }: { deposit: any, getStat
             </p>
           </div>
           <div>
-            <label className="text-sm font-medium text-neutral-700">Interest Earned</label>
+            <label className="text-sm font-medium text-neutral-700">Profit Earned</label>
             <p className="mt-1 text-lg font-semibold text-primary-600">
               ₹{deposit.interestEarned.toLocaleString('en-IN')}
             </p>

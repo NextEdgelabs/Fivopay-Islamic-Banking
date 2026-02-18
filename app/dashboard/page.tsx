@@ -13,6 +13,7 @@ import QuickActions from '@/components/dashboard/QuickActions';
 import ShareholdersWidget from '@/components/dashboard/ShareholdersWidget';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import ProductKpiWidget from '@/components/dashboard/ProductKpiWidget';
+import DashboardAnalytics from '@/components/dashboard/DashboardAnalytics';
 
 const tabs = [
   {
@@ -45,6 +46,10 @@ export default function DashboardPage() {
         
         <div className="mb-8">
           <ProductKpiWidget />
+        </div>
+
+        <div className="mb-8">
+          <DashboardAnalytics />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

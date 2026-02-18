@@ -33,6 +33,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils';
+import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
 import {
   BarChart,
   Bar,
@@ -107,9 +108,7 @@ export default function PerformanceAnalyticsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Refs for chart downloads
-  const slaChartRef = useRef<HTMLDivElement>(null);
-  const processingTimeChartRef = useRef<HTMLDivElement>(null);
+  const chartsSectionRef = useRef<HTMLDivElement>(null);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -218,19 +217,6 @@ export default function PerformanceAnalyticsPage() {
     });
   };
 
-  // Download chart as PNG
-  const downloadChartAsPNG = (chartRef: React.RefObject<HTMLDivElement | null>, filename: string) => {
-    if (!chartRef.current) return;
-
-    // This is a simplified version - in production, you'd use a library like html2canvas
-    console.log(`Downloading ${filename} as PNG`);
-    // html2canvas(chartRef.current).then(canvas => {
-    //   const link = document.createElement('a');
-    //   link.download = filename;
-    //   link.href = canvas.toDataURL();
-    //   link.click();
-    // });
-  };
 
   // Table columns
   const branchColumns = [
@@ -383,6 +369,32 @@ export default function PerformanceAnalyticsPage() {
               Operational efficiency tracking and performance metrics
             </p>
           </div>
+          <Button
+            variant="outline"
+            onClick={() => exportChartAsPNG(chartsSectionRef.current, 'performance-charts', 'Performance Analytics')}
+          >
+            <ImageIcon className="h-4 w-4 mr-2" />
+            Export Charts
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() =>
+              exportKPIsAsCSV(
+                [
+                  { label: 'Avg Loan Approval Time', value: `${kpis.avgLoanApprovalTime} hrs` },
+                  { label: 'Avg KYC Verification Time', value: `${kpis.avgKYCVerificationTime} hrs` },
+                  { label: 'Tickets Open', value: String(kpis.ticketsOpen) },
+                  { label: 'Tickets Resolved', value: String(kpis.ticketsResolved) },
+                  { label: 'Agent Productivity Index', value: `${kpis.agentProductivityIndex}%` },
+                ],
+                'performance-analytics',
+                'Performance Analytics'
+              )
+            }
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export KPIs
+          </Button>
         </div>
 
         {/* KPI Cards */}
@@ -457,23 +469,15 @@ export default function PerformanceAnalyticsPage() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div ref={chartsSectionRef} className="space-y-4">
+          <h2 className="text-lg font-semibold text-neutral-900">Performance Analytics</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* SLA Performance by Department */}
           <Card className="p-6 bg-white border border-neutral-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-neutral-900">
-                SLA Performance by Department
-              </h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => downloadChartAsPNG(slaChartRef, 'sla-performance.png')}
-              >
-                <ImageIcon className="h-4 w-4 mr-2" />
-                PNG
-              </Button>
-            </div>
-            <div ref={slaChartRef} className="h-80">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+              SLA Performance by Department
+            </h3>
+            <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={slaPerformanceData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -509,20 +513,10 @@ export default function PerformanceAnalyticsPage() {
 
           {/* Loan Processing Time Trend */}
           <Card className="p-6 bg-white border border-neutral-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-neutral-900">
-                Loan Processing Time Trend
-              </h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => downloadChartAsPNG(processingTimeChartRef, 'processing-time-trend.png')}
-              >
-                <ImageIcon className="h-4 w-4 mr-2" />
-                PNG
-              </Button>
-            </div>
-            <div ref={processingTimeChartRef} className="h-80">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+              Loan Processing Time Trend
+            </h3>
+            <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={loanProcessingTimeData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -563,6 +557,7 @@ export default function PerformanceAnalyticsPage() {
               </ResponsiveContainer>
             </div>
           </Card>
+          </div>
         </div>
 
         {/* Filters */}

@@ -842,7 +842,7 @@ export default function EditCustomerPage() {
                         id: 'shares',
                         label: 'Share Purchase History',
                         icon: <TrendingUp className="h-4 w-4" />,
-                        content: <SharePurchaseHistory customerId={customerId} mode="edit" />,
+                        content: <SharePurchaseHistory customerId={customerId} mode="edit" shareholderIdDefault={customer?.memberId || (customer as any)?.customerId} />,
                       },
                     ]
                   : []),

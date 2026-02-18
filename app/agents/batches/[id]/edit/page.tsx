@@ -16,6 +16,7 @@ import {
   Users,
   Calendar,
   Package,
+  Search,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useBatch } from '@/hooks/useBatch';
@@ -61,6 +62,21 @@ export default function EditBatchPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState('');
+
+  const filteredCustomers = useMemo(() => {
+    if (!customers) return [];
+    if (!customerSearch.trim()) return customers;
+    const q = customerSearch.toLowerCase().trim();
+    return customers.filter(
+      (c) =>
+        (c.fullName || '').toLowerCase().includes(q) ||
+        (c.email || '').toLowerCase().includes(q) ||
+        (c.phone || '').toLowerCase().includes(q) ||
+        (c.memberId || '').toLowerCase().includes(q) ||
+        ((c as any).customerId || '').toLowerCase().includes(q)
+    );
+  }, [customers, customerSearch]);
 
   // Fetch batch customers when batch is loaded
   useEffect(() => {
@@ -362,15 +378,23 @@ export default function EditBatchPage() {
                 {selectedCustomers.length} customer(s) selected
               </span>
             </div>
+            <div className="mb-4">
+              <Input
+                placeholder="Search by name, email, phone, or member ID..."
+                value={customerSearch}
+                onChange={(e) => setCustomerSearch(e.target.value)}
+                leftIcon={<Search className="h-4 w-4" />}
+              />
+            </div>
             {loadingCustomers ? (
               <div className="p-12 text-center">
                 <p className="text-neutral-500">Loading customers...</p>
               </div>
             ) : (
               <div className="max-h-96 overflow-y-auto border border-neutral-200 rounded-lg p-4">
-                {customers && customers.length > 0 ? (
+                {filteredCustomers && filteredCustomers.length > 0 ? (
                   <div className="space-y-2">
-                    {customers.map((customer) => (
+                    {filteredCustomers.map((customer) => (
                       <label
                         key={customer._id || customer.id}
                         className="flex items-center gap-3 p-3 hover:bg-neutral-50 rounded-lg cursor-pointer"
@@ -391,7 +415,9 @@ export default function EditBatchPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-neutral-500 text-center py-8">No customers available</p>
+                  <p className="text-neutral-500 text-center py-8">
+                    {customerSearch.trim() ? 'No customers match your search' : 'No customers available'}
+                  </p>
                 )}
               </div>
             )}
