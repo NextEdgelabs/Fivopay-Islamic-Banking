@@ -46,27 +46,41 @@ export default function CustomersPage() {
   const { customers, loading, error, refetch, filters, setFilters } = useCustomers();
   const { branches } = useBranches(); // Fetch branches for the filter dropdown
   const { addToast } = useToast();
+  const { approveUser, loading: isApproving } = useCustomerMutations();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<any>(null);
 
+  const [searchInput, setSearchInput] = useState(filters.search || '');
+
   useEffect(() => {
-    // Reset page to 1 when filters change
+    setSearchInput(filters.search || '');
+  }, [filters.search]);
+
+  useEffect(() => {
     setCurrentPage(1);
   }, [filters]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters(prev => ({ ...prev, search: e.target.value }));
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters(prev => {
+        const nextSearch = searchInput.trim() || undefined;
+        if ((prev.search || '') === (nextSearch || '')) return prev;
+        return { ...prev, search: nextSearch };
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
   
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const state = e.target.value;
-    setFilters(prev => ({ ...prev, state, city: '' })); // Reset city when state changes
+    setFilters(prev => ({ ...prev, state: state || undefined, city: undefined })); // Reset city when state changes
   };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilters({ [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value || undefined }));
   };
 
   // Pagination is now calculated based on the customers array from the hook
@@ -175,6 +189,16 @@ export default function CustomersPage() {
             ariaLabel="Share purchase"
             title="Share purchase"
           />
+          {!row.isApproved && (
+            <IconButton
+              icon={<CheckCircle className="h-4 w-4" />}
+              variant="ghost"
+              size="sm"
+              onClick={(e) => { e.stopPropagation(); handleApprove(row); }}
+              ariaLabel="Approve customer"
+              title="Approve customer"
+            />
+          )}
           <IconButton
             icon={<Edit className="h-4 w-4" />}
             variant="ghost"
@@ -197,6 +221,18 @@ export default function CustomersPage() {
   const handleDelete = (customer: any) => {
     setCustomerToDelete(customer);
     setShowDeleteModal(true);
+  };
+
+  const handleApprove = async (customer: any) => {
+    const id = customer._id || customer.id;
+    if (!id) return;
+    try {
+      await approveUser(id);
+      addToast({ type: 'success', message: `${customer.fullName} has been approved successfully` });
+      refetch();
+    } catch (err) {
+      addToast({ type: 'error', message: err instanceof Error ? err.message : 'Failed to approve customer' });
+    }
   };
 
   const confirmDelete = async () => {
@@ -356,8 +392,8 @@ export default function CustomersPage() {
             <div className="w-full md:w-1/3">
               <Input
                 placeholder="Search by name, email, or ID..."
-                value={filters.search || ''}
-                onChange={handleSearchChange}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>
@@ -368,7 +404,10 @@ export default function CustomersPage() {
                 onChange={handleFilterChange}
                 options={[
                   { value: '', label: 'All Branches' },
-                  ...branches.map(b => ({ value: b.branchName, label: b.branchName }))
+                  ...branches.map(b => ({
+                    value: String(b._id || (b as any).id),
+                    label: `${b.branchName}${b.branchCode ? ` (${b.branchCode})` : ''}`,
+                  }))
                 ]}
               />
             </div>

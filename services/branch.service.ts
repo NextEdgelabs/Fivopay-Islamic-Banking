@@ -43,6 +43,8 @@ export interface BranchFilters {
   state?: string;
   status?: Branch['status'];
   branchType?: Branch['branchType'];
+  page?: number;
+  limit?: number;
 }
 
 export interface BranchResponse {

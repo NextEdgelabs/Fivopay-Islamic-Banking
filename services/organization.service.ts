@@ -24,7 +24,8 @@ export interface OrganizationsListResponse {
   success: boolean;
   message: string;
   data: {
-    organizations: Organization[];
+    organizations?: Organization[];
+    organisations?: Organization[];
   };
 }
 
@@ -36,21 +37,22 @@ export interface OrganizationResponse {
   };
 }
 
-export const getAllOrganizations = async (): Promise<OrganizationsListResponse> => {
+export const getAllOrganizations = async (): Promise<Organization[]> => {
   try {
     const token = getAuthToken();
-    const response = await axios.get(`${API.domain}${API.endPoints.getAllOrganisations}`, {
+    const response = await axios.get(`${API.domain}${API.endPoints.getAllOrganisations}?limit=100`, {
       headers: {
         'Content-Type': 'application/json',
         ...(token && { 'Authorization': `Bearer ${token}` }),
       },
     });
     
-    if (response.status === 200) {
-      return response.data;
-    } else {
-      throw new Error('Failed to fetch organizations');
+    if (response.status === 200 && response.data?.success) {
+      const data = response.data.data;
+      const orgs = data?.organisations || data?.organizations || [];
+      return Array.isArray(orgs) ? orgs : [];
     }
+    throw new Error('Failed to fetch organizations');
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Failed to fetch organizations');
   }

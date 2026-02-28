@@ -17,16 +17,10 @@ export function useOrganizations(): UseOrganizationsResult {
     setLoading(true);
     setError(null); 
     try {
-      const data:any = await getAllOrganizations();
-      console.log("organizations", data);
-      if (data.success && data.data && data.data.organisations) {
-        setOrganizations(data.data.organisations);
-      } else {
-        setError('Invalid response structure from server');
-      }
+      const orgs = await getAllOrganizations();
+      setOrganizations(Array.isArray(orgs) ? orgs : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch organizations');
-      // Set empty array on error to prevent breaking the UI
       setOrganizations([]);
     } finally {
       setLoading(false);

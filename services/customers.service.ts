@@ -300,6 +300,8 @@ export const saveUserBasicInformation = async (customer: any)=> {
  */
 function normalizeCustomer(customer: any): Customer {
   const accountBalance = customer.accountBalance ?? customer.currentBalance ?? 0;
+  // Branch: backend returns branchId (ObjectId) or populated branch { _id, branchName }
+  const branchId = customer.branchId?.toString?.() || customer.branch?._id?.toString?.() || (typeof customer.branch === 'string' ? customer.branch : '');
   return {
     ...customer,
     // Map backend fields to frontend compatibility fields
@@ -308,6 +310,7 @@ function normalizeCustomer(customer: any): Customer {
     currentBalance: accountBalance, // Alias for compatibility
     status: customer.status || (customer.isActive ? 'Active' : 'Inactive'),
     joinedDate: customer.createdAt || customer.joinedDate,
+    branch: branchId,
     // Ensure required fields have defaults
     memberId: customer.memberId || customer._id || customer.id || '',
     totalSharesPurchased: customer.totalSharesPurchased ?? 0,
@@ -324,8 +327,14 @@ function normalizeCustomer(customer: any): Customer {
 
 // API Service Functions
 export const createCustomer = async (customer: CreateCustomerDto): Promise<CustomerResponse> => {
-    try {
-        const response = await axios.post( `${API.domain}${API.endPoints.addCustomer}`, customer);
+  try {
+    const token = getAuthToken();
+    const response = await axios.post(`${API.domain}${API.endPoints.addCustomer}`, customer, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+    });
     if (response.status === 200 || response.status === 201) {
             return response.data;
     } else {

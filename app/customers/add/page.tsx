@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -30,13 +30,22 @@ import { useCustomerMutations } from '@/hooks/useCustomerMutations';
 import { validateFile, convertToBase64 } from '@/lib/fileUpload';
 import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import SharePurchaseHistory from '@/components/customers/SharePurchaseHistory';
-import { createCustomer, saveUserBasicInformation } from '@/services/customers.service';
+import { createCustomer } from '@/services/customers.service';
+import { getAllBranches } from '@/services/branch.service';
+import { getAllOrganizations } from '@/services/organization.service';
+import type { Branch } from '@/services/branch.service';
+import type { Organization } from '@/services/organization.service';
 
 export default function AddCustomerPage() {
   const router = useRouter();
   const { addToast } = useToast();
   const { loading: isSubmitting } = useCustomerMutations();
   const { isEthicalBanking } = useOrganizationSettings();
+
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+  const [activeTab, setActiveTab] = useState('primary');
 
   const [formData, setFormData] = useState({
     // Primary Details
@@ -60,6 +69,7 @@ export default function AddCustomerPage() {
     accountType: '',
     initialDeposit: '',
     branch: '',
+    organisation: '',
     nomineeName: '',
     nomineeRelation: '',
     nomineePhone: '',
@@ -78,6 +88,42 @@ export default function AddCustomerPage() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoadingData(true);
+      try {
+        const [branchesRes, orgs] = await Promise.all([
+          getAllBranches({ limit: 100 }),
+          getAllOrganizations(),
+        ]);
+        const branchList = branchesRes?.data?.branches || [];
+        setBranches(branchList);
+        setOrganizations(Array.isArray(orgs) ? orgs : []);
+
+        if (orgs?.length && !formData.organisation) {
+          const firstOrg = orgs[0];
+          const orgId = firstOrg._id || (firstOrg as any).id;
+          if (orgId) {
+            setFormData((prev) => ({ ...prev, organisation: orgId }));
+          }
+        }
+        if (branchList.length === 1 && !formData.branch) {
+          const firstBranch = branchList[0];
+          const branchId = firstBranch._id || (firstBranch as any).id;
+          if (branchId) {
+            setFormData((prev) => ({ ...prev, branch: String(branchId) }));
+          }
+        }
+      } catch {
+        setBranches([]);
+        setOrganizations([]);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -126,7 +172,7 @@ export default function AddCustomerPage() {
     }
   };
 
-  const validateForm = () => {
+  const validateForm = (): { valid: boolean; firstErrorTab: string; errorKeys: string[] } => {
     const newErrors: Record<string, string> = {};
 
     // Primary Details Validation
@@ -147,46 +193,84 @@ export default function AddCustomerPage() {
     if (!formData.accountType) newErrors.accountType = 'Account type is required';
     if (!formData.initialDeposit) {
       newErrors.initialDeposit = 'Initial deposit is required';
-    } else if (parseFloat(formData.initialDeposit) < 1000) {
+    } else if (Number(formData.initialDeposit) < 1000) {
       newErrors.initialDeposit = 'Minimum deposit is ₹1,000';
     }
     if (!formData.branch) newErrors.branch = 'Branch is required';
-
-    // KYC Validation - At least one ID proof required
-    if (!formData.aadhaarNumber && !formData.panNumber && !formData.passportNumber) {
-      newErrors.aadhaarNumber = 'At least one ID proof is required (Aadhaar/PAN/Passport)';
+    if (organizations.length > 0 && !formData.organisation) {
+      newErrors.organisation = 'Organization is required';
     }
-    if (formData.aadhaarNumber && formData.aadhaarNumber.length !== 12) {
+
+    // KYC Validation - Optional; validate format only when provided
+    if (formData.aadhaarNumber?.trim() && formData.aadhaarNumber.length !== 12) {
       newErrors.aadhaarNumber = 'Aadhaar number must be 12 digits';
     }
-    if (formData.panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panNumber)) {
+    if (formData.panNumber?.trim() && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(formData.panNumber)) {
       newErrors.panNumber = 'Invalid PAN format (e.g., ABCDE1234F)';
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    const primaryFields = ['fullName', 'email', 'phone', 'dateOfBirth', 'gender', 'occupation', 'addressLine1', 'city', 'state', 'postalCode', 'accountType', 'initialDeposit', 'branch', 'organisation'];
+    const errorKeys = Object.keys(newErrors);
+    const firstErrorKey = errorKeys[0];
+    const firstErrorTab = firstErrorKey && primaryFields.includes(firstErrorKey) ? 'primary' : 'kyc';
+
+    return { valid: errorKeys.length === 0, firstErrorTab, errorKeys };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    const { valid, firstErrorTab, errorKeys } = validateForm();
+    if (!valid) {
+      setActiveTab(firstErrorTab);
       addToast({
         type: 'error',
-        message: 'Please fix the errors in the form',
+        message: `Please fix: ${errorKeys.join(', ')}`,
       });
       return;
     }
 
     try {
-      // Transform form data to match CreateCustomerDto
-      const customerData = {
-        ...formData,
-        annualIncome: formData.annualIncome ? parseFloat(formData.annualIncome) : undefined,
-        initialDeposit: parseFloat(formData.initialDeposit),
-      } as any;
+      const customerData: Record<string, unknown> = {
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        alternatePhone: formData.alternatePhone?.trim() || undefined,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        maritalStatus: formData.maritalStatus || undefined,
+        fatherName: formData.fatherName?.trim() || undefined,
+        motherName: formData.motherName?.trim() || undefined,
+        occupation: formData.occupation.trim(),
+        annualIncome: formData.annualIncome ? Number(formData.annualIncome) : undefined,
+        addressLine1: formData.addressLine1.trim(),
+        addressLine2: formData.addressLine2?.trim() || undefined,
+        city: formData.city.trim(),
+        state: formData.state.trim(),
+        postalCode: formData.postalCode.trim(),
+        country: formData.country || 'India',
+        accountType: formData.accountType,
+        initialDeposit: Number(formData.initialDeposit),
+        branch: formData.branch,
+        organisation: formData.organisation || undefined,
+        nomineeName: formData.nomineeName?.trim() || undefined,
+        nomineeRelation: formData.nomineeRelation?.trim() || undefined,
+        nomineePhone: formData.nomineePhone?.trim() || undefined,
+        nomineeAddress: formData.nomineeAddress?.trim() || undefined,
+        kycStatus: formData.kycStatus || 'Pending',
+        kycNotes: formData.kycNotes?.trim() || undefined,
+      };
+      if (formData.aadhaarNumber?.trim()) customerData.aadhaarNumber = formData.aadhaarNumber.trim();
+      if (formData.panNumber?.trim()) customerData.panNumber = formData.panNumber.trim().toUpperCase();
+      if (formData.passportNumber?.trim()) customerData.passportNumber = formData.passportNumber.trim();
+      if (formData.drivingLicenseNumber?.trim()) customerData.drivingLicenseNumber = formData.drivingLicenseNumber.trim();
+      if (formData.voterIdNumber?.trim()) customerData.voterIdNumber = formData.voterIdNumber.trim();
+      if (formData.addressProofType?.trim()) customerData.addressProofType = formData.addressProofType.trim();
+      if (formData.addressProofNumber?.trim()) customerData.addressProofNumber = formData.addressProofNumber.trim();
 
-      await createCustomer(customerData);
+      await createCustomer(customerData as any);
       addToast({
         type: 'success',
         message: `Customer ${formData.fullName} has been added successfully!`,
@@ -416,6 +500,24 @@ export default function AddCustomerPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {organizations.length > 0 && (
+            <Select
+              label="Organization"
+              name="organisation"
+              value={formData.organisation}
+              onChange={handleChange}
+              error={errors.organisation}
+              required={organizations.length > 0}
+              options={[
+                { value: '', label: 'Select organization' },
+                ...organizations.map((org) => ({
+                  value: org._id || (org as any).id || '',
+                  label: org.organisationName || org.organizationName || org.name || 'Unknown',
+                })),
+              ]}
+            />
+          )}
+
           <Select
             label="Account Type"
             name="accountType"
@@ -449,13 +551,13 @@ export default function AddCustomerPage() {
             onChange={handleChange}
             error={errors.branch}
             required
+            disabled={loadingData}
             options={[
-              { value: '', label: 'Select branch' },
-              { value: 'Mumbai Central', label: 'Mumbai Central' },
-              { value: 'Delhi Main', label: 'Delhi Main' },
-              { value: 'Bangalore Tech Park', label: 'Bangalore Tech Park' },
-              { value: 'Hyderabad Banjara Hills', label: 'Hyderabad Banjara Hills' },
-              { value: 'Pune Koregaon Park', label: 'Pune Koregaon Park' },
+              { value: '', label: loadingData ? 'Loading branches...' : 'Select branch' },
+              ...branches.map((b) => ({
+                value: String(b._id || (b as any).id),
+                label: `${b.branchName}${b.branchCode ? ` (${b.branchCode})` : ''}`,
+              })),
             ]}
           />
         </div>
@@ -517,7 +619,7 @@ export default function AddCustomerPage() {
         <div className="flex items-center gap-2 mb-6">
           <Shield className="h-5 w-5 text-primary-600" />
           <h2 className="text-xl font-semibold text-neutral-900">Aadhaar Card</h2>
-          <span className="text-sm text-red-500">* (Required)</span>
+          <span className="text-sm text-neutral-500">(Optional)</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -556,7 +658,7 @@ export default function AddCustomerPage() {
         <div className="flex items-center gap-2 mb-6">
           <FileText className="h-5 w-5 text-primary-600" />
           <h2 className="text-xl font-semibold text-neutral-900">PAN Card</h2>
-          <span className="text-sm text-red-500">* (Required)</span>
+          <span className="text-sm text-neutral-500">(Optional)</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -778,6 +880,8 @@ export default function AddCustomerPage() {
           {/* Tabs */}
           <Card>
             <Tabs
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
               tabs={[
                 {
                   id: 'primary',

@@ -11,6 +11,7 @@ import {
   Textarea,
   Breadcrumbs,
   Tabs,
+  Modal,
 } from '@/components/ui';
 import {
   Save,
@@ -26,6 +27,7 @@ import {
   ArrowLeft,
   Loader,
   TrendingUp,
+  CheckCircle,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useCustomer } from '@/hooks/useCustomer';
@@ -33,6 +35,8 @@ import { useCustomerMutations } from '@/hooks/useCustomerMutations';
 import { validateFile, convertToBase64 } from '@/lib/fileUpload';
 import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import SharePurchaseHistory from '@/components/customers/SharePurchaseHistory';
+import { getAllBranches } from '@/services/branch.service';
+import type { Branch } from '@/services/branch.service';
 
 export default function EditCustomerPage() {
   const router = useRouter();
@@ -41,8 +45,8 @@ export default function EditCustomerPage() {
   const { addToast } = useToast();
 
   // Fetch customer data
-  const { customer, loading: fetchLoading } = useCustomer(customerId);
-  const { updateCustomer, loading: isSubmitting } = useCustomerMutations();
+  const { customer, loading: fetchLoading, refetch } = useCustomer(customerId);
+  const { updateCustomer, approveUser, loading: isSubmitting } = useCustomerMutations();
   const { isEthicalBanking } = useOrganizationSettings();
 
   const [formData, setFormData] = useState({
@@ -66,6 +70,7 @@ export default function EditCustomerPage() {
     accountType: '',
     branch: '',
     status: '',
+    isApproved: false,
     nomineeName: '',
     nomineeRelation: '',
     nomineePhone: '',
@@ -82,6 +87,16 @@ export default function EditCustomerPage() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [loadingBranches, setLoadingBranches] = useState(true);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+
+  useEffect(() => {
+    getAllBranches({ limit: 100 })
+      .then((res) => setBranches(res?.data?.branches || []))
+      .catch(() => setBranches([]))
+      .finally(() => setLoadingBranches(false));
+  }, []);
 
   // Populate form when customer data loads
   useEffect(() => {
@@ -105,8 +120,9 @@ export default function EditCustomerPage() {
         postalCode: customer.postalCode || '',
         country: customer.country || 'India',
         accountType: customer.accountType || '',
-        branch: customer.branch || '',
+        branch: (customer.branch || (customer as any).branchId?.toString?.() || '').toString(),
         status: customer.status || '',
+        isApproved: customer.isApproved ?? false,
         nomineeName: customer.nomineeName || '',
         nomineeRelation: customer.nomineeRelation || '',
         nomineePhone: customer.nomineePhone || '',
@@ -214,10 +230,8 @@ export default function EditCustomerPage() {
       Object.keys(formData).forEach((key) => {
         const value = formData[key as keyof typeof formData];
         
-        // Skip empty strings
-        if (value === '') {
-          return;
-        }
+        // Skip empty strings (include booleans like isApproved)
+        if (value === '' && typeof value !== 'boolean') return;
         
         // Handle annualIncome specially - convert to number or undefined
         if (key === 'annualIncome') {
@@ -244,6 +258,18 @@ export default function EditCustomerPage() {
   const handleCancel = () => {
     if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
       router.push(`/customers/${customerId}`);
+    }
+  };
+
+  const handleApprove = async () => {
+    try {
+      await approveUser(customerId);
+      addToast({ type: 'success', message: `${customer?.fullName || 'Customer'} has been approved successfully` });
+      setShowApproveModal(false);
+      setFormData((prev) => ({ ...prev, isApproved: true }));
+      refetch();
+    } catch (err) {
+      addToast({ type: 'error', message: err instanceof Error ? err.message : 'Failed to approve customer' });
     }
   };
 
@@ -475,13 +501,13 @@ export default function EditCustomerPage() {
             onChange={handleChange}
             error={errors.branch}
             required
+            disabled={loadingBranches}
             options={[
-              { value: '', label: 'Select branch' },
-              { value: 'Mumbai Central', label: 'Mumbai Central' },
-              { value: 'Delhi Main', label: 'Delhi Main' },
-              { value: 'Bangalore Tech Park', label: 'Bangalore Tech Park' },
-              { value: 'Hyderabad Banjara Hills', label: 'Hyderabad Banjara Hills' },
-              { value: 'Pune Koregaon Park', label: 'Pune Koregaon Park' },
+              { value: '', label: loadingBranches ? 'Loading branches...' : 'Select branch' },
+              ...branches.map((b) => ({
+                value: String(b._id || (b as any).id),
+                label: `${b.branchName}${b.branchCode ? ` (${b.branchCode})` : ''}`,
+              })),
             ]}
           />
 
@@ -496,6 +522,17 @@ export default function EditCustomerPage() {
               { value: 'Inactive', label: 'Inactive' },
               { value: 'Pending', label: 'Pending' },
               { value: 'Blocked', label: 'Blocked' },
+            ]}
+          />
+
+          <Select
+            label="Approval Status"
+            name="isApproved"
+            value={String(formData.isApproved)}
+            onChange={(e) => setFormData((prev) => ({ ...prev, isApproved: e.target.value === 'true' }))}
+            options={[
+              { value: 'false', label: 'Pending Approval' },
+              { value: 'true', label: 'Approved' },
             ]}
           />
         </div>
@@ -811,10 +848,18 @@ export default function EditCustomerPage() {
               <h1 className="text-3xl font-bold text-neutral-900">Edit Customer</h1>
               <p className="text-neutral-600 mt-1">Update customer information for {customerId}</p>
             </div>
-            <Button variant="outline" onClick={() => router.push(`/customers/${customerId}`)}>
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Back to Details
-            </Button>
+            <div className="flex gap-2">
+              {!customer?.isApproved && (
+                <Button variant="primary" onClick={() => setShowApproveModal(true)} disabled={isSubmitting}>
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Approve Customer
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => router.push(`/customers/${customerId}`)}>
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                Back to Details
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -875,6 +920,30 @@ export default function EditCustomerPage() {
             </Button>
           </div>
         </form>
+
+        {/* Approve Confirmation Modal */}
+        {showApproveModal && (
+          <Modal
+            isOpen={showApproveModal}
+            onClose={() => setShowApproveModal(false)}
+            title="Approve Customer"
+            size="md"
+            closeOnOverlayClick={false}
+            footer={
+              <>
+                <Button variant="outline" onClick={() => setShowApproveModal(false)}>Cancel</Button>
+                <Button variant="primary" onClick={handleApprove} loading={isSubmitting}>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Approve Customer
+                </Button>
+              </>
+            }
+          >
+            <p className="text-neutral-600">
+              Are you sure you want to approve <span className="font-semibold">{customer?.fullName}</span>? This will activate their account and grant full access to services.
+            </p>
+          </Modal>
+        )}
       </div>
     </DashboardLayout>
   );

@@ -14,6 +14,8 @@ export interface TabItem {
 export interface TabsProps {
   tabs: TabItem[];
   defaultTab?: string;
+  activeTab?: string;
+  onTabChange?: (tabId: string) => void;
   onChange?: (tabId: string) => void;
   variant?: 'default' | 'pills';
   className?: string;
@@ -22,14 +24,19 @@ export interface TabsProps {
 const Tabs: React.FC<TabsProps> = ({
   tabs,
   defaultTab,
+  activeTab: controlledActiveTab,
+  onTabChange,
   onChange,
   variant = 'default',
   className,
 }) => {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id);
+  const [internalActiveTab, setInternalActiveTab] = useState(defaultTab || tabs[0]?.id);
+  const isControlled = controlledActiveTab !== undefined;
+  const activeTab = isControlled ? controlledActiveTab : internalActiveTab;
 
   const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId);
+    if (!isControlled) setInternalActiveTab(tabId);
+    onTabChange?.(tabId);
     onChange?.(tabId);
   };
 
@@ -48,6 +55,7 @@ const Tabs: React.FC<TabsProps> = ({
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            type="button"
             role="tab"
             aria-selected={activeTab === tab.id}
             aria-disabled={tab.disabled}

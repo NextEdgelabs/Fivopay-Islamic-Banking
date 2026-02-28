@@ -14,7 +14,7 @@ export function useCustomers(initialFilters?: CustomerFilters): UseCustomersResu
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<CustomerFilters>(initialFilters || {});
+  const [filters, setFilters] = useState<CustomerFilters>(initialFilters || { limit: 500 });
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
