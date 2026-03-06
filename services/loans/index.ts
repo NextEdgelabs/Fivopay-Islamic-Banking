@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API } from '@/api';
-import { getAuthToken } from '@/lib/auth';
+import { getAuthToken, getOrganisationId } from '@/lib/auth';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -268,6 +268,8 @@ export const loanService = {
   async getLoans(filters?: LoanFilters): Promise<Loan[]> {
     try {
       const params = new URLSearchParams();
+      const organisationId = filters?.organisation ?? getOrganisationId();
+      if (organisationId) params.append('organisation', organisationId);
       if (filters) {
         const statusToApproval: Record<string, string> = {
           'Pending': 'pending',
@@ -277,7 +279,7 @@ export const loanService = {
           'Processing': 'processing',
         };
         Object.entries(filters).forEach(([key, value]) => {
-          if (value === undefined || value === '') return;
+          if (key === 'organisation' || value === undefined || value === '') return;
           if (key === 'status') {
             const approvalStatus = statusToApproval[value];
             if (approvalStatus) params.append('approvalStatus', approvalStatus);

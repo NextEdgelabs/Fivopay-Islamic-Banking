@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API } from '@/api';
-import { getAuthToken } from '@/lib/auth';
+import { getAuthToken, getOrganisationId } from '@/lib/auth';
 
 // Loan Category Enums (matching the model)
 export enum LoanCategoryStatus {
@@ -157,6 +157,7 @@ export interface LoanCategoryFilters {
   search?: string;
   status?: LoanCategoryStatus | string;
   loanType?: LoanType | string;
+  organisationId?: string;
 }
 
 export interface LoanCategoryResponse {
@@ -208,11 +209,12 @@ export const createLoanCategory = async (data: CreateLoanCategoryDto): Promise<L
 export const getAllLoanCategories = async (filters?: LoanCategoryFilters): Promise<LoanCategoriesListResponse> => {
   try {
     const params = new URLSearchParams();
+    const organisationId = filters?.organisationId ?? getOrganisationId();
+    if (organisationId) params.append('organisation', organisationId);
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
-          params.append(key, value.toString());
-        }
+        if (key === 'organisationId' || value === undefined || value === '') return;
+        params.append(key, value.toString());
       });
     }
     

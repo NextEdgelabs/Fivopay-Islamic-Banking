@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API } from '@/api';
-import { getAuthToken } from '@/lib/auth';
+import { getAuthToken, getOrganisationId } from '@/lib/auth';
 
 // Employee Types and Interfaces (matching backend Employee model)
 export type EmployeeStatus = 'active' | 'inactive' | 'suspended' | 'terminated';
@@ -219,11 +219,17 @@ class EmployeeService {
   async getAll(filters?: EmployeeFilters): Promise<EmployeesListResponse> {
     try {
       const params = new URLSearchParams();
+      // Scope by org: use filter if set and not "all", else current user's org
+      const organisationId =
+        filters?.organisation !== undefined && filters.organisation !== ''
+          ? filters.organisation
+          : getOrganisationId();
+      const orgIdStr = typeof organisationId === 'string' ? organisationId : (organisationId as any)?._id;
+      if (orgIdStr) params.append('organisation', orgIdStr);
       if (filters) {
         Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== '') {
-            params.append(key, value.toString());
-          }
+          if (key === 'organisation' || value === undefined || value === '') return;
+          params.append(key, value.toString());
         });
       }
       

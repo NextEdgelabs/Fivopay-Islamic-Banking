@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { employeeService, Employee, EmployeeFilters, getAllEmployees } from '@/services/employee.service';
+import { getOrganisationId } from '@/lib/auth';
 
 interface UseEmployeesResult {
   employees: Employee[];
@@ -10,11 +11,19 @@ interface UseEmployeesResult {
   setFilters: React.Dispatch<React.SetStateAction<EmployeeFilters>>;
 }
 
+function getDefaultFilters(initialFilters?: EmployeeFilters): EmployeeFilters {
+  const orgId = typeof window !== 'undefined' ? getOrganisationId() : null;
+  return {
+    ...initialFilters,
+    organisation: initialFilters?.organisation !== undefined ? initialFilters.organisation : (orgId ?? undefined),
+  };
+}
+
 export function useEmployees(initialFilters?: EmployeeFilters): UseEmployeesResult {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<EmployeeFilters>(initialFilters || {});
+  const [filters, setFilters] = useState<EmployeeFilters>(getDefaultFilters(initialFilters));
 
   const fetchEmployees = useCallback(async () => {
     setLoading(true);

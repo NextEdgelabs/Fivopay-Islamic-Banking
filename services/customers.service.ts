@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API } from '@/api';
-import { getAuthToken } from '@/lib/auth';
+import { getAuthToken, getOrganisationId } from '@/lib/auth';
 
 // Enums matching backend User model
 export enum Gender {
@@ -167,6 +167,8 @@ export interface CustomerFilters {
   state?: string;
   branch?: string;
   status?: string;
+  /** Scope customers by organisation */
+  organisationId?: string;
 }
 
 export interface CustomerResponse {
@@ -348,11 +350,17 @@ export const createCustomer = async (customer: CreateCustomerDto): Promise<Custo
 export const getAllCustomers = async (filters?: CustomerFilters): Promise<CustomersListResponse> => {
   try {
     const params = new URLSearchParams();
+    // Scope by org: use filter if set and not "all", else current user's org
+    const organisationId =
+      filters?.organisationId !== undefined && filters.organisationId !== ''
+        ? filters.organisationId
+        : getOrganisationId();
+    const orgIdStr = typeof organisationId === 'string' ? organisationId : (organisationId as any)?._id;
+    if (orgIdStr) params.append('organisation', orgIdStr);
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
-          params.append(key, value.toString());
-        }
+        if (key === 'organisationId' || value === undefined || value === '') return;
+        params.append(key, value.toString());
       });
     }
     

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { API } from "@/api";
-import { getAuthToken } from "@/lib/auth";
+import { getAuthToken, getOrganisationId } from "@/lib/auth";
 
 // Branch Types
 export interface Branch {
@@ -45,6 +45,8 @@ export interface BranchFilters {
   branchType?: Branch['branchType'];
   page?: number;
   limit?: number;
+  /** Scope branches by organisation */
+  organisationId?: string;
 }
 
 export interface BranchResponse {
@@ -95,11 +97,12 @@ export const createBranch = async (data: CreateBranchDto): Promise<BranchRespons
 export const getAllBranches = async (filters?: BranchFilters): Promise<BranchesListResponse> => {
   try {
     const params = new URLSearchParams();
+    const organisationId = filters?.organisationId ?? getOrganisationId();
+    if (organisationId) params.append('organisation', organisationId);
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
-          params.append(key, value.toString());
-        }
+        if (key === 'organisationId' || value === undefined || value === '') return;
+        params.append(key, value.toString());
       });
     }
     

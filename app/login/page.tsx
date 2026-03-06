@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Input, Button, Checkbox, Alert } from '@/components/ui';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { employeeLogin } from '@/services/employee.service';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, setSelectedOrganisationId } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -58,11 +58,15 @@ export default function LoginPage() {
       const response = await employeeLogin(formData.email, formData.password);
       
       if (response.success) {
+        const employee = response.data.employee;
         // Store user data and tokens in localStorage
-        localStorage.setItem('user', JSON.stringify(response.data.employee));
+        localStorage.setItem('user', JSON.stringify(employee));
         localStorage.setItem('accessToken', response.data.accessToken);
         localStorage.setItem('refreshToken', response.data.refreshToken);
-        
+        // Set current organisation for API scoping (branches, customers, loans, etc.)
+        if (employee?.organisation) {
+          setSelectedOrganisationId(typeof employee.organisation === 'string' ? employee.organisation : (employee.organisation as any)?._id);
+        }
         // Redirect to dashboard
         router.push('/dashboard');
       } else {

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API } from '@/api';
-import { getAuthToken } from '@/lib/auth';
+import { getAuthToken, getOrganisationId } from '@/lib/auth';
 
 // ============================================================================
 // TYPE DEFINITIONS (matching loadFlow.md schema)
@@ -185,6 +185,8 @@ export interface DepositFilters {
   depositType?: string;
   branchId?: string;
   customerId?: string;
+  /** Scope by organisation */
+  organisationId?: string;
 }
 
 export interface GetAllDepositsParams {
@@ -429,6 +431,8 @@ export interface GetAllDepositAccountsParams {
   branchId?: string;
   status?: string;
   depositType?: string;
+  /** Scope by organisation (filters via branches of this org) */
+  organisationId?: string;
 }
 
 export const getAllDepositAccountsApi = async (
@@ -436,6 +440,8 @@ export const getAllDepositAccountsApi = async (
 ): Promise<Deposit[]> => {
   const token = getAuthToken();
   const query = new URLSearchParams();
+  const organisationId = params?.organisationId ?? getOrganisationId();
+  if (organisationId) query.append('organisation', organisationId);
   if (params?.page) query.append('page', String(params.page));
   if (params?.limit) query.append('limit', String(params.limit));
   if (params?.customerId) query.append('customerId', params.customerId);
@@ -541,6 +547,7 @@ export const depositService = {
         page: 1,
         limit: 100,
       };
+      if (filters?.organisationId) params.organisationId = filters.organisationId;
       if (filters?.customerId) params.customerId = filters.customerId;
       if (filters?.branchId) params.branchId = filters.branchId;
       if (filters?.status) params.status = filters.status;

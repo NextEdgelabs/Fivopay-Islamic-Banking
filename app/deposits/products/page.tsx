@@ -36,6 +36,7 @@ import {
   DepositProductType,
   CreateDepositProductDto,
 } from '@/services/deposit-products.service';
+import { getOrganisationId } from '@/lib/auth';
 
 const CATEGORY_TYPE_LABELS: Record<string, string> = {
   demand_deposit: 'Demand Deposit (Savings/Current)',
@@ -136,6 +137,7 @@ export default function ManageDepositProductsPage() {
 
   const handleSaveCategory = async () => {
     try {
+      const orgId = getOrganisationId();
       if (editingCategory) {
         await updateDepositCategory({
           _id: editingCategory._id,
@@ -143,7 +145,7 @@ export default function ManageDepositProductsPage() {
         });
         addToast({ type: 'success', message: 'Category updated successfully' });
       } else {
-        await createDepositCategory(categoryForm);
+        await createDepositCategory({ ...categoryForm, organisation: orgId ?? undefined });
         addToast({ type: 'success', message: 'Category created successfully' });
       }
       refetchCategories();
@@ -159,6 +161,7 @@ export default function ManageDepositProductsPage() {
       return;
     }
     try {
+      const orgId = getOrganisationId();
       if (editingProduct) {
         await updateDepositProduct({
           _id: editingProduct._id,
@@ -166,7 +169,7 @@ export default function ManageDepositProductsPage() {
         });
         addToast({ type: 'success', message: 'Product updated successfully' });
       } else {
-        await createDepositProduct(productForm);
+        await createDepositProduct({ ...productForm, organisation: orgId ?? undefined });
         addToast({ type: 'success', message: 'Product created successfully' });
       }
       refetchProducts();

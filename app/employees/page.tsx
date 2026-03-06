@@ -386,7 +386,10 @@ export default function EmployeesPage() {
                 onChange={handleFilterChange}
                 options={[
                   { value: '', label: 'All Branches' },
-                  ...branches.map(b => ({ value: b.branchName, label: b.branchName }))
+                  ...branches.map((b) => ({
+                    value: b._id ?? b.id ?? '',
+                    label: b.branchName ?? b.branchCode ?? 'Unknown',
+                  })),
                 ]}
               />
             </div>

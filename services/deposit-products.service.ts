@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API } from '@/api';
-import { getAuthToken } from '@/lib/auth';
+import { getAuthToken, getOrganisationId } from '@/lib/auth';
 import type { DepositCategory } from './deposit-categories.service';
 
 export enum DepositProductStatus {
@@ -64,6 +64,7 @@ export interface DepositProductFilters {
   category?: string;
   page?: number;
   limit?: number;
+  organisationId?: string;
 }
 
 export interface DepositProductsListResponse {
@@ -102,9 +103,12 @@ const create = async (data: CreateDepositProductDto): Promise<DepositProductResp
 
 const getAll = async (filters?: DepositProductFilters): Promise<DepositProductsListResponse> => {
   const params = new URLSearchParams();
+  const organisationId = filters?.organisationId ?? getOrganisationId();
+  if (organisationId) params.append('organisation', organisationId);
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') params.append(key, String(value));
+      if (key === 'organisationId' || value === undefined || value === '') return;
+      params.append(key, String(value));
     });
   }
   const token = getAuthToken();

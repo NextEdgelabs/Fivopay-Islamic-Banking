@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API } from '@/api';
-import { getAuthToken } from '@/lib/auth';
+import { getAuthToken, getOrganisationId } from '@/lib/auth';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -238,11 +238,12 @@ export const productService = {
   async getProducts(filters?: ProductFilters): Promise<AnyProduct[]> {
     try {
       const params = new URLSearchParams();
+      const organisationId = filters?.organisation ?? getOrganisationId();
+      if (organisationId) params.append('organisation', organisationId);
       if (filters) {
         Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== '') {
-            params.append(key, value.toString());
-          }
+          if (key === 'organisation' || value === undefined || value === '') return;
+          params.append(key, value.toString());
         });
       }
 

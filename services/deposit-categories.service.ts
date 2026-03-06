@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API } from '@/api';
-import { getAuthToken } from '@/lib/auth';
+import { getAuthToken, getOrganisationId } from '@/lib/auth';
 
 export enum DepositCategoryStatus {
   ACTIVE = 'active',
@@ -45,6 +45,7 @@ export interface DepositCategoryFilters {
   categoryType?: DepositCategoryType | string;
   page?: number;
   limit?: number;
+  organisationId?: string;
 }
 
 export interface DepositCategoriesListResponse {
@@ -83,9 +84,12 @@ const create = async (data: CreateDepositCategoryDto): Promise<DepositCategoryRe
 
 const getAll = async (filters?: DepositCategoryFilters): Promise<DepositCategoriesListResponse> => {
   const params = new URLSearchParams();
+  const organisationId = filters?.organisationId ?? getOrganisationId();
+  if (organisationId) params.append('organisation', organisationId);
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') params.append(key, String(value));
+      if (key === 'organisationId' || value === undefined || value === '') return;
+      params.append(key, String(value));
     });
   }
   const token = getAuthToken();

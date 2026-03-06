@@ -20,14 +20,18 @@ export const useDepositCategories = (initialFilters?: DepositCategoryFilters): U
     setLoading(true);
     setError(null);
     try {
-      const data = await depositCategoryService.getAll({ ...filters, limit: 100 });
+      const data = await depositCategoryService.getAll({
+        ...filters,
+        limit: 100,
+        organisationId: filters.organisationId ?? localStorage.getItem('organisationId') ?? undefined,
+      });
       setCategories(data.result.depositCategories);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch deposit categories');
     } finally {
       setLoading(false);
     }
-  }, [filters.status, filters.categoryType, filters.page, filters.limit]);
+  }, [filters.status, filters.categoryType, filters.page, filters.limit, filters.organisationId]);
 
   useEffect(() => {
     fetchCategories();

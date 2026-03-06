@@ -19,6 +19,9 @@ export interface Employee {
   canManageEmployees: boolean;
   status: string;
   lastLogin: string;
+  /** Organisation ID for scoping data (from login response) */
+  organisation?: string;
+  branch?: string;
 }
 
 export const getAuthToken = (): string | null => {
@@ -49,6 +52,7 @@ export const clearAuth = (): void => {
   localStorage.removeItem('user');
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
+  localStorage.removeItem('selectedOrganisationId');
 };
 
 export const hasAccess = (permission: string): boolean => {
@@ -60,4 +64,23 @@ export const hasAccess = (permission: string): boolean => {
 export const isAdmin = (): boolean => {
   const user = getCurrentUser();
   return user?.isAdmin || false;
+};
+
+/** Get current organisation ID for scoping API data (from logged-in employee or selected org) */
+export const getOrganisationId = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const user = getCurrentUser();
+  const fromUser = (user as any)?.organisation;
+  if (fromUser != null) {
+    if (typeof fromUser === 'string') return fromUser;
+    if (typeof (fromUser as any)?._id === 'string') return (fromUser as any)._id;
+  }
+  return localStorage.getItem('selectedOrganisationId');
+};
+
+/** Set selected organisation ID when user switches org (e.g. org selector) */
+export const setSelectedOrganisationId = (organisationId: string | null): void => {
+  if (typeof window === 'undefined') return;
+  if (organisationId) localStorage.setItem('selectedOrganisationId', organisationId);
+  else localStorage.removeItem('selectedOrganisationId');
 };

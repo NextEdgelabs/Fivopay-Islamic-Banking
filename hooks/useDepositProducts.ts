@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { depositProductService, DepositProduct, DepositProductFilters } from '@/services/deposit-products.service';
+import { getOrganisationId } from '@/lib/auth';
 
 interface UseDepositProductsResult {
   products: DepositProduct[];
@@ -20,14 +21,18 @@ export const useDepositProducts = (initialFilters?: DepositProductFilters): UseD
     setLoading(true);
     setError(null);
     try {
-      const data = await depositProductService.getAll({ ...filters, limit: 100 });
+      const data = await depositProductService.getAll({
+        ...filters,
+        limit: 100,
+        organisationId: filters.organisationId ?? getOrganisationId() ?? undefined,
+      });
       setProducts(data.result.depositProducts);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch deposit products');
     } finally {
       setLoading(false);
     }
-  }, [filters.status, filters.productType, filters.category, filters.page, filters.limit]);
+  }, [filters.status, filters.productType, filters.category, filters.page, filters.limit, filters.organisationId]);
 
   useEffect(() => {
     fetchProducts();

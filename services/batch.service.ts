@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API } from '@/api';
-import { getAuthToken } from '@/lib/auth';
+import { getAuthToken, getOrganisationId } from '@/lib/auth';
 import { Customer } from '@/services/customers.service';
 import { Employee } from '@/services/employee.service';
 
@@ -146,11 +146,12 @@ class BatchService {
       const token = getAuthToken();
       const params = new URLSearchParams();
       
+      const organisationId = filters?.organisation ?? getOrganisationId();
+      if (organisationId) params.append('organisation', typeof organisationId === 'string' ? organisationId : String((organisationId as any)?._id ?? ''));
       if (filters?.page) params.append('page', filters.page.toString());
       if (filters?.limit) params.append('limit', filters.limit.toString());
       if (filters?.status) params.append('status', filters.status);
       if (filters?.employeeId) params.append('employeeId', filters.employeeId);
-      if (filters?.organisation) params.append('organisation', filters.organisation);
       if (filters?.search) params.append('search', filters.search);
 
       const response: any = await axios.get(
