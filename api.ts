@@ -114,5 +114,26 @@ export const API = {
         // share transactions
         getAllShareTransactions: "/api/v1/share-transaction/get-all-transactions",
         recordShareTransaction: "/api/v1/share-transaction/record-transaction",
+
+        // investment transactions
+        getAllInvestmentTransactions: "/api/v1/investment-transaction/get-all-transactions",
+
+        // joint liability
+        jointLiability: {
+          groupCreate: "/api/v1/joint-liability/group/create",
+          groupGetAll: "/api/v1/joint-liability/group/get-all",
+          groupGetById: "/api/v1/joint-liability/group/get-by-id",
+          groupUpdate: "/api/v1/joint-liability/group/update",
+          groupDistribute: "/api/v1/joint-liability/group/distribute",
+          groupAddMember: "/api/v1/joint-liability/group/add-member",
+          groupRemoveMember: "/api/v1/joint-liability/group/remove-member",
+          groupAddDeposit: "/api/v1/joint-liability/group/add-deposit",
+          groupDelete: "/api/v1/joint-liability/group/delete",
+          loanGetAll: "/api/v1/joint-liability/loan/get-all",
+          loanApply: "/api/v1/joint-liability/loan/apply",
+          loanUpdateStatus: "/api/v1/joint-liability/loan/update-status",
+          loanRepay: "/api/v1/joint-liability/loan/repay",
+          transactionGetAll: "/api/v1/joint-liability/transaction/get-all",
+        },
     }
 }   

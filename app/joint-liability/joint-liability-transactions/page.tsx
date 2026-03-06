@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { ArrowDownLeft, ArrowUpRight, Wallet, RefreshCcw, Filter, Search, Download, Calendar, ArrowDownCircle } from "lucide-react";
+import React, { useState } from "react";
+import { ArrowDownLeft, ArrowUpRight, Wallet, RefreshCcw, Filter, Search, Download, ArrowDownCircle } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Table from "@/components/ui/Table";
 import Input from "@/components/ui/Input";
@@ -10,13 +10,19 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { JointLiabilityService, Transaction, Group } from "@/lib/joint-liability-service";
+import { useJointLiabilityTransactions } from "@/hooks/useJointLiabilityTransactions";
+import type { Transaction, Group } from "@/services/joint-liability";
 import { useToast } from "@/components/ui/Toast";
 
 export default function JointLiabilityTransactionsPage() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    groups,
+    transactions,
+    loading,
+    refetch,
+    addDepositToMember,
+  } = useJointLiabilityTransactions();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [groupFilter, setGroupFilter] = useState<string>("all");
@@ -31,22 +37,6 @@ export default function JointLiabilityTransactionsPage() {
   const [availableGroups, setAvailableGroups] = useState<Group[]>([]);
 
   const { addToast } = useToast();
-
-  useEffect(() => {
-    loadTransactions();
-  }, []);
-
-  const loadTransactions = () => {
-    setLoading(true);
-    try {
-      setTransactions(JointLiabilityService.getTransactions());
-      setGroups(JointLiabilityService.getGroups());
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Get all unique members across all groups for deposit
   const getAllMembers = () => {
@@ -87,7 +77,7 @@ export default function JointLiabilityTransactionsPage() {
     }
   };
 
-  const handleAddDeposit = () => {
+  const handleAddDeposit = async () => {
     if (!depositMemberId || !depositGroupId || !depositAmount) {
       addToast({ type: 'error', message: 'Please fill all fields' });
       return;
@@ -100,16 +90,16 @@ export default function JointLiabilityTransactionsPage() {
     }
 
     try {
-      JointLiabilityService.addDepositToMember(depositGroupId, depositMemberId, amount);
+      await addDepositToMember(depositGroupId, depositMemberId, amount);
       setIsDepositModalOpen(false);
       setDepositMemberId("");
       setDepositGroupId("");
       setDepositAmount("");
       setAvailableGroups([]);
-      loadTransactions();
+      await refetch();
       addToast({ type: 'success', message: 'Deposit added successfully!' });
-    } catch (error: any) {
-      addToast({ type: 'error', message: error.message });
+    } catch (error: unknown) {
+      addToast({ type: 'error', message: error instanceof Error ? error.message : 'Failed to add deposit' });
     }
   };
 

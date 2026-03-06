@@ -15,9 +15,10 @@ import {
   Skeleton,
   Breadcrumbs,
 } from '@/components/ui';
-import { Search, Plus, Edit, Trash2, Wallet, Users, Banknote, Shield, Download, Eye, Settings } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Wallet, Users, Banknote, Shield, Download, Eye, Settings, Receipt } from 'lucide-react';
 import { useDeposits } from '@/hooks/useDeposits';
 import { useDepositMutations } from '@/hooks/useDepositMutations';
+import { useDepositTransactions } from '@/hooks/useDepositTransactions';
 import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { useToast } from '@/components/ui/Toast';
 
@@ -29,7 +30,23 @@ export default function DepositsPage() {
   const { addToast } = useToast();
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [txnPage, setTxnPage] = useState(1);
+  const [txnSource, setTxnSource] = useState<'all' | 'share' | 'investment'>('all');
   const itemsPerPage = 10;
+  const txnPerPage = 15;
+
+  const {
+    transactions: allTransactions,
+    loading: transactionsLoading,
+    error: transactionsError,
+    refetch: refetchTransactions,
+    totalCount: totalTransactionsCount,
+    totalPages: totalTxnPages,
+  } = useDepositTransactions({
+    page: txnPage,
+    limit: txnPerPage,
+    source: txnSource,
+  });
 
   useEffect(() => {
     setCurrentPage(1);
@@ -273,6 +290,110 @@ export default function DepositsPage() {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={setCurrentPage}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </Card>
+
+        {/* All Transactions (Share + Investment) */}
+        <Card>
+          <div className="p-4 border-b border-neutral-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-neutral-600" />
+              <h2 className="text-lg font-semibold text-neutral-900">All Transactions</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Select
+                value={txnSource}
+                onChange={(e) => {
+                  setTxnSource(e.target.value as 'all' | 'share' | 'investment');
+                  setTxnPage(1);
+                }}
+                options={[
+                  { value: 'all', label: 'All (Share + Investment)' },
+                  { value: 'share', label: 'Share only' },
+                  { value: 'investment', label: 'Investment only' },
+                ]}
+              />
+              <Button variant="ghost" size="sm" onClick={() => refetchTransactions()} disabled={transactionsLoading}>
+                Refresh
+              </Button>
+            </div>
+          </div>
+          {transactionsLoading ? (
+            <div className="p-8 flex justify-center">
+              <Skeleton className="h-48 w-full" />
+            </div>
+          ) : transactionsError ? (
+            <div className="p-6 text-center text-error-500">
+              <p>{transactionsError}</p>
+              <Button variant="outline" className="mt-2" onClick={() => refetchTransactions()}>Retry</Button>
+            </div>
+          ) : allTransactions.length === 0 ? (
+            <div className="text-center py-12">
+              <Receipt className="h-12 w-12 mx-auto text-neutral-400 mb-3" />
+              <p className="text-neutral-500">No transactions found.</p>
+            </div>
+          ) : (
+            <>
+              <Table
+                columns={[
+                  {
+                    key: 'date',
+                    header: 'Date',
+                    render: (_: any, row: any) => <span className="text-sm text-neutral-700">{row.date}</span>,
+                  },
+                  {
+                    key: 'typeLabel',
+                    header: 'Type',
+                    render: (val: string) => <Badge variant="neutral">{val}</Badge>,
+                  },
+                  {
+                    key: 'source',
+                    header: 'Source',
+                    render: (val: string) => (
+                      <Badge variant={val === 'share' ? 'primary' : 'success'}>{val === 'share' ? 'Share' : 'Investment'}</Badge>
+                    ),
+                  },
+                  {
+                    key: 'customerName',
+                    header: 'Customer',
+                    render: (_: any, row: any) =>
+                      row.customerId ? (
+                        <Link href={`/customers/${row.customerId}`} className="font-medium text-primary-600 hover:underline">
+                          {row.customerName}
+                        </Link>
+                      ) : (
+                        <span className="text-neutral-600">{row.customerName}</span>
+                      ),
+                  },
+                  {
+                    key: 'amount',
+                    header: 'Amount',
+                    render: (val: number) => <span className="font-semibold">₹{Number(val).toLocaleString('en-IN')}</span>,
+                  },
+                  ...(txnSource !== 'investment'
+                    ? [{
+                        key: 'status',
+                        header: 'Status',
+                        render: (_: any, row: any) =>
+                          row.status ? <Badge variant={row.status === 'Completed' ? 'success' : row.status === 'Rejected' ? 'error' : 'warning'}>{row.status}</Badge> : null,
+                      }]
+                    : []),
+                ]}
+                data={allTransactions}
+              />
+              {totalTxnPages > 1 && (
+                <div className="p-4 border-t flex items-center justify-between">
+                  <p className="text-sm text-neutral-600">
+                    Showing {(txnPage - 1) * txnPerPage + 1} to {Math.min(txnPage * txnPerPage, totalTransactionsCount)} of {totalTransactionsCount} transactions
+                  </p>
+                  <Pagination
+                    currentPage={txnPage}
+                    totalPages={totalTxnPages}
+                    onPageChange={setTxnPage}
                   />
                 </div>
               )}

@@ -10,14 +10,22 @@ import Select from "@/components/ui/Select";
 import Table from "@/components/ui/Table";
 import Badge from "@/components/ui/Badge";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { JointLiabilityService, Loan, Group } from "@/lib/joint-liability-service";
+import { useJointLiabilityLoans } from "@/hooks/useJointLiabilityLoans";
+import type { Loan, Group } from "@/services/joint-liability";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 export default function JointLiabilityLoansPage() {
-  const [loans, setLoans] = useState<Loan[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    loans,
+    groups,
+    loading,
+    refetch,
+    applyForLoan,
+    updateLoanStatus,
+    repayLoan,
+  } = useJointLiabilityLoans();
+
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isRepayModalOpen, setIsRepayModalOpen] = useState(false);
@@ -52,10 +60,6 @@ export default function JointLiabilityLoansPage() {
   const { addToast } = useToast();
 
   useEffect(() => {
-    loadData();
-  }, []);
-
-  useEffect(() => {
     if (selectedGroupId && selectedMemberId) {
         const group = groups.find(g => g.id === selectedGroupId);
         const member = group?.members.find(m => m.id === selectedMemberId);
@@ -79,18 +83,6 @@ export default function JointLiabilityLoansPage() {
         setMemberLimitInfo("");
     }
   }, [selectedGroupId, selectedMemberId, groups]);
-
-  const loadData = () => {
-    setLoading(true);
-    try {
-      setLoans(JointLiabilityService.getLoans());
-      setGroups(JointLiabilityService.getGroups());
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getMemberOptions = () => {
     if (!selectedGroupId) return [];
@@ -117,7 +109,7 @@ export default function JointLiabilityLoansPage() {
   };
 
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (!selectedGroupId || !selectedMemberId || !loanAmount || !loanPurpose) {
       addToast({ type: 'error', message: 'Please fill all fields' });
       return;
@@ -130,18 +122,12 @@ export default function JointLiabilityLoansPage() {
     }
 
     try {
-      JointLiabilityService.applyForLoan(
-        selectedGroupId,
-        selectedMemberId,
-        amount,
-        loanPurpose
-      );
+      await applyForLoan(selectedGroupId, selectedMemberId, amount, loanPurpose);
       setIsApplyModalOpen(false);
       resetForm();
-      loadData();
       addToast({ type: 'success', message: 'Loan application submitted successfully!' });
-    } catch (error: any) {
-      addToast({ type: 'error', message: error.message });
+    } catch (error: unknown) {
+      addToast({ type: 'error', message: error instanceof Error ? error.message : 'Failed to apply for loan' });
     }
   };
 
@@ -158,22 +144,21 @@ export default function JointLiabilityLoansPage() {
       title: `${newStatus === 'approved' ? 'Approve' : 'Reject'} Loan`,
       message: `Are you sure you want to ${newStatus === 'approved' ? 'approve' : 'reject'} this loan of ₹${loan.amount.toLocaleString()}?`,
       variant: newStatus === 'approved' ? 'info' : 'warning',
-      onConfirm: () => {
+      onConfirm: async () => {
         try {
-          JointLiabilityService.updateLoanStatus(loan.id, newStatus);
-          loadData();
-          setConfirmDialog({ ...confirmDialog, isOpen: false });
+          await updateLoanStatus(loan.id, newStatus);
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
           addToast({ type: 'success', message: `Loan ${newStatus} successfully!` });
-        } catch (error: any) {
-          addToast({ type: 'error', message: error.message });
+        } catch (error: unknown) {
+          addToast({ type: 'error', message: error instanceof Error ? error.message : 'Failed to update status' });
         }
       }
     });
   };
 
-  const handleRepay = () => {
+  const handleRepay = async () => {
     if (!selectedLoan) return;
-    
+
     const amount = parseFloat(repayAmount);
     if (isNaN(amount) || amount <= 0) {
       addToast({ type: 'error', message: 'Please enter a valid repayment amount' });
@@ -181,14 +166,13 @@ export default function JointLiabilityLoansPage() {
     }
 
     try {
-      JointLiabilityService.repayLoan(selectedLoan.id, amount);
+      await repayLoan(selectedLoan.id, amount);
       setIsRepayModalOpen(false);
       setRepayAmount("");
       setSelectedLoan(null);
-      loadData();
       addToast({ type: 'success', message: 'Loan repayment recorded successfully!' });
-    } catch (error: any) {
-      addToast({ type: 'error', message: error.message });
+    } catch (error: unknown) {
+      addToast({ type: 'error', message: error instanceof Error ? error.message : 'Failed to record repayment' });
     }
   };
 

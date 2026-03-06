@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Plus, Trash2, Edit2, Search, X, UserPlus, Users } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -10,14 +10,25 @@ import Select from "@/components/ui/Select";
 import Table from "@/components/ui/Table";
 import Badge from "@/components/ui/Badge";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { JointLiabilityService, Group, Member } from "@/lib/joint-liability-service";
+import { Group, Member } from "@/services/joint-liability";
+import { useJointLiabilityGroups } from "@/hooks/useJointLiabilityGroups";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 export default function JointLiabilityGroupsPage() {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    groups,
+    loading,
+    refetch,
+    createGroup,
+    deleteGroup,
+    distributeCredit,
+    addMemberToGroup,
+    removeMemberFromGroup,
+    getGroupById,
+  } = useJointLiabilityGroups();
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -55,22 +66,6 @@ export default function JointLiabilityGroupsPage() {
   // Fetch customers for dropdown
   const { customers, loading: customersLoading } = useCustomers({});
   const { addToast } = useToast();
-
-  useEffect(() => {
-    loadGroups();
-  }, []);
-
-  const loadGroups = () => {
-    setLoading(true);
-    try {
-      const data = JointLiabilityService.getGroups();
-      setGroups(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredGroups = groups.filter(group =>
     group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -124,7 +119,7 @@ export default function JointLiabilityGroupsPage() {
     setNewMembers(updated);
   };
 
-  const handleCreateGroup = () => {
+  const handleCreateGroup = async () => {
     if (!newGroupName.trim()) {
       addToast({ type: 'error', message: 'Please enter a group name.' });
       return;
@@ -142,11 +137,10 @@ export default function JointLiabilityGroupsPage() {
         customerId: m.customerId
       }));
 
-      JointLiabilityService.createGroup(newGroupName, membersPayload);
+      await createGroup({ name: newGroupName.trim(), members: membersPayload });
       setIsCreateModalOpen(false);
       setNewGroupName("");
       setNewMembers([{ name: "", depositAmount: "", role: "head" }]);
-      loadGroups();
       addToast({ type: 'success', message: 'Group created successfully!' });
     } catch (error) {
       console.error(error);
@@ -154,30 +148,28 @@ export default function JointLiabilityGroupsPage() {
     }
   };
 
-  const handleDistribute = () => {
+  const handleDistribute = async () => {
     if (!selectedGroup) return;
-    
+
     try {
       const distributions = selectedGroup.members.map(member => ({
         memberId: member.id,
         amount: parseFloat(distributionAmounts[member.id] || member.availableCredit.toString()) || 0
       }));
-      
-      JointLiabilityService.distributeCredit(selectedGroup.id, distributions);
-      
-      const updatedGroup = JointLiabilityService.getGroupById(selectedGroup.id);
+
+      await distributeCredit(selectedGroup.id, distributions);
+      const updatedGroup = await getGroupById(selectedGroup.id);
       if (updatedGroup) {
         setSelectedGroup(updatedGroup);
-        const amounts: {[key: string]: string} = {};
+        const amounts: { [key: string]: string } = {};
         updatedGroup.members.forEach(m => {
           amounts[m.id] = m.availableCredit.toString();
         });
         setDistributionAmounts(amounts);
       }
-      loadGroups();
       addToast({ type: 'success', message: 'Credit limits updated successfully!' });
-    } catch (error: any) {
-      addToast({ type: 'error', message: error.message });
+    } catch (error: unknown) {
+      addToast({ type: 'error', message: error instanceof Error ? error.message : 'Failed to distribute credit.' });
     }
   };
 
@@ -188,14 +180,13 @@ export default function JointLiabilityGroupsPage() {
       title: 'Delete Group',
       message: `Are you sure you want to delete "${group?.name || 'this group'}"? This action cannot be undone.`,
       variant: 'danger',
-      onConfirm: () => {
+      onConfirm: async () => {
         try {
-          JointLiabilityService.deleteGroup(groupId);
-          loadGroups();
-          setConfirmDialog({ ...confirmDialog, isOpen: false });
+          await deleteGroup(groupId);
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
           addToast({ type: 'success', message: 'Group deleted successfully!' });
-        } catch (error: any) {
-          addToast({ type: 'error', message: error.message });
+        } catch (error: unknown) {
+          addToast({ type: 'error', message: error instanceof Error ? error.message : 'Failed to delete group.' });
         }
       }
     });
@@ -218,7 +209,7 @@ export default function JointLiabilityGroupsPage() {
     setIsEditModalOpen(true);
   };
 
-  const handleAddMemberToGroup = () => {
+  const handleAddMemberToGroup = async () => {
     if (!selectedGroup) return;
 
     if (!newMemberToAdd.name || !newMemberToAdd.depositAmount) {
@@ -232,22 +223,17 @@ export default function JointLiabilityGroupsPage() {
     }
 
     try {
-      const updatedGroup = JointLiabilityService.addMemberToGroup(
-        selectedGroup.id,
-        {
-          name: newMemberToAdd.name,
-          depositAmount: parseFloat(newMemberToAdd.depositAmount),
-          role: newMemberToAdd.role,
-          customerId: newMemberToAdd.customerId
-        }
-      );
-      
-      setSelectedGroup(updatedGroup);
+      const updatedGroup = await addMemberToGroup(selectedGroup.id, {
+        name: newMemberToAdd.name,
+        depositAmount: parseFloat(newMemberToAdd.depositAmount),
+        role: newMemberToAdd.role,
+        customerId: newMemberToAdd.customerId
+      });
+      if (updatedGroup) setSelectedGroup(updatedGroup);
       setNewMemberToAdd({ name: "", depositAmount: "", role: "member" });
-      loadGroups();
       addToast({ type: 'success', message: 'Member added successfully!' });
-    } catch (error: any) {
-      addToast({ type: 'error', message: error.message });
+    } catch (error: unknown) {
+      addToast({ type: 'error', message: error instanceof Error ? error.message : 'Failed to add member.' });
     }
   };
 
@@ -259,15 +245,14 @@ export default function JointLiabilityGroupsPage() {
       title: 'Remove Member',
       message: `Are you sure you want to remove ${memberName} from this group?`,
       variant: 'warning',
-      onConfirm: () => {
+      onConfirm: async () => {
         try {
-          const updatedGroup = JointLiabilityService.removeMemberFromGroup(selectedGroup.id, memberId);
-          setSelectedGroup(updatedGroup);
-          loadGroups();
-          setConfirmDialog({ ...confirmDialog, isOpen: false });
+          const updatedGroup = await removeMemberFromGroup(selectedGroup.id, memberId);
+          if (updatedGroup) setSelectedGroup(updatedGroup);
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
           addToast({ type: 'success', message: 'Member removed successfully!' });
-        } catch (error: any) {
-          addToast({ type: 'error', message: error.message });
+        } catch (error: unknown) {
+          addToast({ type: 'error', message: error instanceof Error ? error.message : 'Failed to remove member.' });
         }
       }
     });
