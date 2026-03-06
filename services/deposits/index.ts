@@ -166,6 +166,8 @@ export interface CreateDepositDto {
   depositAmount: number;
   tenure?: number;
   branchId: string;
+  productId?: string;
+  interestRate?: number;
   nomineeName?: string;
   nomineeRelation?: string;
   nomineePhone?: string;
@@ -302,9 +304,158 @@ function normalizeDeposit(transaction: any): Deposit {
   };
 }
 
+/**
+ * Normalize deposit account from API to frontend Deposit shape
+ */
+function normalizeDepositAccount(account: any): Deposit {
+  const customerId = typeof account.customerId === 'object' ? account.customerId?._id : account.customerId;
+  const customer = typeof account.customerId === 'object' ? account.customerId : null;
+  const branchId = typeof account.branchId === 'object' ? account.branchId?._id : account.branchId;
+  const branch = typeof account.branchId === 'object' ? account.branchId : null;
+  return {
+    id: account._id || '',
+    depositId: account.depositId || account._id || '',
+    accountNumber: account.accountNumber || account.depositId || '',
+    customerId: customerId?.toString() || '',
+    customerName: customer?.fullName || 'N/A',
+    customerPhone: customer?.phone || '',
+    customerEmail: customer?.email || '',
+    depositType: account.depositType || 'Savings Account',
+    depositAmount: account.depositAmount ?? 0,
+    interestRate: account.interestRate ?? 0,
+    tenure: account.tenure,
+    maturityAmount: account.maturityAmount,
+    maturityDate: account.maturityDate ? new Date(account.maturityDate).toISOString().split('T')[0] : undefined,
+    openingDate: account.createdAt ? new Date(account.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    lastTransactionDate: undefined,
+    status: account.status || 'Active',
+    currentBalance: account.currentBalance ?? 0,
+    totalDeposits: account.totalDeposits ?? 0,
+    totalWithdrawals: account.totalWithdrawals ?? 0,
+    interestEarned: account.interestEarned ?? 0,
+    branchId: branchId?.toString() || '',
+    branchName: branch?.branchName || '',
+    nomineeName: account.nomineeName,
+    nomineeRelation: account.nomineeRelation,
+    nomineePhone: account.nomineePhone,
+    autoRenewal: account.autoRenewal,
+    remarks: account.remarks,
+    createdAt: account.createdAt ? new Date(account.createdAt).toISOString() : new Date().toISOString(),
+    updatedAt: account.updatedAt ? new Date(account.updatedAt).toISOString() : new Date().toISOString(),
+  };
+}
+
 // ============================================================================
 // API SERVICE FUNCTIONS
 // ============================================================================
+
+export const createDepositAccountApi = async (data: CreateDepositDto): Promise<Deposit> => {
+  const token = getAuthToken();
+  const response = await axios.post(
+    `${API.domain}${API.endPoints.createDepositAccount}`,
+    {
+      customerId: data.customerId,
+      depositType: data.depositType,
+      depositAmount: data.depositAmount,
+      tenure: data.tenure,
+      branchId: data.branchId,
+      productId: data.productId,
+      interestRate: data.interestRate,
+      nomineeName: data.nomineeName,
+      nomineeRelation: data.nomineeRelation,
+      nomineePhone: data.nomineePhone,
+      autoRenewal: data.autoRenewal,
+      remarks: data.remarks,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  );
+  if (response.status === 201 && response.data?.success && response.data?.result?.depositAccount) {
+    return normalizeDepositAccount(response.data.result.depositAccount);
+  }
+  throw new Error(response.data?.message || 'Failed to create deposit account');
+};
+
+export const updateDepositAccountApi = async (id: string, data: UpdateDepositDto): Promise<Deposit> => {
+  const token = getAuthToken();
+  const response = await axios.put(
+    `${API.domain}${API.endPoints.updateDepositAccount}/${id}`,
+    {
+      status: data.status,
+      nomineeName: data.nomineeName,
+      nomineeRelation: data.nomineeRelation,
+      nomineePhone: data.nomineePhone,
+      autoRenewal: data.autoRenewal,
+      remarks: data.remarks,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  );
+  if (response.status === 200 && response.data?.success && response.data?.result?.depositAccount) {
+    return normalizeDepositAccount(response.data.result.depositAccount);
+  }
+  throw new Error(response.data?.message || 'Failed to update deposit account');
+};
+
+export const getDepositAccountByIdApi = async (id: string): Promise<Deposit> => {
+  const token = getAuthToken();
+  const response = await axios.get(
+    `${API.domain}${API.endPoints.getDepositAccountById}/${id}`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  );
+  if (response.status === 200 && response.data?.success && response.data?.result?.depositAccount) {
+    return normalizeDepositAccount(response.data.result.depositAccount);
+  }
+  throw new Error(response.data?.message || 'Failed to fetch deposit account');
+};
+
+export interface GetAllDepositAccountsParams {
+  page?: number;
+  limit?: number;
+  customerId?: string;
+  branchId?: string;
+  status?: string;
+  depositType?: string;
+}
+
+export const getAllDepositAccountsApi = async (
+  params?: GetAllDepositAccountsParams
+): Promise<Deposit[]> => {
+  const token = getAuthToken();
+  const query = new URLSearchParams();
+  if (params?.page) query.append('page', String(params.page));
+  if (params?.limit) query.append('limit', String(params.limit));
+  if (params?.customerId) query.append('customerId', params.customerId);
+  if (params?.branchId) query.append('branchId', params.branchId);
+  if (params?.status) query.append('status', params.status);
+  if (params?.depositType) query.append('depositType', params.depositType);
+  const response = await axios.get(
+    `${API.domain}${API.endPoints.getAllDepositAccounts}${query.toString() ? '?' + query.toString() : ''}`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  );
+  if (response.status === 200 && response.data?.success && response.data?.result?.depositAccounts) {
+    return response.data.result.depositAccounts.map(normalizeDepositAccount);
+  }
+  throw new Error(response.data?.message || 'Failed to fetch deposit accounts');
+};
 
 export const getAllDeposits = async (params?: GetAllDepositsParams): Promise<DepositListResponse> => {
   try {
@@ -382,64 +533,66 @@ export const verifyDepositTransaction = async (data: VerifyDepositDto): Promise<
 
 export const depositService = {
   /**
-   * Get all deposits with optional filters (uses new API)
+   * Get all deposits with optional filters (uses deposit accounts API)
    */
   async getDeposits(filters?: DepositFilters): Promise<Deposit[]> {
-    const params: GetAllDepositsParams = {
-      page: 1,
-      limit: 100,
-    };
-    
-    if (filters?.customerId) {
-      params.userId = filters.customerId;
-    }
-    
-    if (filters?.status) {
-      // Map frontend status to backend status
-      const statusMap: Record<string, TransactionStatus> = {
-        'Active': TransactionStatus.COMPLETED,
-        'Closed': TransactionStatus.CANCELLED,
-        'Matured': TransactionStatus.COMPLETED,
-        'Frozen': TransactionStatus.PENDING,
+    try {
+      const params: GetAllDepositAccountsParams = {
+        page: 1,
+        limit: 100,
       };
-      params.status = statusMap[filters.status] || TransactionStatus.COMPLETED;
+      if (filters?.customerId) params.customerId = filters.customerId;
+      if (filters?.branchId) params.branchId = filters.branchId;
+      if (filters?.status) params.status = filters.status;
+      if (filters?.depositType) params.depositType = filters.depositType;
+      return await getAllDepositAccountsApi(params);
+    } catch {
+      // Fallback to transaction-based list if deposit accounts API fails
+      const params: GetAllDepositsParams = { page: 1, limit: 100 };
+      if (filters?.customerId) params.userId = filters.customerId;
+      if (filters?.status) {
+        const statusMap: Record<string, TransactionStatus> = {
+          Active: TransactionStatus.COMPLETED,
+          Closed: TransactionStatus.CANCELLED,
+          Matured: TransactionStatus.COMPLETED,
+          Frozen: TransactionStatus.PENDING,
+        };
+        params.status = statusMap[filters.status] || TransactionStatus.COMPLETED;
+      }
+      if (filters?.depositType) params.transactionType = TransactionType.DEPOSIT;
+      const response = await getAllDeposits(params);
+      return (response.data || response.result || []) as any;
     }
-    
-    if (filters?.depositType) {
-      params.transactionType = TransactionType.DEPOSIT;
-    }
-    
-    const response = await getAllDeposits(params);
-    return (response.data || response.result || []) as any;
   },
 
   /**
-   * Get a single deposit by ID
+   * Get a single deposit by ID (tries deposit account API first, then transaction list)
    */
   async getDepositById(id: string): Promise<Deposit> {
-    // Get all deposits and find by ID
-    const deposits = await this.getDeposits();
-    const deposit = deposits.find((d) => d.id === id || d.depositId === id);
-    if (!deposit) {
-      throw new Error(`Deposit with ID ${id} not found`);
+    try {
+      return await getDepositAccountByIdApi(id);
+    } catch {
+      const deposits = await this.getDeposits();
+      const deposit = deposits.find((d) => d.id === id || d.depositId === id);
+      if (!deposit) {
+        throw new Error(`Deposit with ID ${id} not found`);
+      }
+      return deposit;
     }
-    return deposit;
   },
 
   /**
-   * Create a new deposit (placeholder - may need separate endpoint)
+   * Create a new deposit account (savings/FD/RD)
    */
   async createDeposit(data: CreateDepositDto): Promise<Deposit> {
-    // This would need a create endpoint if available
-    throw new Error('Create deposit endpoint not yet implemented');
+    return createDepositAccountApi(data);
   },
 
   /**
-   * Update a deposit (placeholder - may need separate endpoint)
+   * Update a deposit account (e.g. status, nominee)
    */
   async updateDeposit(id: string, data: UpdateDepositDto): Promise<Deposit> {
-    // This would need an update endpoint if available
-    throw new Error('Update deposit endpoint not yet implemented');
+    return updateDepositAccountApi(id, data);
   },
 
   /**

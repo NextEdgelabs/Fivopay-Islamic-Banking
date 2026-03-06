@@ -6,6 +6,7 @@ import { Card, Button, Badge, Breadcrumbs, Skeleton, Tabs } from '@/components/u
 import { Edit, Trash2, ArrowLeft, Package, Tag, Info, Clock, DollarSign, Calendar, TrendingUp, CreditCard, Shield, AlertCircle, FileText, CheckCircle, XCircle, Users, Building } from 'lucide-react';
 import { useProduct } from '@/hooks/useProduct';
 import { useProductMutations } from '@/hooks/useProductMutations';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { useToast } from '@/components/ui/Toast';
 import { LoanProduct, LoanProductStatus, ProductType, RepaymentFrequency } from '@/services/products';
 import ProductAnalyticsTab from './components/ProductAnalyticsTab';
@@ -145,7 +146,9 @@ export default function ViewProductPage() {
 }
 
 // Overview Tab
-const ProductOverviewTab = ({ product }: { product: LoanProduct }) => (
+const ProductOverviewTab = ({ product }: { product: LoanProduct }) => {
+  const { rateLabel } = useInterestProfitTerm();
+  return (
   <div className="space-y-6 mt-4">
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
@@ -200,7 +203,7 @@ const ProductOverviewTab = ({ product }: { product: LoanProduct }) => (
             />
             <InfoItem 
               icon={<TrendingUp />} 
-              label="Interest Rate" 
+              label={rateLabel} 
               value={`${product.interestRate || 0}% per annum`} 
             />
             <InfoItem 
@@ -249,7 +252,7 @@ const ProductOverviewTab = ({ product }: { product: LoanProduct }) => (
               <span className="font-semibold">₹{(product.maxLoanAmount || 0).toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-600">Interest Rate</span>
+              <span className="text-neutral-600">{rateLabel}</span>
               <span className="font-semibold">{product.interestRate || 0}%</span>
             </div>
             <div className="flex justify-between">
@@ -281,7 +284,8 @@ const ProductOverviewTab = ({ product }: { product: LoanProduct }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 // Eligibility Tab
 const ProductEligibilityTab = ({ product }: { product: LoanProduct }) => (

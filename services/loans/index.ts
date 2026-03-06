@@ -269,10 +269,21 @@ export const loanService = {
     try {
       const params = new URLSearchParams();
       if (filters) {
+        const statusToApproval: Record<string, string> = {
+          'Pending': 'pending',
+          'Approved': 'approved',
+          'Rejected': 'rejected',
+          'Under Review': 'processing',
+          'Processing': 'processing',
+        };
         Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== '') {
-            params.append(key, value.toString());
+          if (value === undefined || value === '') return;
+          if (key === 'status') {
+            const approvalStatus = statusToApproval[value];
+            if (approvalStatus) params.append('approvalStatus', approvalStatus);
+            return;
           }
+          params.append(key, value.toString());
         });
       }
 

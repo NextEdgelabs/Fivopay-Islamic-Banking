@@ -184,6 +184,7 @@ export default function AddCustomerPage() {
     }
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
     if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
+    else if (new Date(formData.dateOfBirth) > new Date()) newErrors.dateOfBirth = 'Date of birth cannot be in the future';
     if (!formData.gender) newErrors.gender = 'Gender is required';
     if (!formData.occupation.trim()) newErrors.occupation = 'Occupation is required';
     if (!formData.addressLine1.trim()) newErrors.addressLine1 = 'Address is required';
@@ -357,6 +358,7 @@ export default function AddCustomerPage() {
             value={formData.dateOfBirth}
             onChange={handleChange}
             error={errors.dateOfBirth}
+            max={new Date().toISOString().split('T')[0]}
             required
           />
 

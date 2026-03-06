@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import {
   Card,
   Button,
@@ -74,7 +75,7 @@ const chartOfAccounts: ChartOfAccount[] = [
   {
     id: 'acc-4000',
     accountId: '4000',
-    accountName: 'profit Income',
+    accountName: 'Profit Income', // display overridden by useInterestProfitTerm in component
     accountType: 'Income',
     balance: 5100,
     description: 'Revenue earned this period',
@@ -109,7 +110,29 @@ const chartOfAccounts: ChartOfAccount[] = [
   },
 ];
 
+const PRINT_STYLES = `
+  @media print {
+    body {
+      margin: 0;
+    }
+    body * {
+      visibility: hidden;
+    }
+    #balance-sheet-print,
+    #balance-sheet-print * {
+      visibility: visible;
+    }
+    #balance-sheet-print {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      padding: 24px;
+    }
+  }
+`;
+
 export default function BalanceSheetPage() {
+  const { incomeLabel, netLabel } = useInterestProfitTerm();
   const today = new Date().toISOString().split('T')[0];
   const [filters, setFilters] = useState({
     dateFrom: today,
@@ -118,6 +141,11 @@ export default function BalanceSheetPage() {
     search: '',
   });
   const [showFilters, setShowFilters] = useState(true);
+
+  const handlePrintOrExport = () => {
+    if (typeof window === 'undefined') return;
+    window.print();
+  };
 
   // Calculate Balance Sheet Data
   const balanceSheetData = useMemo(() => {
@@ -135,12 +163,15 @@ export default function BalanceSheetPage() {
       );
     }
 
+    const displayAccountName = (acc: ChartOfAccount) =>
+      (acc.accountId === '4000' ? incomeLabel : acc.accountName);
+
     // Assets
     const currentAssets = filteredAccounts
       .filter(acc => acc.accountType === 'Asset')
       .map(acc => ({
         accountId: acc.accountId,
-        accountName: acc.accountName,
+        accountName: displayAccountName(acc),
         balance: acc.balance,
         color: acc.color,
       }));
@@ -152,7 +183,7 @@ export default function BalanceSheetPage() {
       .filter(acc => acc.accountType === 'Liability')
       .map(acc => ({
         accountId: acc.accountId,
-        accountName: acc.accountName,
+        accountName: displayAccountName(acc),
         balance: acc.balance,
         color: acc.color,
       }));
@@ -164,7 +195,7 @@ export default function BalanceSheetPage() {
       .filter(acc => acc.accountType === 'Equity')
       .map(acc => ({
         accountId: acc.accountId,
-        accountName: acc.accountName,
+        accountName: displayAccountName(acc),
         balance: acc.balance,
         color: acc.color,
       }));
@@ -203,7 +234,7 @@ export default function BalanceSheetPage() {
       totalLiabilitiesAndEquity,
       isBalanced,
     };
-  }, [filters]);
+  }, [filters, incomeLabel]);
 
   const dateRangeDisplay =
     filters.dateFrom && filters.dateTo
@@ -241,8 +272,8 @@ export default function BalanceSheetPage() {
   return (
     <DashboardLayout>
       <div className="p-6 max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+        {/* Header (hidden in PDF) */}
+        <div className="flex items-center justify-between print:hidden">
           <div>
             <Breadcrumbs
               items={[
@@ -259,19 +290,15 @@ export default function BalanceSheetPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline">
+            <Button variant="outline" onClick={handlePrintOrExport}>
               <Download className="h-4 w-4 mr-2" />
               Export PDF
-            </Button>
-            <Button variant="outline">
-              <FileText className="h-4 w-4 mr-2" />
-              Print
             </Button>
           </div>
         </div>
 
-        {/* Filters */}
-        <Card className="p-6">
+        {/* Filters (not included in PDF) */}
+        <Card className="p-6 print:hidden">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-neutral-600" />
@@ -328,9 +355,11 @@ export default function BalanceSheetPage() {
           )}
         </Card>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+        {/* Printable content */}
+        <div id="balance-sheet-print" className="space-y-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-blue-700 mb-1 font-medium">Total Assets</p>
@@ -342,9 +371,9 @@ export default function BalanceSheetPage() {
                 <Wallet className="h-6 w-6 text-blue-700" />
               </div>
             </div>
-          </Card>
+            </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
+            <Card className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-orange-700 mb-1 font-medium">Total Liabilities</p>
@@ -356,9 +385,9 @@ export default function BalanceSheetPage() {
                 <Coins className="h-6 w-6 text-orange-700" />
               </div>
             </div>
-          </Card>
+            </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+            <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-green-700 mb-1 font-medium">Total Equity</p>
@@ -370,13 +399,13 @@ export default function BalanceSheetPage() {
                 <Building2 className="h-6 w-6 text-green-700" />
               </div>
             </div>
-          </Card>
-        </div>
+            </Card>
+          </div>
 
-        {/* Balance Sheet Table */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Assets Section */}
-          <Card className="p-6">
+          {/* Balance Sheet Table */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Assets Section */}
+            <Card className="p-6">
             <h2 className="text-xl font-semibold text-neutral-900 mb-4">ASSETS</h2>
             <div className="space-y-4">
               <div>
@@ -507,7 +536,7 @@ export default function BalanceSheetPage() {
                           Retained Earnings
                         </p>
                         <p className="text-xs text-neutral-500">
-                          Net Income: ₹{balanceSheetData.netIncome.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {netLabel}: ₹{balanceSheetData.netIncome.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       </div>
                     </div>
@@ -571,17 +600,19 @@ export default function BalanceSheetPage() {
               )}
             </div>
             <div className="text-right">
-              <p className="text-xs text-neutral-500 mb-1">Net Income (P&L)</p>
+              <p className="text-xs text-neutral-500 mb-1">{netLabel} (P&L)</p>
               <p className={`text-lg font-bold ${balanceSheetData.netIncome >= 0 ? 'text-green-600' : 'text-error-600'}`}>
                 {balanceSheetData.netIncome >= 0 ? '+' : ''}₹{balanceSheetData.netIncome.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               <p className="text-xs text-neutral-500 mt-1">
-                Income: ₹{balanceSheetData.totalIncome.toLocaleString('en-IN')} - 
+                {incomeLabel}: ₹{balanceSheetData.totalIncome.toLocaleString('en-IN')} - 
                 Expenses: ₹{balanceSheetData.totalExpenses.toLocaleString('en-IN')}
               </p>
             </div>
           </div>
         </Card>
+      </div>
+      <style dangerouslySetInnerHTML={{ __html: PRINT_STYLES }} />
       </div>
     </DashboardLayout>
   );

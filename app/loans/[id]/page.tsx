@@ -15,6 +15,7 @@ import {
 import { Edit, Trash2, DollarSign, User, Check, X, FileText } from 'lucide-react';
 import { useLoan } from '@/hooks/useLoan';
 import { useLoanMutations } from '@/hooks/useLoanMutations';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { useToast } from '@/components/ui/Toast';
 
 export default function ViewLoanPage() {
@@ -23,6 +24,7 @@ export default function ViewLoanPage() {
   const loanId = params.id as string;
   const { loan, loading, error } = useLoan(loanId);
   const { deleteLoan, approveLoan, rejectLoan, disburseLoan } = useLoanMutations();
+  const { rateLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
 
   const handleDelete = async () => {
@@ -132,7 +134,7 @@ export default function ViewLoanPage() {
       id: 'overview',
       label: 'Overview',
       icon: <DollarSign className="h-4 w-4" />,
-      content: <LoanOverviewTab loan={loan} getStatusBadge={getStatusBadge} />,
+      content: <LoanOverviewTab loan={loan} getStatusBadge={getStatusBadge} rateLabel={rateLabel} />,
     },
     {
       id: 'repayment',
@@ -192,7 +194,7 @@ export default function ViewLoanPage() {
   );
 }
 
-const LoanOverviewTab = ({ loan, getStatusBadge }: { loan: any, getStatusBadge: (status: string) => React.ReactNode }) => (
+const LoanOverviewTab = ({ loan, getStatusBadge, rateLabel }: { loan: any; getStatusBadge: (status: string) => React.ReactNode; rateLabel: string }) => (
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
     <div className="lg:col-span-2 space-y-6">
       {/* Loan Details Card */}
@@ -225,7 +227,7 @@ const LoanOverviewTab = ({ loan, getStatusBadge }: { loan: any, getStatusBadge: 
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-neutral-700">Profit Rate</label>
+                  <label className="text-sm font-medium text-neutral-700">{rateLabel}</label>
                   <p className="mt-1 text-neutral-900">{loan.interestRate?.toString() || ''}% p.a.</p>
                 </div>
                 <div>

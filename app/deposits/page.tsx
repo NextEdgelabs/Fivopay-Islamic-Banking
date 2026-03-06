@@ -15,15 +15,17 @@ import {
   Skeleton,
   Breadcrumbs,
 } from '@/components/ui';
-import { Search, Plus, Edit, Trash2, Wallet, Users, Banknote, Shield, Download, Eye } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Wallet, Users, Banknote, Shield, Download, Eye, Settings } from 'lucide-react';
 import { useDeposits } from '@/hooks/useDeposits';
 import { useDepositMutations } from '@/hooks/useDepositMutations';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { useToast } from '@/components/ui/Toast';
 
 export default function DepositsPage() {
   const router = useRouter();
   const { deposits, loading, error, refetch, filters, setFilters } = useDeposits();
   const { deleteDeposit } = useDepositMutations();
+  const { rateLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -135,7 +137,7 @@ export default function DepositsPage() {
     },
     {
       key: 'interestRate',
-      header: 'Profit Rate',
+      header: rateLabel,
       render: (value: number) => <div>{value}%</div>,
     },
     {
@@ -171,10 +173,16 @@ export default function DepositsPage() {
               Manage all deposit accounts and investments
             </p>
           </div>
-          <Button onClick={() => router.push('/deposits/add')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Deposit
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => router.push('/deposits/products')}>
+              <Settings className="mr-2 h-4 w-4" />
+              Manage Deposit Products
+            </Button>
+            <Button onClick={() => router.push('/deposits/add')}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Deposit
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

@@ -19,58 +19,78 @@ export interface GeneralSettings extends OrganizationSettings {
 export type OrganizationType = 'Ethical Banking' | 'Conventional Banking';
 
 // ============================================================================
-// MOCK DATA
+// HELPERS: use first organisation for settings (stored in backend)
 // ============================================================================
 
-const mockOrganizationSettings: OrganizationSettings = {
-  organizationType: 'Ethical Banking',
-  organizationName: 'FivoPay Banking',
-  perSharePrice: 100, // Default ₹100 per share
-  registrationNumber: 'REG-2024-001',
-  establishedDate: '2024-01-01',
-};
+import { getAllOrganizations, updateOrganization } from '@/services/organization.service';
+
+async function getFirstOrganisationId(): Promise<string> {
+  const orgs = await getAllOrganizations();
+  const first = orgs?.[0];
+  if (!first?._id && !first?.id) {
+    throw new Error('No organisation found. Please create an organisation first.');
+  }
+  return (first._id || first.id) as string;
+}
 
 // ============================================================================
-// SERVICE METHODS
+// SERVICE METHODS (persisted to organisation in backend)
 // ============================================================================
 
 export const settingsService = {
-  // Get organization type
+  // Get organization type from first organisation
   async getOrganizationType(): Promise<OrganizationType> {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    return mockOrganizationSettings.organizationType;
+    const orgs = await getAllOrganizations();
+    const first = orgs?.[0];
+    const mode = first?.bankingMode;
+    if (mode === 'Ethical Banking' || mode === 'Conventional Banking') return mode;
+    return 'Ethical Banking';
   },
 
-  // Update organization type
+  // Update organization type (store in organisation)
   async updateOrganizationType(type: OrganizationType): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    mockOrganizationSettings.organizationType = type;
+    const id = await getFirstOrganisationId();
+    await updateOrganization(id, { bankingMode: type });
   },
 
-  // Get per share price
+  // Get per share price from first organisation
   async getPerSharePrice(): Promise<number> {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    return mockOrganizationSettings.perSharePrice;
+    const orgs = await getAllOrganizations();
+    const first = orgs?.[0];
+    const price = first?.perSharePrice;
+    return typeof price === 'number' && price >= 0 ? price : 100;
   },
 
-  // Update per share price
+  // Update per share price (store in organisation)
   async updatePerSharePrice(price: number): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 300));
     if (price < 1) throw new Error('Per share price must be at least ₹1');
-    mockOrganizationSettings.perSharePrice = price;
+    const id = await getFirstOrganisationId();
+    await updateOrganization(id, { perSharePrice: price });
   },
 
-  // Get all organization settings
+  // Get all organization settings (from first organisation)
   async getOrganizationSettings(): Promise<OrganizationSettings> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return { ...mockOrganizationSettings };
+    const orgs = await getAllOrganizations();
+    const first = orgs?.[0];
+    return {
+      organizationType: (first?.bankingMode === 'Conventional Banking' ? 'Conventional Banking' : 'Ethical Banking') as OrganizationType,
+      organizationName: first?.organisationName || first?.organizationName || first?.name || 'FivoPay Banking',
+      perSharePrice: typeof first?.perSharePrice === 'number' && first.perSharePrice >= 0 ? first.perSharePrice : 100,
+      registrationNumber: first?.registrationNumber,
+      establishedDate: first?.establishedDate,
+    };
   },
 
-  // Update organization settings
+  // Update organization settings (store in organisation)
   async updateOrganizationSettings(settings: Partial<OrganizationSettings>): Promise<OrganizationSettings> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    Object.assign(mockOrganizationSettings, settings);
-    return { ...mockOrganizationSettings };
+    const id = await getFirstOrganisationId();
+    const update: Parameters<typeof updateOrganization>[1] = {};
+    if (settings.organizationType !== undefined) update.bankingMode = settings.organizationType;
+    if (settings.perSharePrice !== undefined) update.perSharePrice = settings.perSharePrice;
+    if (Object.keys(update).length > 0) {
+      await updateOrganization(id, update);
+    }
+    return this.getOrganizationSettings();
   },
 };
 

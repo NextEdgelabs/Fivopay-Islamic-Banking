@@ -8,6 +8,7 @@ import { BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import { Save, X } from 'lucide-react';
 import { useLoan } from '@/hooks/useLoan';
 import { useLoanMutations } from '@/hooks/useLoanMutations';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { useToast } from '@/components/ui/Toast';
 
 export default function EditLoanPage() {
@@ -16,6 +17,7 @@ export default function EditLoanPage() {
   const loanId = params.id as string;
   const { loan, loading: fetchLoading } = useLoan(loanId);
   const { updateLoan, loading: isSubmitting } = useLoanMutations();
+  const { rateLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -138,7 +140,7 @@ export default function EditLoanPage() {
                 required
               />
               <Input
-                label="Profit Rate (%)"
+                label={`${rateLabel} (%)`}
                 name="interestRate"
                 type="number"
                 step="0.1"

@@ -7,6 +7,7 @@ import { Card, Button, Input, Select, Breadcrumbs, Textarea, Badge, Skeleton } f
 import { Save, X, Plus, Trash2 } from 'lucide-react';
 import { useProduct } from '@/hooks/useProduct';
 import { useProductMutations } from '@/hooks/useProductMutations';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { useToast } from '@/components/ui/Toast';
 import { UpdateProductDto, ProductType, RepaymentFrequency, LoanProductStatus, LoanProduct } from '@/services/products';
 import { useOrganizations } from '@/hooks/useOrganizations';
@@ -19,6 +20,7 @@ export default function EditProductPage() {
   
   const { product, loading: fetchLoading } = useProduct(productId);
   const { updateProduct, loading } = useProductMutations();
+  const { rateLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
   const { organizations } = useOrganizations();
   const { categories } = useLoanCategories();
@@ -218,7 +220,7 @@ export default function EditProductPage() {
               />
               <Input 
                 name="interestRate" 
-                label="Interest Rate (% p.a.) *" 
+                label={`${rateLabel} (% p.a.) *`} 
                 type="number" 
                 step="0.01"
                 min="0"

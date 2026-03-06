@@ -18,6 +18,10 @@ export interface Organization {
   phone?: string;
   email?: string;
   status?: 'active' | 'inactive';
+  /** Settings: Ethical Banking | Conventional Banking */
+  bankingMode?: 'Ethical Banking' | 'Conventional Banking';
+  /** Settings: per share price (₹) */
+  perSharePrice?: number;
 }
 
 export interface OrganizationsListResponse {
@@ -75,6 +79,32 @@ export const getOrganizationById = async (id: string): Promise<OrganizationRespo
     }
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Failed to fetch organization');
+  }
+};
+
+export const updateOrganization = async (
+  id: string,
+  data: Partial<Pick<Organization, 'bankingMode' | 'perSharePrice' | 'organisationName' | 'organizationName' | 'name' | 'address' | 'city' | 'state' | 'postalCode' | 'country' | 'phone' | 'email' | 'status'>>
+): Promise<Organization> => {
+  try {
+    const token = getAuthToken();
+    const response = await axios.put(
+      `${API.domain}${API.endPoints.updateOrganisation}/${id}`,
+      data,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+      }
+    );
+    if (response.status === 200 && response.data?.success) {
+      const org = response.data.data ?? response.data.result;
+      return org;
+    }
+    throw new Error(response.data?.message || 'Failed to update organization');
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Failed to update organization');
   }
 };
 

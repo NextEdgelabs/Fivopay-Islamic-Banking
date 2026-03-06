@@ -30,6 +30,7 @@ import {
 import { useToast } from '@/components/ui/Toast';
 import { useLoanCategoryMutations } from '@/hooks/useLoanCategoryMutations';
 import { useLoanCategory } from '@/hooks/useLoanCategory';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { LoanCategory, LoanCategoryStatus } from '@/services/loan-categories.service';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
@@ -39,6 +40,7 @@ export default function LoanCategoryDetailPage() {
   const categoryId = params?.id as string;
   const { category, loading, error } = useLoanCategory(categoryId);
   const { deleteLoanCategory, loading: isDeleting } = useLoanCategoryMutations();
+  const { defaultRateLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -81,7 +83,7 @@ export default function LoanCategoryDetailPage() {
       id: 'overview',
       label: 'Overview',
       icon: <Building className="h-4 w-4" />,
-      content: <CategoryOverviewTab category={category} />,
+      content: <CategoryOverviewTab category={category} defaultRateLabel={defaultRateLabel} />,
     },
     {
       id: 'eligibility',
@@ -149,7 +151,7 @@ export default function LoanCategoryDetailPage() {
   );
 }
 
-const CategoryOverviewTab = ({ category }: { category: LoanCategory }) => (
+const CategoryOverviewTab = ({ category, defaultRateLabel }: { category: LoanCategory; defaultRateLabel: string }) => (
   <div className="space-y-6 mt-4">
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
@@ -158,7 +160,7 @@ const CategoryOverviewTab = ({ category }: { category: LoanCategory }) => (
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <InfoItem icon={<DollarSign />} label="Loan Amount" value={`₹${(category.minLoanAmount || 0).toLocaleString()} - ₹${(category.maxLoanAmount || 0).toLocaleString()}`} />
             {category.defaultInterestRate && (
-              <InfoItem icon={<TrendingUp />} label="Default Interest Rate" value={`${category.defaultInterestRate}% per annum`} />
+              <InfoItem icon={<TrendingUp />} label={defaultRateLabel} value={`${category.defaultInterestRate}% per annum`} />
             )}
             <InfoItem icon={<Calendar />} label="Tenure" value={`${category.minTenureMonths || 0} - ${category.maxTenureMonths || 0} months`} />
             {category.defaultProcessingFee && (
@@ -213,7 +215,7 @@ const CategoryOverviewTab = ({ category }: { category: LoanCategory }) => (
             </div>
             {category.defaultInterestRate && (
               <div className="flex justify-between">
-                <span className="text-neutral-600">Default Interest Rate</span>
+                <span className="text-neutral-600">{defaultRateLabel}</span>
                 <span className="font-semibold">{category.defaultInterestRate}%</span>
               </div>
             )}

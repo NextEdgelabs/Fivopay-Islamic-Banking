@@ -239,9 +239,19 @@ export const JointLiabilityService = {
 
         if (status === 'approved' && loan.status !== 'approved') {
              if (group && member) {
-                 // Double check limit
-                 if (loan.amount > (member.availableCredit - member.currentLoanAmount)) {
-                     throw new Error("Insufficient credit limit at approval time");
+                 // Double check limit using the same effective credit logic as at application time
+                 const totalCreditLimit = group.maxCreditLimit;
+                 const memberProportionalLimit = group.totalDeposit > 0
+                   ? (member.depositAmount / group.totalDeposit) * totalCreditLimit
+                   : 0;
+                 
+                 const effectiveCreditLimit = member.availableCredit > 0
+                   ? member.availableCredit
+                   : memberProportionalLimit;
+
+                 const availableToBorrow = effectiveCreditLimit - member.currentLoanAmount;
+                 if (loan.amount > availableToBorrow) {
+                     throw new Error(`Insufficient credit limit at approval time (available: ₹${Math.max(0, availableToBorrow).toLocaleString()})`);
                  }
 
                  // Update member's current loan amount

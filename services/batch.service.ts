@@ -82,17 +82,41 @@ export interface BatchFilters {
 export interface BatchResponse {
   success: boolean;
   message: string;
-  data: {
+  data?: {
     batch: Batch;
   };
+  result?: Batch; // backend may return batch in result
 }
 
 export interface BatchesListResponse {
   success: boolean;
   message: string;
-  data: {
+  data?: {
     batches: Batch[];
     total: number;
+  };
+  result?: {
+    batches?: Batch[];
+    total?: number;
+  }; // backend may return in result
+}
+
+function normalizeBatchResponse(raw: any): BatchResponse {
+  const batch = raw?.result ?? raw?.data?.batch ?? raw?.batch;
+  return {
+    success: raw?.success ?? false,
+    message: raw?.message ?? '',
+    data: { batch },
+  };
+}
+
+function normalizeBatchesListResponse(raw: any): BatchesListResponse {
+  const batches = raw?.result?.batches ?? raw?.data?.batches ?? raw?.batches ?? [];
+  const total = raw?.result?.total ?? raw?.data?.total ?? raw?.total ?? batches.length;
+  return {
+    success: raw?.success ?? false,
+    message: raw?.message ?? '',
+    data: { batches, total },
   };
 }
 
@@ -111,7 +135,7 @@ class BatchService {
           },
         }
       );
-      return response.data;
+      return normalizeBatchResponse(response.data);
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to create batch');
     }
@@ -129,7 +153,7 @@ class BatchService {
       if (filters?.organisation) params.append('organisation', filters.organisation);
       if (filters?.search) params.append('search', filters.search);
 
-      const response:any = await axios.get(
+      const response: any = await axios.get(
         `${API.domain}${API.endPoints.getAllBatches}?${params.toString()}`,
         {
           headers: {
@@ -138,7 +162,7 @@ class BatchService {
           },
         }
       );
-      return response.data;
+      return normalizeBatchesListResponse(response.data);
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch batches');
     }
@@ -162,7 +186,7 @@ class BatchService {
           },
         }
       );
-      return response.data;
+      return normalizeBatchesListResponse(response.data);
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch batches by employee');
     }
@@ -203,7 +227,7 @@ class BatchService {
           },
         }
       );
-      return response.data;
+      return normalizeBatchResponse(response.data);
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch batch');
     }
@@ -222,7 +246,7 @@ class BatchService {
           },
         }
       );
-      return response.data;
+      return normalizeBatchResponse(response.data);
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to update batch');
     }
@@ -259,7 +283,7 @@ class BatchService {
           },
         }
       );
-      return response.data;
+      return normalizeBatchResponse(response.data);
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to add customers to batch');
     }
@@ -297,7 +321,7 @@ class BatchService {
           },
         }
       );
-      return response.data;
+      return normalizeBatchResponse(response.data);
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to update batch status');
     }

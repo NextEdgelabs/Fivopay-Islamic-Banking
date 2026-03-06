@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/Toast';
 import { CreateProductDto, ProductType, RepaymentFrequency, LoanProductStatus } from '@/services/products';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { useLoanCategories } from '@/hooks/useLoanCategories';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { LoanCategory } from '@/services/loan-categories.service';
 
 export default function AddProductPage() {
@@ -18,6 +19,7 @@ export default function AddProductPage() {
   const { addToast } = useToast();
   const { organizations } = useOrganizations();
   const { categories } = useLoanCategories();
+  const { rateLabel } = useInterestProfitTerm();
   const lastAutoFilledCategory = useRef<string | null>(null);
   
   const [formData, setFormData] = useState<Partial<CreateProductDto>>({
@@ -320,7 +322,7 @@ export default function AddProductPage() {
               />
               <Input 
                 name="interestRate" 
-                label="Interest Rate (% p.a.) *" 
+                label={`${rateLabel} (% p.a.) *`} 
                 type="number" 
                 step="0.01"
                 min="0"

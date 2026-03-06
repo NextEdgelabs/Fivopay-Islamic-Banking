@@ -10,9 +10,32 @@ import { useCustomers } from '@/hooks/useCustomers';
 import { useBranches } from '@/hooks/useBranches';
 import { useProducts } from '@/hooks/useProducts';
 import { useToast } from '@/components/ui/Toast';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { LoanProduct, EligibilityRule } from '@/services/products';
 import { Customer } from '@/services/customers.service';
 import { Alert } from '@/components/ui';
+import { LOAN_TYPES } from '@/lib/indiaData';
+
+function getLoanTypeFromProduct(product: any): string {
+  const cat = product?.category;
+  if (!cat) return '';
+  if (typeof cat === 'object') {
+    if (cat.categoryName && LOAN_TYPES.includes(cat.categoryName)) return cat.categoryName;
+    if (cat.categoryName) return cat.categoryName;
+    const loanTypeMap: Record<string, string> = {
+      personal: 'Personal Loan',
+      home: 'Home Loan',
+      car: 'Vehicle Loan',
+      education: 'Education Loan',
+      business: 'Business Loan',
+      gold: 'Gold Loan',
+      agriculture: 'Agriculture Loan',
+      medical: 'Medical Loan',
+    };
+    if (cat.loanType) return loanTypeMap[cat.loanType] || cat.loanType;
+  }
+  return '';
+}
 
 const checkEligibility = (customer: Customer, rules: EligibilityRule[]): string[] => {
   const warnings = [];
@@ -48,7 +71,8 @@ export default function AddLoanPage() {
   const { createLoan, loading: isSubmitting } = useLoanMutations();
   const { customers } = useCustomers();
   const { branches } = useBranches();
-  const { products: loanProducts } = useProducts({ productType: 'Loan', status: 'Active' });
+  const { products: loanProducts } = useProducts({ status: 'active', limit: 100 });
+  const { rateLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
   
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
@@ -81,10 +105,11 @@ export default function AddLoanPage() {
   
   useEffect(() => {
     if (selectedProduct) {
+      const loanTypeLabel = getLoanTypeFromProduct(selectedProduct);
       setFormData(prev => ({
         ...prev,
-        loanType: selectedProduct.subType,
-        interestRate: selectedProduct.interestRate.toString(),
+        loanType: loanTypeLabel || prev.loanType,
+        interestRate: (selectedProduct.interestRate ?? '').toString(),
         loanAmount: '',
         tenure: '',
       }));
@@ -108,12 +133,16 @@ export default function AddLoanPage() {
     if (!formData.branchId) newErrors.branchId = 'Branch is required';
     
     if (selectedProduct) {
+      const minAmt = selectedProduct.minLoanAmount ?? selectedProduct.minAmount;
+      const maxAmt = selectedProduct.maxLoanAmount ?? selectedProduct.maxAmount;
+      const minTen = selectedProduct.minTenureMonths ?? selectedProduct.minTenure;
+      const maxTen = selectedProduct.maxTenureMonths ?? selectedProduct.maxTenure;
       const amount = parseFloat(formData.loanAmount);
       const tenure = parseInt(formData.tenure);
-      if (amount < selectedProduct.minAmount) newErrors.loanAmount = `Amount must be at least ₹${selectedProduct.minAmount}`;
-      if (amount > selectedProduct.maxAmount) newErrors.loanAmount = `Amount cannot exceed ₹${selectedProduct.maxAmount}`;
-      if (tenure < selectedProduct.minTenure) newErrors.tenure = `Tenure must be at least ${selectedProduct.minTenure} months`;
-      if (tenure > selectedProduct.maxTenure) newErrors.tenure = `Tenure cannot exceed ${selectedProduct.maxTenure} months`;
+      if (minAmt != null && amount < minAmt) newErrors.loanAmount = `Amount must be at least ₹${minAmt}`;
+      if (maxAmt != null && amount > maxAmt) newErrors.loanAmount = `Amount cannot exceed ₹${maxAmt}`;
+      if (minTen != null && tenure < minTen) newErrors.tenure = `Tenure must be at least ${minTen} months`;
+      if (maxTen != null && tenure > maxTen) newErrors.tenure = `Tenure cannot exceed ${maxTen} months`;
     }
 
     setErrors(newErrors);
@@ -178,7 +207,7 @@ export default function AddLoanPage() {
               <Select
                 label="Select Product (Optional)"
                 name="productId"
-                value={selectedProduct?.id || ''}
+                value={selectedProduct?._id || selectedProduct?.id || ''}
                 onChange={(e) => {
                   const product = loanProducts.find((p:any) => p._id === e.target.value) as LoanProduct | undefined;
                   setSelectedProduct(product || null);
@@ -211,12 +240,13 @@ export default function AddLoanPage() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input
+  <Input
                 label="Loan Type"
                 name="loanType"
                 value={formData.loanType}
                 onChange={handleChange}
                 disabled={!!selectedProduct}
+                placeholder={selectedProduct ? 'Select a product to auto-fill' : 'e.g. Personal Loan'}
                 required
               />
               <Select
@@ -237,7 +267,7 @@ export default function AddLoanPage() {
                 error={errors.branchId}
                 options={[
                   { value: '', label: 'Select Branch' },
-                  ...branches.map((b) => ({ value: b.id || '', label: b.branchName })),
+                  ...branches.map((b) => ({ value: b._id || b.id || '', label: b.branchName })),
                 ]}
                 required
               />
@@ -262,7 +292,7 @@ export default function AddLoanPage() {
                 required
               />
               <Input
-                label="Profit Rate (% p.a.)"
+                label={`${rateLabel} (% p.a.)`}
                 name="interestRate"
                 type="number"
                 value={formData.interestRate}

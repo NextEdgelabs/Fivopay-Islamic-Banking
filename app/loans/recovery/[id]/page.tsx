@@ -28,6 +28,7 @@ import {
   Percent,
 } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { Customer } from '@/services/customers.service';
 import { NoticeType, RecoveryStatus, DeliveryMethod, RecoveryDue } from '@/types/recovery';
 
@@ -152,6 +153,7 @@ export default function RecoveryDetailPage() {
   const router = useRouter();
   const recoveryId = params?.id as string;
   const { customers, loading: customersLoading } = useCustomers();
+  const { amountLabel } = useInterestProfitTerm();
 
   const [recoveryDue, setRecoveryDue] = useState<RecoveryDue | null>(null);
 
@@ -400,7 +402,7 @@ export default function RecoveryDetailPage() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-sm text-neutral-600">Interest Amount</span>
+                  <span className="text-sm text-neutral-600">{amountLabel}</span>
                   <span className="font-semibold text-neutral-900">
                     ₹{recoveryDue.interestAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>

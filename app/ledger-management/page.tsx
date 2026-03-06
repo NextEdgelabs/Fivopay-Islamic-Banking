@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import {
   Card,
   Button,
@@ -135,6 +136,10 @@ const accountTypeColors: Record<string, string> = {
 };
 
 export default function AccountManagementPage() {
+  const { incomeLabel, feeIncomeLabel, revenueEarnedDescription } = useInterestProfitTerm();
+  const displayAccountName = (accountName: string) =>
+    accountName === 'Profit Income' ? incomeLabel : accountName === 'Profit Fee Income' ? feeIncomeLabel : accountName;
+
   const [accounts, setAccounts] = useState<ChartOfAccount[]>(initialAccounts);
   const [filters, setFilters] = useState({
     search: '',
@@ -459,7 +464,7 @@ export default function AccountManagementPage() {
                             style={{ backgroundColor: account.color }}
                           />
                           <span className="text-sm font-medium text-neutral-900">
-                            {account.accountName}
+                            {displayAccountName(account.accountName)}
                           </span>
                         </div>
                       </td>
@@ -734,7 +739,7 @@ export default function AccountManagementPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-neutral-900">
-                    {selectedAccount.accountName}
+                    {displayAccountName(selectedAccount.accountName)}
                   </h3>
                   <p className="text-sm text-neutral-500 font-mono">
                     Account ID: {selectedAccount.accountId}
@@ -773,7 +778,7 @@ export default function AccountManagementPage() {
                 <div className="col-span-2">
                   <p className="text-xs text-neutral-500 mb-1">Description</p>
                   <p className="text-sm text-neutral-700">
-                    {selectedAccount.description || 'No description provided'}
+                    {selectedAccount.accountId === '4000' ? revenueEarnedDescription : (selectedAccount.description || 'No description provided')}
                   </p>
                 </div>
               </div>
@@ -808,7 +813,7 @@ export default function AccountManagementPage() {
               </div>
               <div className="bg-neutral-50 p-4 rounded-lg mb-6">
                 <p className="text-sm font-medium text-neutral-900">
-                  {selectedAccount.accountName}
+                  {displayAccountName(selectedAccount.accountName)}
                 </p>
                 <p className="text-xs text-neutral-500 font-mono">
                   Account ID: {selectedAccount.accountId}

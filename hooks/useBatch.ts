@@ -15,9 +15,10 @@ export const useBatch = (batchId: string) => {
     try {
       setLoading(true);
       setError(null);
-      const response:any = await getBatchById(batchId);
+      const response: any = await getBatchById(batchId);
       if (response.success) {
-        setBatch(response.data);
+        const batchData = response.data?.batch ?? response.data;
+        setBatch(batchData ?? null);
       } else {
         setError(response.message || 'Failed to fetch batch');
       }

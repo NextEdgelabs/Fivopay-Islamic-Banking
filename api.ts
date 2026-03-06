@@ -50,6 +50,7 @@ export const API = {
         // organization
         getAllOrganisations: "/api/v1/organisation/get-all-organisations",
         getOrganisationById: "/api/v1/organisation/get-organisation-by-id",
+        updateOrganisation: "/api/v1/organisation/update-organisation",
 
         // batch
         createBatch: "/api/v1/user/create-customer-batch",
@@ -86,6 +87,29 @@ export const API = {
         // deposits
         getAllDeposits: "/api/v1/deposit/get-all-deposits",
         verifyDeposit: "/api/v1/deposit/verify-deposit",
+
+        // deposit accounts (savings/FD/RD)
+        createDepositAccount: "/api/v1/deposit/account/create",
+        updateDepositAccount: "/api/v1/deposit/account/update",
+        getAllDepositAccounts: "/api/v1/deposit/account/get-all",
+        getDepositAccountById: "/api/v1/deposit/account/get-by-id",
+
+        // deposit categories
+        createDepositCategory: "/api/v1/deposit/category/create",
+        getAllDepositCategories: "/api/v1/deposit/category/get-all",
+        getDepositCategoryById: "/api/v1/deposit/category/get-by-id",
+        getDepositCategoriesByType: "/api/v1/deposit/category/get-by-type",
+        updateDepositCategory: "/api/v1/deposit/category/update",
+        deleteDepositCategory: "/api/v1/deposit/category/delete",
+
+        // deposit products
+        createDepositProduct: "/api/v1/deposit/product/create",
+        getAllDepositProducts: "/api/v1/deposit/product/get-all",
+        getDepositProductById: "/api/v1/deposit/product/get-by-id",
+        getDepositProductsByCategory: "/api/v1/deposit/product/get-by-category",
+        getDepositProductsByType: "/api/v1/deposit/product/get-by-type",
+        updateDepositProduct: "/api/v1/deposit/product/update",
+        deleteDepositProduct: "/api/v1/deposit/product/delete",
 
         // share transactions
         getAllShareTransactions: "/api/v1/share-transaction/get-all-transactions",

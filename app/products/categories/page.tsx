@@ -34,12 +34,14 @@ import {
 import { useToast } from '@/components/ui/Toast';
 import { useLoanCategories } from '@/hooks/useLoanCategories';
 import { useLoanCategoryMutations } from '@/hooks/useLoanCategoryMutations';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { LoanCategory, LoanSubCategory, LoanCategoryStatus, LoanType } from '@/services/loan-categories.service';
 
 export default function LoanCategoriesPage() {
   const router = useRouter();
   const { categories, loading, error, refetch, filters, setFilters } = useLoanCategories();
   const { deleteLoanCategory, deleteLoanSubCategory, loading: isDeleting } = useLoanCategoryMutations();
+  const { defaultRateLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -141,7 +143,7 @@ export default function LoanCategoriesPage() {
           </div>
           <div className="flex items-center gap-4 text-sm">
             {row.defaultInterestRate && (
-              <span className="text-neutral-600">Rate: {row.defaultInterestRate}%</span>
+              <span className="text-neutral-600">{defaultRateLabel}: {row.defaultInterestRate}%</span>
             )}
             <span className="text-neutral-600">
               Tenure: {row.minTenureMonths || '0'} - {row.maxTenureMonths || '0'} months
@@ -329,7 +331,7 @@ export default function LoanCategoriesPage() {
           <Card padding="sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Avg Default Interest Rate</p>
+                <p className="text-sm text-neutral-600">Avg {defaultRateLabel}</p>
                 <p className="text-2xl font-bold">
                   {categories.length > 0
                     ? (categories

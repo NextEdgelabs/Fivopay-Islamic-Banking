@@ -18,12 +18,14 @@ import { Search, Plus, Edit, Trash2, Eye, FolderOpen } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useProducts } from '@/hooks/useProducts';
 import { useProductMutations } from '@/hooks/useProductMutations';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { AnyProduct } from '@/services/products';
 
 export default function ProductsPage() {
   const router = useRouter();
   const { products, loading, error, refetch, filters, setFilters } = useProducts();
   const { deleteProduct, updateProduct, loading: isDeleting } = useProductMutations();
+  const { rateLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -90,7 +92,7 @@ export default function ProductsPage() {
       ),
     },
     {
-      header: 'Interest Rate',
+      header: rateLabel,
       key: 'interestRate',
       render: (rate: number) => `${rate || 0}%`,
     },

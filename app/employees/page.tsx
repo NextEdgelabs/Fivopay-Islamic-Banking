@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -51,13 +51,25 @@ export default function EmployeesPage() {
   const itemsPerPage = 10;
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
+  const [searchInputValue, setSearchInputValue] = useState(filters.search || '');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [filters]);
 
+  useEffect(() => {
+    setSearchInputValue(filters.search || '');
+  }, [filters.search]);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters(prev => ({ ...prev, search: e.target.value }));
+    const value = e.target.value;
+    setSearchInputValue(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: value }));
+      searchDebounceRef.current = null;
+    }, 300);
   };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -227,8 +239,9 @@ export default function EmployeesPage() {
     { label: 'Employees', href: '/employees' },
   ];
 
-  // Loading state
-  if (loading) {
+  // Full-page loading only on initial load so search input stays mounted during refetch
+  const isInitialLoad = loading && !(employees?.length);
+  if (isInitialLoad) {
     return (
       <DashboardLayout>
         <div className="p-6 space-y-6 animate-pulse">
@@ -350,7 +363,7 @@ export default function EmployeesPage() {
             <div className="w-full md:w-1/3">
               <Input
                 placeholder="Search by name, email, or ID..."
-                value={filters.search || ''}
+                value={searchInputValue}
                 onChange={handleSearchChange}
                 leftIcon={<Search className="h-4 w-4" />}
               />

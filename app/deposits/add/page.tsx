@@ -8,52 +8,29 @@ import { Save, X } from 'lucide-react';
 import { useDepositMutations } from '@/hooks/useDepositMutations';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useBranches } from '@/hooks/useBranches';
-import { useProducts } from '@/hooks/useProducts';
+import { useDepositProducts } from '@/hooks/useDepositProducts';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { useToast } from '@/components/ui/Toast';
-import { LoanProduct, EligibilityRule, TermDepositProduct } from '@/services/products';
+import { DepositProduct, DepositProductType } from '@/services/deposit-products.service';
 import { Customer } from '@/services/customers.service';
-import { Alert } from '@/components/ui';
 
-const checkEligibility = (customer: Customer, rules: EligibilityRule[]): string[] => {
-  const warnings = [];
-  const customerAge = new Date().getFullYear() - new Date(customer.dateOfBirth).getFullYear();
-
-  for (const rule of rules) {
-    let customerValue: any;
-    switch (rule.field) {
-      case 'age': customerValue = customerAge; break;
-      case 'annualIncome': customerValue = customer.annualIncome; break;
-      case 'occupation': customerValue = customer.occupation; break;
-    }
-
-    let isEligible = false;
-    switch (rule.operator) {
-      case '==': isEligible = customerValue == rule.value; break;
-      case '!=': isEligible = customerValue != rule.value; break;
-      case '>=': isEligible = customerValue >= rule.value; break;
-      case '<=': isEligible = customerValue <= rule.value; break;
-      case '>': isEligible = customerValue > rule.value; break;
-      case '<': isEligible = customerValue < rule.value; break;
-    }
-    
-    if (!isEligible) {
-      warnings.push(`Customer does not meet the rule: ${rule.field} ${rule.operator} ${rule.value}`);
-    }
-  }
-  return warnings;
+const DEPOSIT_TYPE_LABELS: Record<string, string> = {
+  [DepositProductType.SAVINGS]: 'Savings Account',
+  [DepositProductType.CURRENT]: 'Current Account',
+  [DepositProductType.FD]: 'Fixed Deposit',
+  [DepositProductType.RD]: 'Recurring Deposit',
 };
-
 
 export default function AddDepositPage() {
   const router = useRouter();
   const { createDeposit, loading: isSubmitting } = useDepositMutations();
   const { customers } = useCustomers();
   const { branches } = useBranches();
-  const { products: depositProducts } = useProducts({ productType: 'Term Deposit', status: 'Active' });
+  const { products: depositProducts } = useDepositProducts({ status: 'active' });
+  const { rateLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
-  
-  const [selectedProduct, setSelectedProduct] = useState<TermDepositProduct | null>(null);
-  const [eligibilityWarnings, setEligibilityWarnings] = useState<string[]>([]);
+
+  const [selectedProduct, setSelectedProduct] = useState<DepositProduct | null>(null);
 
   const [formData, setFormData] = useState({
     customerId: '',
@@ -63,26 +40,25 @@ export default function AddDepositPage() {
     interestRate: '',
     branchId: '',
   });
-  
+
   const selectedCustomer = useMemo(() => {
     return customers.find(c => c.id === formData.customerId);
   }, [formData.customerId, customers]);
 
-  useEffect(() => {
-    if (selectedProduct && selectedCustomer) {
-      const warnings = checkEligibility(selectedCustomer, selectedProduct.eligibilityRules || []);
-      setEligibilityWarnings(warnings);
-    } else {
-      setEligibilityWarnings([]);
-    }
-  }, [selectedProduct, selectedCustomer]);
-  
+  const tenureOptions = useMemo(() => {
+    if (!selectedProduct?.interestRatesByTenure || typeof selectedProduct.interestRatesByTenure !== 'object') return [];
+    return Object.keys(selectedProduct.interestRatesByTenure)
+      .map((t) => ({ value: t, label: `${t} months` }))
+      .sort((a, b) => Number(a.value) - Number(b.value));
+  }, [selectedProduct]);
+
   useEffect(() => {
     if (selectedProduct) {
+      const label = DEPOSIT_TYPE_LABELS[selectedProduct.productType] || selectedProduct.productName;
       setFormData(prev => ({
         ...prev,
-        depositType: selectedProduct.subType,
-        depositAmount: '',
+        depositType: label,
+        depositAmount: prev.depositAmount,
         tenure: '',
         interestRate: '',
       }));
@@ -98,14 +74,19 @@ export default function AddDepositPage() {
     e.preventDefault();
 
     try {
+      const interestRate =
+        formData.tenure && selectedProduct?.interestRatesByTenure
+          ? selectedProduct.interestRatesByTenure[Number(formData.tenure)]
+          : selectedProduct?.defaultInterestRate ?? undefined;
       await createDeposit({
         customerId: formData.customerId,
         depositType: formData.depositType,
         depositAmount: parseFloat(formData.depositAmount),
         tenure: formData.tenure ? parseInt(formData.tenure) : undefined,
         branchId: formData.branchId,
+        productId: selectedProduct?._id,
+        interestRate,
       });
-      addToast({ type: 'success', message: 'Deposit created successfully!' });
       router.push('/deposits');
     } catch (err) {
       addToast({ type: 'error', message: err instanceof Error ? err.message : 'Failed to create deposit' });
@@ -141,12 +122,12 @@ export default function AddDepositPage() {
                 name="productId"
                 value={selectedProduct?._id || ''}
                 onChange={(e) => {
-                  const product = depositProducts.find((p:any) => p.id === e.target.value) as TermDepositProduct | undefined;
-                  setSelectedProduct(product as any || null);
+                  const product = depositProducts.find((p) => p._id === e.target.value) ?? null;
+                  setSelectedProduct(product);
                 }}
                 options={[
                   { value: '', label: 'Select a deposit product' },
-                  ...depositProducts.map((p:any) => ({ value: p.id, label: p.name })),
+                  ...depositProducts.map((p) => ({ value: p._id, label: p.productName })),
                 ]}
               />
               <Select
@@ -161,14 +142,6 @@ export default function AddDepositPage() {
                 required
               />
             </div>
-            
-            {eligibilityWarnings.length > 0 && (
-              <Alert 
-                variant="warning" 
-                title="Eligibility Warnings"
-                message={eligibilityWarnings.map((warning, i) => `${i + 1}. ${warning}`).join(' • ')}
-              />
-            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
@@ -186,7 +159,7 @@ export default function AddDepositPage() {
                 onChange={handleChange}
                 options={[
                   { value: '', label: 'Select Branch' },
-                  ...branches.map((b) => ({ value: b.id || '', label: b.branchName })),
+                  ...branches.map((b) => ({ value: (b as any)._id || b.id || '', label: b.branchName })),
                 ]}
                 required
               />
@@ -207,15 +180,19 @@ export default function AddDepositPage() {
                     value={formData.tenure}
                     onChange={handleChange}
                     placeholder="Select Tenure"
-                    options={selectedProduct ? Object.keys(selectedProduct.interestRates || {}).map((t:any) => ({ label: `${t} months`, value: t })) : []}
-                    disabled={!selectedProduct}
+                    options={tenureOptions}
+                    disabled={!selectedProduct || tenureOptions.length === 0}
                     required
                   />
                   <Input
-                    label="Profit Rate (% p.a.)"
+                    label={`${rateLabel} (% p.a.)`}
                     name="interestRate"
                     type="number"
-                    value={selectedProduct?.interestRates?.[parseInt(formData.tenure)] || ''}
+                    value={
+                      formData.tenure && selectedProduct?.interestRatesByTenure
+                        ? selectedProduct.interestRatesByTenure[Number(formData.tenure)] ?? ''
+                        : ''
+                    }
                     disabled
                   />
                 </>

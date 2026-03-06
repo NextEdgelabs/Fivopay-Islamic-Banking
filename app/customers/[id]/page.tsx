@@ -40,6 +40,7 @@ import { useCustomer } from '@/hooks/useCustomer';
 import { useCustomerMutations } from '@/hooks/useCustomerMutations';
 import { useToast } from '@/components/ui/Toast';
 import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import SharePurchaseHistory from '@/components/customers/SharePurchaseHistory';
 import { loanService } from '@/services/loans';
 import { depositService } from '@/services/deposits';
@@ -1005,42 +1006,45 @@ const CustomerLoansTab = ({ loans }: { loans: any[] }) => (
   </div>
 );
 
-const CustomerDepositsTab = ({ deposits }: { deposits: any[] }) => (
-  <div className="p-6">
-    {deposits.length === 0 ? (
-      <div className="text-center py-8 text-neutral-500">
-        <p>No deposits found for this customer</p>
-      </div>
-    ) : (
-      <div className="space-y-4">
-        {deposits.map((deposit: any) => (
-          <Link key={deposit.id} href={`/deposits/${deposit.id}`}>
-            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-semibold text-neutral-900">{deposit.depositId}</h3>
-                  <p className="text-sm text-neutral-600">{deposit.depositType}</p>
+const CustomerDepositsTab = ({ deposits }: { deposits: any[] }) => {
+  const { rateLabel, earnedLabel } = useInterestProfitTerm();
+  return (
+    <div className="p-6">
+      {deposits.length === 0 ? (
+        <div className="text-center py-8 text-neutral-500">
+          <p>No deposits found for this customer</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {deposits.map((deposit: any) => (
+            <Link key={deposit.id} href={`/deposits/${deposit.id}`}>
+              <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-neutral-900">{deposit.depositId}</h3>
+                    <p className="text-sm text-neutral-600">{deposit.depositType}</p>
+                  </div>
+                  <Badge variant={deposit.status === 'Active' ? 'success' : 'neutral'}>{deposit.status}</Badge>
                 </div>
-                <Badge variant={deposit.status === 'Active' ? 'success' : 'neutral'}>{deposit.status}</Badge>
-              </div>
-              <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
-                <div>
-                  <p className="text-neutral-600">Balance</p>
-                  <p className="font-semibold">₹{deposit.currentBalance.toLocaleString('en-IN')}</p>
+                <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <p className="text-neutral-600">Balance</p>
+                    <p className="font-semibold">₹{deposit.currentBalance.toLocaleString('en-IN')}</p>
+                  </div>
+                  <div>
+                    <p className="text-neutral-600">{rateLabel}</p>
+                    <p className="font-semibold">{deposit.interestRate}%</p>
+                  </div>
+                  <div>
+                    <p className="text-neutral-600">{earnedLabel}</p>
+                    <p className="font-semibold">₹{deposit.interestEarned.toLocaleString('en-IN')}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-neutral-600">Profit Rate</p>
-                  <p className="font-semibold">{deposit.interestRate}%</p>
-                </div>
-                <div>
-                  <p className="text-neutral-600">Profit Earned</p>
-                  <p className="font-semibold">₹{deposit.interestEarned.toLocaleString('en-IN')}</p>
-                </div>
-              </div>
-            </Card>
-          </Link>
-        ))}
-      </div>
-    )}
-  </div>
-);
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};

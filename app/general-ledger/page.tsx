@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import {
   Card,
   Button,
@@ -587,6 +588,10 @@ const calculateFinancialSummary = (): FinancialSummary => {
 };
 
 export default function GeneralLedgerPage() {
+  const { incomeLabel, feeIncomeLabel, netLabel } = useInterestProfitTerm();
+  const displayAccountName = (accountName: string) =>
+    accountName === 'Profit Income' ? incomeLabel : accountName === 'Profit Fee Income' ? feeIncomeLabel : accountName;
+
   const [filters, setFilters] = useState({
     dateFrom: '',
     dateTo: '',
@@ -745,7 +750,7 @@ export default function GeneralLedgerPage() {
       width: '200px',
       render: (_: any, row: any) => (
         <span className={`text-sm ${row.isMainEntry ? 'font-medium text-neutral-900' : 'text-neutral-600'}`}>
-          {row.accountName} ({row.accountId})
+          {displayAccountName(row.accountName)} ({row.accountId})
         </span>
       ),
     },
@@ -859,7 +864,7 @@ export default function GeneralLedgerPage() {
           <Card className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-purple-700 mb-1 font-medium">Net Profit (P&L)</p>
+                <p className="text-sm text-purple-700 mb-1 font-medium">{netLabel} (P&L)</p>
                 <p className="text-2xl font-bold text-purple-900">
                   ₹{financialSummary.netProfit.toLocaleString('en-IN')}
                 </p>
@@ -887,7 +892,7 @@ export default function GeneralLedgerPage() {
                   />
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-neutral-900">
-                      Account {account.accountId} - {account.accountName}
+                      Account {account.accountId} - {displayAccountName(account.accountName)}
                     </p>
                     <p className="text-xl font-bold text-neutral-900 mt-1">
                       ₹{account.balance.toLocaleString('en-IN')}
@@ -938,7 +943,7 @@ export default function GeneralLedgerPage() {
                 { value: '', label: 'All Accounts' },
                 ...chartOfAccounts.map((acc) => ({
                   value: acc.accountId,
-                  label: `${acc.accountId} - ${acc.accountName}`,
+                  label: `${acc.accountId} - ${displayAccountName(acc.accountName)}`,
                 })),
               ]}
             />
@@ -1044,7 +1049,7 @@ export default function GeneralLedgerPage() {
                         </td>
                         <td className="px-6 py-3">
                           <span className={`text-sm ${row.isMainEntry ? 'font-medium text-neutral-900' : 'text-neutral-600'}`}>
-                            {row.accountName} ({row.accountId})
+                            {displayAccountName(row.accountName)} ({row.accountId})
                           </span>
                         </td>
                         <td className="px-6 py-3">

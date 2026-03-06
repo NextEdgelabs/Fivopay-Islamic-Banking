@@ -22,7 +22,9 @@ export const useBatchMutations = () => {
       setError(null);
       const response = await createBatch(data);
       if (response.success) {
-        return response.data.batch;
+        const batch = response.data?.batch;
+        if (!batch) throw new Error(response.message || 'Failed to create batch');
+        return batch;
       } else {
         throw new Error(response.message || 'Failed to create batch');
       }
@@ -40,7 +42,9 @@ export const useBatchMutations = () => {
       setError(null);
       const response = await updateBatch(id, data);
       if (response.success) {
-        return response.data.batch;
+        const batch = response.data?.batch;
+        if (!batch) throw new Error(response.message || 'Failed to update batch');
+        return batch;
       } else {
         throw new Error(response.message || 'Failed to update batch');
       }
@@ -71,7 +75,9 @@ export const useBatchMutations = () => {
       setError(null);
       const response = await addCustomersToBatch(batchId, customerIds);
       if (response.success) {
-        return response.data.batch;
+        const batch = response.data?.batch;
+        if (!batch) throw new Error(response.message || 'Failed to add customers');
+        return batch;
       } else {
         throw new Error(response.message || 'Failed to add customers');
       }
@@ -89,7 +95,9 @@ export const useBatchMutations = () => {
       setError(null);
       const response = await removeCustomersFromBatch(batchId, customerIds);
       if (response.success) {
-        return response.data.batch;
+        const batch = response.data?.batch;
+        if (!batch) throw new Error(response.message || 'Failed to remove customers');
+        return batch;
       } else {
         throw new Error(response.message || 'Failed to remove customers');
       }
@@ -107,7 +115,9 @@ export const useBatchMutations = () => {
       setError(null);
       const response = await updateBatchStatus(batchId, status);
       if (response.success) {
-        return response.data.batch;
+        const batch = response.data?.batch;
+        if (!batch) throw new Error(response.message || 'Failed to update batch status');
+        return batch;
       } else {
         throw new Error(response.message || 'Failed to update batch status');
       }

@@ -12,7 +12,7 @@ export const useBatches = (filters?: BatchFilters) => {
       setError(null);
       const response = await getAllBatches(filters);
       if (response.success) {
-        setBatches(response.data.batches || []);
+        setBatches(response.data?.batches || []);
       } else {
         setError(response.message || 'Failed to fetch batches');
       }

@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCustomers } from '@/hooks/useCustomers';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { Customer } from '@/services/customers.service';
 import { useToast } from '@/components/ui/Toast';
 import { exportToCSV } from '@/lib/utils';
@@ -144,6 +145,7 @@ const generateRecoveryDues = (customers: Customer[]): RecoveryDue[] => {
 
 export default function RecoveryTab() {
   const { customers, loading: customersLoading } = useCustomers();
+  const { amountLabel, termCapitalized } = useInterestProfitTerm();
   const { addToast } = useToast();
   const router = useRouter();
 
@@ -444,7 +446,7 @@ export default function RecoveryTab() {
               { key: 'loanId', label: 'Loan ID' },
               { key: 'totalDue', label: 'Total Due' },
               { key: 'principalAmount', label: 'Principal Amount' },
-              { key: 'interestAmount', label: 'Interest Amount' },
+              { key: 'interestAmount', label: amountLabel },
               { key: 'penaltyAmount', label: 'Penalty Amount' },
               { key: 'daysOverdue', label: 'Days Overdue' },
               { key: 'status', label: 'Status' },
@@ -737,7 +739,7 @@ export default function RecoveryTab() {
                     <span className="font-medium">₹{selectedDue.principalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-neutral-600">Interest:</span>
+                    <span className="text-neutral-600">{termCapitalized}:</span>
                     <span className="font-medium">₹{selectedDue.interestAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between">

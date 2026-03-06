@@ -17,6 +17,7 @@ import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useLoanCategory } from '@/hooks/useLoanCategory';
 import { useLoanCategoryMutations } from '@/hooks/useLoanCategoryMutations';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { UpdateLoanCategoryDto, LoanSubCategory, LoanCategoryStatus, LoanType } from '@/services/loan-categories.service';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { useBranches } from '@/hooks/useBranches';
@@ -27,6 +28,7 @@ export default function EditLoanCategoryPage() {
   const categoryId = params?.id as string;
   const { category, loading: fetchLoading, error: fetchError } = useLoanCategory(categoryId);
   const { updateLoanCategory, loading } = useLoanCategoryMutations();
+  const { loanAmountSectionTitle, defaultRateLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
   const { organizations } = useOrganizations();
   const { branches } = useBranches();
@@ -390,10 +392,10 @@ export default function EditLoanCategoryPage() {
             </div>
           </Card>
 
-          {/* Loan Amount & Interest */}
+          {/* Loan Amount & Interest/Profit */}
           <Card>
             <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Loan Amount & Interest</h2>
+              <h2 className="text-xl font-semibold mb-4">{loanAmountSectionTitle}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -427,7 +429,7 @@ export default function EditLoanCategoryPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Default Interest Rate (%)
+                    {defaultRateLabel} (%)
                   </label>
                   <Input
                     type="number"

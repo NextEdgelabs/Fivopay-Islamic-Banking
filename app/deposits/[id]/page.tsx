@@ -8,6 +8,7 @@ import { Card, Button, Badge, Breadcrumbs, Skeleton, Tabs } from '@/components/u
 import { Edit, Trash2, XCircle, CreditCard, FileText } from 'lucide-react';
 import { useDeposit } from '@/hooks/useDeposit';
 import { useDepositMutations } from '@/hooks/useDepositMutations';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { useToast } from '@/components/ui/Toast';
 
 export default function ViewDepositPage() {
@@ -16,6 +17,7 @@ export default function ViewDepositPage() {
   const depositId = params.id as string;
   const { deposit, loading, error } = useDeposit(depositId);
   const { deleteDeposit, closeDeposit } = useDepositMutations();
+  const { rateLabel, earnedLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
 
   const handleDelete = async () => {
@@ -85,7 +87,7 @@ export default function ViewDepositPage() {
       id: 'overview',
       label: 'Overview',
       icon: <CreditCard className="h-4 w-4" />,
-      content: <DepositOverviewTab deposit={deposit} getStatusBadge={getStatusBadge} />,
+      content: <DepositOverviewTab deposit={deposit} getStatusBadge={getStatusBadge} rateLabel={rateLabel} earnedLabel={earnedLabel} />,
     },
     {
       id: 'transactions',
@@ -131,7 +133,7 @@ export default function ViewDepositPage() {
   );
 }
 
-const DepositOverviewTab = ({ deposit, getStatusBadge }: { deposit: any, getStatusBadge: (status: string) => React.ReactNode }) => (
+const DepositOverviewTab = ({ deposit, getStatusBadge, rateLabel, earnedLabel }: { deposit: any; getStatusBadge: (status: string) => React.ReactNode; rateLabel: string; earnedLabel: string }) => (
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
     <div className="lg:col-span-2 space-y-6">
       {/* Deposit Details Card */}
@@ -154,7 +156,7 @@ const DepositOverviewTab = ({ deposit, getStatusBadge }: { deposit: any, getStat
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-neutral-700">Profit Rate</label>
+                  <label className="text-sm font-medium text-neutral-700">{rateLabel}</label>
                   <p className="mt-1 text-2xl font-bold text-neutral-900">{deposit.interestRate}%</p>
                 </div>
                 {deposit.maturityAmount && (
@@ -207,7 +209,7 @@ const DepositOverviewTab = ({ deposit, getStatusBadge }: { deposit: any, getStat
             </p>
           </div>
           <div>
-            <label className="text-sm font-medium text-neutral-700">Profit Earned</label>
+            <label className="text-sm font-medium text-neutral-700">{earnedLabel}</label>
             <p className="mt-1 text-lg font-semibold text-primary-600">
               ₹{deposit.interestEarned.toLocaleString('en-IN')}
             </p>

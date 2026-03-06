@@ -107,6 +107,11 @@ export default function EditDepositPage() {
           <Card className="p-6 space-y-6">
             <h2 className="text-xl font-semibold text-neutral-900">Deposit Details</h2>
 
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Deposit Type</label>
+              <p className="text-neutral-900">{deposit.depositType ?? '—'}</p>
+            </div>
+
             <Select
               label="Status"
               name="status"

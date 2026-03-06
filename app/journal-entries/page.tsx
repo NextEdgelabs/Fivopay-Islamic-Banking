@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import {
   Card,
   Button,
@@ -186,6 +187,10 @@ const initialJournalEntries: JournalEntry[] = [
 ];
 
 export default function JournalEntriesPage() {
+  const { incomeLabel, feeIncomeLabel } = useInterestProfitTerm();
+  const displayAccountName = (accountName: string) =>
+    accountName === 'Profit Income' ? incomeLabel : accountName === 'Profit Fee Income' ? feeIncomeLabel : accountName;
+
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(initialJournalEntries);
   const [filters, setFilters] = useState({
     search: '',
@@ -536,7 +541,7 @@ export default function JournalEntriesPage() {
                 { value: '', label: 'All Accounts' },
                 ...chartOfAccounts.map(acc => ({
                   value: acc.accountId,
-                  label: `${acc.accountId} - ${acc.accountName}`,
+                  label: `${acc.accountId} - ${displayAccountName(acc.accountName)}`,
                 })),
               ]}
               className="min-w-[200px]"
@@ -629,7 +634,7 @@ export default function JournalEntriesPage() {
                           <div className="flex flex-col gap-1">
                             {entry.entries.slice(0, 2).map((line) => (
                               <span key={line.id} className="text-xs text-neutral-600">
-                                {line.accountName} ({line.accountId})
+                                {displayAccountName(line.accountName)} ({line.accountId})
                               </span>
                             ))}
                             {entry.entries.length > 2 && (
@@ -768,7 +773,7 @@ export default function JournalEntriesPage() {
                             { value: '', label: 'Select Account' },
                             ...chartOfAccounts.map(acc => ({
                               value: acc.accountId,
-                              label: `${acc.accountId} - ${acc.accountName}`,
+                              label: `${acc.accountId} - ${displayAccountName(acc.accountName)}`,
                             })),
                           ]}
                           className="col-span-2"
@@ -906,7 +911,7 @@ export default function JournalEntriesPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <p className="text-sm font-medium text-neutral-900">
-                            {line.accountName} ({line.accountId})
+                            {displayAccountName(line.accountName)} ({line.accountId})
                           </p>
                           {line.isMainEntry && (
                             <Badge variant="neutral" className="text-xs mt-1">
