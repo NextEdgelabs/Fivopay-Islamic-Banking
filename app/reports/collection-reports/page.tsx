@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -30,9 +30,11 @@ import {
   Clock,
   AlertCircle,
   Image as ImageIcon,
+  Loader2,
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils';
 import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
+import { reportsService, type Pagination as PaginationType } from '@/services/reports.service';
 import {
   BarChart,
   Bar,
@@ -55,7 +57,7 @@ interface AgentCollectionSummary {
   deposited: number;
   pending: number;
   visits: number;
-  successRate: number; // percentage
+  successRate: number;
 }
 
 interface CollectionLog {
@@ -82,103 +84,12 @@ interface ReconciliationReport {
   verifiedDate?: string;
 }
 
-// Generate dummy data
-const generateAgentSummaries = (): AgentCollectionSummary[] => {
-  const agents: AgentCollectionSummary[] = [];
-  const agentNames = [
-    'Rajesh Kumar', 'Priya Sharma', 'Amit Patel', 'Sneha Reddy', 'Vikram Singh',
-    'Anjali Desai', 'Rohit Mehta', 'Kavita Nair', 'Suresh Iyer', 'Meera Joshi',
-    'Arjun Rao', 'Divya Menon', 'Kiran Shetty', 'Pooja Gupta', 'Nikhil Verma'
-  ];
-  const branches = ['Main Branch', 'Downtown Branch', 'City Center', 'Suburban Branch', 'North Branch'];
-
-  agentNames.forEach((name, index) => {
-    const totalCollected = Math.floor(Math.random() * 500000) + 100000;
-    const deposited = Math.floor(totalCollected * (0.7 + Math.random() * 0.25)); // 70-95% deposited
-    const pending = totalCollected - deposited;
-    const visits = Math.floor(Math.random() * 50) + 20;
-    const successRate = 60 + Math.random() * 35; // 60-95%
-
-    agents.push({
-      id: `agent-${index + 1}`,
-      agentId: `AGT${String(index + 1).padStart(4, '0')}`,
-      name,
-      branch: branches[Math.floor(Math.random() * branches.length)],
-      totalCollected,
-      deposited,
-      pending,
-      visits,
-      successRate: parseFloat(successRate.toFixed(1)),
-    });
-  });
-
-  return agents.sort((a, b) => b.totalCollected - a.totalCollected);
-};
-
-const generateCollectionLogs = (): CollectionLog[] => {
-  const logs: CollectionLog[] = [];
-  const agents = ['Rajesh Kumar', 'Priya Sharma', 'Amit Patel', 'Sneha Reddy', 'Vikram Singh', 'Anjali Desai', 'Rohit Mehta'];
-  const customers = ['Ramesh Kumar', 'Sunita Devi', 'Anil Mehta', 'Kavita Singh', 'Mohammed Ali', 'Lakshmi Nair', 'Suresh Reddy', 'Geeta Patel', 'Ravi Shankar'];
-  const modes: CollectionLog['mode'][] = ['Cash', 'UPI', 'Bank Transfer', 'Cheque'];
-  const statuses: CollectionLog['status'][] = ['Collected', 'Pending', 'Verified', 'Rejected'];
-
-  for (let i = 0; i < 200; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-
-    logs.push({
-      id: `log-${i + 1}`,
-      transactionId: `TXN${String(i + 1).padStart(8, '0')}`,
-      loanId: `LOAN${String(Math.floor(Math.random() * 1000)).padStart(6, '0')}`,
-      customer: customers[Math.floor(Math.random() * customers.length)],
-      agent: agents[Math.floor(Math.random() * agents.length)],
-      date: date.toISOString(),
-      amount: Math.floor(Math.random() * 50000) + 1000,
-      mode: modes[Math.floor(Math.random() * modes.length)],
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      receipt: `RCP${String(i + 1).padStart(8, '0')}`,
-    });
-  }
-
-  return logs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-};
-
-const generateReconciliationReports = (): ReconciliationReport[] => {
-  const reports: ReconciliationReport[] = [];
-  const agents = ['Rajesh Kumar', 'Priya Sharma', 'Amit Patel', 'Sneha Reddy', 'Vikram Singh', 'Anjali Desai', 'Rohit Mehta'];
-  const verifiers = ['Manager A', 'Manager B', 'Manager C', 'Supervisor X', 'Supervisor Y'];
-  const months = ['Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024'];
-
-  agents.forEach((agent, agentIndex) => {
-    months.forEach((month, monthIndex) => {
-      const collected = Math.floor(Math.random() * 300000) + 50000;
-      const deposited = Math.floor(collected * (0.85 + Math.random() * 0.1)); // 85-95% deposited
-      const variance = collected - deposited;
-      const verifiedDate = new Date();
-      verifiedDate.setMonth(verifiedDate.getMonth() - (months.length - monthIndex));
-
-      reports.push({
-        id: `recon-${agentIndex}-${monthIndex}`,
-        agent,
-        period: month,
-        collected,
-        deposited,
-        variance,
-        verifiedBy: verifiers[Math.floor(Math.random() * verifiers.length)],
-        verifiedDate: verifiedDate.toISOString(),
-      });
-    });
-  });
-
-  return reports;
-};
-
-const allAgentSummaries = generateAgentSummaries();
-const allCollectionLogs = generateCollectionLogs();
-const allReconciliationReports = generateReconciliationReports();
-
 // Heatmap component for Collections by Region
 const RegionHeatmap: React.FC<{ data: { region: string; amount: number; color: string }[] }> = ({ data }) => {
+  if (!data || data.length === 0) {
+    return <p className="text-sm text-neutral-500 text-center py-8">No region data available</p>;
+  }
+
   const maxAmount = Math.max(...data.map(d => d.amount));
 
   return (
@@ -230,155 +141,107 @@ export default function CollectionReportsPage() {
   const [showFilters, setShowFilters] = useState(true);
   const chartsSectionRef = useRef<HTMLDivElement>(null);
 
-  // Calculate KPIs
-  const kpis = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayCollections = allCollectionLogs.filter(
-      log => new Date(log.date) >= today && log.status !== 'Rejected'
-    ).reduce((sum, log) => sum + log.amount, 0);
-
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
-    const mtdCollections = allCollectionLogs.filter(
-      log => new Date(log.date) >= monthStart && log.status !== 'Rejected'
-    ).reduce((sum, log) => sum + log.amount, 0);
-
-    const totalDeposited = allAgentSummaries.reduce((sum, agent) => sum + agent.deposited, 0);
-    const totalPending = allAgentSummaries.reduce((sum, agent) => sum + agent.pending, 0);
-
-    const activeAgentsToday = allAgentSummaries.filter(agent => {
-      // Simulate active agents (agents with collections today)
-      return Math.random() > 0.3; // 70% active
-    }).length;
-
-    const avgSuccessRate = allAgentSummaries.reduce((sum, agent) => sum + agent.successRate, 0) / allAgentSummaries.length;
-
-    return {
-      todayCollections,
-      mtdCollections,
-      totalDeposited,
-      totalPending,
-      activeAgentsToday,
-      avgSuccessRate: parseFloat(avgSuccessRate.toFixed(1)),
+  // API state
+  const [summaryData, setSummaryData] = useState<{
+    summary: {
+      totalCollectionsToday: number;
+      totalCollectionsMtd: number;
+      deposited: number;
+      pending: number;
+      activeAgentsToday: number;
+      totalAgents: number;
+      avgSuccessRate: number;
     };
-  }, []);
+    charts: {
+      byAgent: Array<{ name: string; collected: number; deposited: number; [key: string]: string | number }>;
+      byRegion: Array<{ region: string; amount: number; color: string }>;
+    };
+  } | null>(null);
 
-  // Collections by Agent chart data
-  const collectionsByAgentData = useMemo(() => {
-    return allAgentSummaries
-      .slice(0, 10) // Top 10 agents
-      .map(agent => ({
-        name: agent.name.split(' ')[0], // First name only for chart
-        collected: agent.totalCollected,
-        deposited: agent.deposited,
-      }))
-      .sort((a, b) => b.collected - a.collected);
-  }, []);
+  const [tabData, setTabData] = useState<any[]>([]);
+  const [pagination, setPagination] = useState<PaginationType | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [tabLoading, setTabLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Collections by Region heatmap data
-  const regionData = useMemo(() => {
-    const regions = [
-      { region: 'North Zone', amount: 1250000, color: '#3B82F6' },
-      { region: 'South Zone', amount: 980000, color: '#10B981' },
-      { region: 'East Zone', amount: 750000, color: '#F59E0B' },
-      { region: 'West Zone', amount: 1100000, color: '#EF4444' },
-      { region: 'Central Zone', amount: 650000, color: '#8B5CF6' },
-      { region: 'Northeast Zone', amount: 420000, color: '#EC4899' },
-      { region: 'Coastal Zone', amount: 580000, color: '#06B6D4' },
-      { region: 'Metro Zone', amount: 1500000, color: '#6366F1' },
-    ];
-    return regions.sort((a, b) => b.amount - a.amount);
-  }, []);
+  const buildFilterParams = useCallback(() => {
+    const params: Record<string, any> = {
+      page: currentPage,
+      limit: itemsPerPage,
+    };
+    if (filters.dateFrom) params.dateFrom = filters.dateFrom;
+    if (filters.dateTo) params.dateTo = filters.dateTo;
+    if (filters.agent) params.agent = filters.agent;
+    if (filters.branch) params.branch = filters.branch;
+    if (filters.search) params.search = filters.search;
+    return params;
+  }, [currentPage, filters]);
 
-  // Filter data
-  const filteredSummaries = useMemo(() => {
-    let filtered = [...allAgentSummaries];
-
-    if (filters.agent) {
-      filtered = filtered.filter(a => a.name === filters.agent);
+  const fetchSummary = useCallback(async () => {
+    try {
+      setSummaryLoading(true);
+      setError(null);
+      const params = buildFilterParams();
+      const res = await reportsService.getCollectionsSummary(params);
+      setSummaryData(res.data as any);
+    } catch (err: any) {
+      console.error('Failed to fetch summary:', err);
+      setError(err?.message || 'Failed to fetch summary data');
+    } finally {
+      setSummaryLoading(false);
     }
-    if (filters.branch) {
-      filtered = filtered.filter(a => a.branch === filters.branch);
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        a =>
-          a.agentId.toLowerCase().includes(searchLower) ||
-          a.name.toLowerCase().includes(searchLower)
-      );
-    }
+  }, [buildFilterParams]);
 
-    return filtered;
-  }, [filters]);
+  const fetchTabData = useCallback(async () => {
+    try {
+      setTabLoading(true);
+      setError(null);
+      const params = buildFilterParams();
 
-  const filteredLogs = useMemo(() => {
-    let filtered = [...allCollectionLogs];
+      if (activeTab === 'summary') {
+        const res = await reportsService.getCollectionsAgentSummary(params);
+        setTabData(res.data.agentSummaries || []);
+        setPagination(res.data.pagination || null);
+      } else if (activeTab === 'log') {
+        const res = await reportsService.getCollectionsLogs(params);
+        setTabData(res.data.logs || []);
+        setPagination(res.data.pagination || null);
+      } else if (activeTab === 'reconciliation') {
+        const res = await reportsService.getCollectionsReconciliation(params);
+        setTabData(res.data.reconciliation || []);
+        setPagination(res.data.pagination || null);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch tab data:', err);
+      setError(err?.message || 'Failed to fetch data');
+      setTabData([]);
+      setPagination(null);
+    } finally {
+      setTabLoading(false);
+    }
+  }, [activeTab, buildFilterParams]);
 
-    if (filters.dateFrom) {
-      const fromDate = new Date(filters.dateFrom);
-      filtered = filtered.filter(log => new Date(log.date) >= fromDate);
-    }
-    if (filters.dateTo) {
-      const toDate = new Date(filters.dateTo);
-      toDate.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(log => new Date(log.date) <= toDate);
-    }
-    if (filters.agent) {
-      filtered = filtered.filter(log => log.agent === filters.agent);
-    }
-    if (filters.branch) {
-      // Filter by branch indirectly through agent
-      const branchAgents = allAgentSummaries.filter(a => a.branch === filters.branch).map(a => a.name);
-      filtered = filtered.filter(log => branchAgents.includes(log.agent));
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        log =>
-          log.transactionId.toLowerCase().includes(searchLower) ||
-          log.loanId.toLowerCase().includes(searchLower) ||
-          log.customer.toLowerCase().includes(searchLower)
-      );
-    }
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
-    return filtered;
-  }, [filters]);
+  useEffect(() => {
+    fetchTabData();
+  }, [fetchTabData]);
 
-  const filteredReconciliation = useMemo(() => {
-    let filtered = [...allReconciliationReports];
-
-    if (filters.agent) {
-      filtered = filtered.filter(r => r.agent === filters.agent);
-    }
-    if (filters.dateFrom || filters.dateTo) {
-      // Filter by period
-      // Simplified - in real app would parse period string
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        r =>
-          r.agent.toLowerCase().includes(searchLower) ||
-          r.period.toLowerCase().includes(searchLower)
-      );
-    }
-
-    return filtered;
-  }, [filters]);
-
-  // Pagination
-  const getPaginatedData = (data: any[]) => {
-    return data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const kpis = summaryData?.summary ?? {
+    totalCollectionsToday: 0,
+    totalCollectionsMtd: 0,
+    deposited: 0,
+    pending: 0,
+    activeAgentsToday: 0,
+    totalAgents: 0,
+    avgSuccessRate: 0,
   };
 
-  const totalPages = (data: any[]) => Math.ceil(data.length / itemsPerPage);
+  const collectionsByAgentData = summaryData?.charts?.byAgent ?? [];
+  const regionData = summaryData?.charts?.byRegion ?? [];
 
-  // Get unique values for filters
-  const uniqueAgents = Array.from(new Set(allAgentSummaries.map(a => a.name))).sort();
-  const uniqueBranches = Array.from(new Set(allAgentSummaries.map(a => a.branch))).sort();
   const loanTypes = ['Personal Loan', 'Home Loan', 'Business Loan', 'Education Loan', 'Vehicle Loan', 'Gold Loan'];
 
   // Reset filters
@@ -391,6 +254,7 @@ export default function CollectionReportsPage() {
       loanType: '',
       search: '',
     });
+    setCurrentPage(1);
   };
 
   // Table columns
@@ -410,7 +274,7 @@ export default function CollectionReportsPage() {
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
             <span className="text-xs font-semibold text-primary-600">
-              {row.name.split(' ').map(n => n[0]).join('')}
+              {row.name?.split(' ').map(n => n[0]).join('') || '?'}
             </span>
           </div>
           <span className="font-medium text-neutral-900">{row.name}</span>
@@ -430,7 +294,7 @@ export default function CollectionReportsPage() {
       width: '140px',
       render: (amount: number) => (
         <span className="text-sm font-semibold text-neutral-900">
-          ₹{amount.toLocaleString('en-IN')}
+          ₹{(amount ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },
@@ -441,7 +305,7 @@ export default function CollectionReportsPage() {
       width: '140px',
       render: (amount: number) => (
         <span className="text-sm text-success-600 font-medium">
-          ₹{amount.toLocaleString('en-IN')}
+          ₹{(amount ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },
@@ -452,7 +316,7 @@ export default function CollectionReportsPage() {
       width: '140px',
       render: (amount: number) => (
         <span className="text-sm text-warning-600 font-medium">
-          ₹{amount.toLocaleString('en-IN')}
+          ₹{(amount ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },
@@ -475,10 +339,10 @@ export default function CollectionReportsPage() {
           <div className="flex-1 bg-neutral-200 rounded-full h-2">
             <div
               className="bg-success-500 h-2 rounded-full"
-              style={{ width: `${rate}%` }}
+              style={{ width: `${rate ?? 0}%` }}
             />
           </div>
-          <span className="text-sm font-medium text-neutral-700">{rate}%</span>
+          <span className="text-sm font-medium text-neutral-700">{rate ?? 0}%</span>
         </div>
       ),
     },
@@ -514,11 +378,11 @@ export default function CollectionReportsPage() {
       header: 'Date',
       sortable: true,
       width: '120px',
-      render: (date: string) => new Date(date).toLocaleDateString('en-IN', {
+      render: (date: string) => date ? new Date(date).toLocaleDateString('en-IN', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
-      }),
+      }) : '—',
     },
     {
       key: 'amount',
@@ -527,7 +391,7 @@ export default function CollectionReportsPage() {
       width: '120px',
       render: (amount: number) => (
         <span className="text-sm font-semibold text-neutral-900">
-          ₹{amount.toLocaleString('en-IN')}
+          ₹{(amount ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },
@@ -588,7 +452,7 @@ export default function CollectionReportsPage() {
       width: '140px',
       render: (amount: number) => (
         <span className="text-sm font-semibold text-neutral-900">
-          ₹{amount.toLocaleString('en-IN')}
+          ₹{(amount ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },
@@ -599,7 +463,7 @@ export default function CollectionReportsPage() {
       width: '140px',
       render: (amount: number) => (
         <span className="text-sm text-success-600 font-medium">
-          ₹{amount.toLocaleString('en-IN')}
+          ₹{(amount ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },
@@ -614,7 +478,7 @@ export default function CollectionReportsPage() {
             variance > 0 ? 'text-warning-600' : variance < 0 ? 'text-error-600' : 'text-neutral-600'
           }`}
         >
-          {variance > 0 ? '+' : ''}₹{variance.toLocaleString('en-IN')}
+          {variance > 0 ? '+' : ''}₹{(variance ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },
@@ -641,6 +505,34 @@ export default function CollectionReportsPage() {
         ),
     },
   ];
+
+  const totalPages = pagination?.totalPages ?? 1;
+
+  const renderTabLoading = () => (
+    <div className="flex items-center justify-center py-16">
+      <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+      <span className="ml-3 text-neutral-600">Loading data...</span>
+    </div>
+  );
+
+  const renderTabError = () => (
+    <div className="flex flex-col items-center justify-center py-16">
+      <AlertCircle className="h-10 w-10 text-error-500 mb-3" />
+      <p className="text-error-600 font-medium mb-2">Failed to load data</p>
+      <p className="text-sm text-neutral-500 mb-4">{error}</p>
+      <Button variant="outline" size="sm" onClick={fetchTabData}>
+        <RefreshCw className="h-4 w-4 mr-2" />
+        Retry
+      </Button>
+    </div>
+  );
+
+  const renderEmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-16">
+      <FileText className="h-10 w-10 text-neutral-300 mb-3" />
+      <p className="text-neutral-500">No records found</p>
+    </div>
+  );
 
   return (
     <DashboardLayout>
@@ -674,10 +566,10 @@ export default function CollectionReportsPage() {
             onClick={() =>
               exportKPIsAsCSV(
                 [
-                  { label: 'Total Collections', value: `₹${kpis.todayCollections.toLocaleString('en-IN')}` },
-                  { label: 'MTD Collections', value: `₹${kpis.mtdCollections.toLocaleString('en-IN')}` },
-                  { label: 'Cash Deposited', value: `₹${kpis.totalDeposited.toLocaleString('en-IN')}` },
-                  { label: 'Pending', value: `₹${kpis.totalPending.toLocaleString('en-IN')}` },
+                  { label: 'Total Collections', value: `₹${kpis.totalCollectionsToday.toLocaleString('en-IN')}` },
+                  { label: 'MTD Collections', value: `₹${kpis.totalCollectionsMtd.toLocaleString('en-IN')}` },
+                  { label: 'Cash Deposited', value: `₹${kpis.deposited.toLocaleString('en-IN')}` },
+                  { label: 'Pending', value: `₹${kpis.pending.toLocaleString('en-IN')}` },
                   { label: 'Agents Active Today', value: String(kpis.activeAgentsToday) },
                   { label: 'Avg Collection Success Rate', value: `${kpis.avgSuccessRate}%` },
                 ],
@@ -692,16 +584,22 @@ export default function CollectionReportsPage() {
         </div>
 
         {/* KPI Cards */}
+        {summaryLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+            <span className="ml-3 text-neutral-600">Loading summary...</span>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600 mb-1">Total Collections</p>
                 <p className="text-2xl font-bold text-neutral-900">
-                  ₹{kpis.todayCollections.toLocaleString('en-IN')}
+                  ₹{kpis.totalCollectionsToday.toLocaleString('en-IN')}
                 </p>
                 <p className="text-xs text-neutral-500 mt-1">
-                  MTD: ₹{kpis.mtdCollections.toLocaleString('en-IN')}
+                  MTD: ₹{kpis.totalCollectionsMtd.toLocaleString('en-IN')}
                 </p>
               </div>
               <div className="bg-primary-100 p-3 rounded-lg">
@@ -714,10 +612,10 @@ export default function CollectionReportsPage() {
               <div>
                 <p className="text-sm text-neutral-600 mb-1">Cash Deposited vs Pending</p>
                 <p className="text-lg font-bold text-success-600">
-                  ₹{kpis.totalDeposited.toLocaleString('en-IN')}
+                  ₹{kpis.deposited.toLocaleString('en-IN')}
                 </p>
                 <p className="text-sm text-warning-600 mt-1">
-                  Pending: ₹{kpis.totalPending.toLocaleString('en-IN')}
+                  Pending: ₹{kpis.pending.toLocaleString('en-IN')}
                 </p>
               </div>
               <div className="bg-success-100 p-3 rounded-lg">
@@ -733,7 +631,7 @@ export default function CollectionReportsPage() {
                   {kpis.activeAgentsToday}
                 </p>
                 <p className="text-xs text-neutral-500 mt-1">
-                  of {allAgentSummaries.length} total agents
+                  of {kpis.totalAgents} total agents
                 </p>
               </div>
               <div className="bg-info-100 p-3 rounded-lg">
@@ -759,6 +657,7 @@ export default function CollectionReportsPage() {
             </div>
           </Card>
         </div>
+        )}
 
         {/* Charts */}
         <div ref={chartsSectionRef} className="space-y-4">
@@ -769,6 +668,13 @@ export default function CollectionReportsPage() {
             <h3 className="text-lg font-semibold text-neutral-900 mb-4">
               Collections by Agent
             </h3>
+            {summaryLoading ? (
+              <div className="flex items-center justify-center h-80">
+                <Loader2 className="h-6 w-6 animate-spin text-primary-500" />
+              </div>
+            ) : collectionsByAgentData.length === 0 ? (
+              <p className="text-sm text-neutral-500 text-center py-8">No agent data available</p>
+            ) : (
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={collectionsByAgentData}>
@@ -800,6 +706,7 @@ export default function CollectionReportsPage() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            )}
           </Card>
 
           {/* Collections by Region Heatmap */}
@@ -807,7 +714,13 @@ export default function CollectionReportsPage() {
             <h3 className="text-lg font-semibold text-neutral-900 mb-4">
               Collections by Region
             </h3>
-            <RegionHeatmap data={regionData} />
+            {summaryLoading ? (
+              <div className="flex items-center justify-center h-48">
+                <Loader2 className="h-6 w-6 animate-spin text-primary-500" />
+              </div>
+            ) : (
+              <RegionHeatmap data={regionData} />
+            )}
           </Card>
           </div>
         </div>
@@ -836,45 +749,31 @@ export default function CollectionReportsPage() {
                 type="date"
                 label="Date From"
                 value={filters.dateFrom}
-                onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                onChange={(e) => { setFilters({ ...filters, dateFrom: e.target.value }); setCurrentPage(1); }}
               />
               <Input
                 type="date"
                 label="Date To"
                 value={filters.dateTo}
-                onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                onChange={(e) => { setFilters({ ...filters, dateTo: e.target.value }); setCurrentPage(1); }}
               />
-              <Select
+              <Input
                 label="Agent"
-                placeholder="All Agents"
+                placeholder="Filter by agent name"
                 value={filters.agent}
-                onChange={(e) => setFilters({ ...filters, agent: e.target.value })}
-                options={[
-                  { value: '', label: 'All Agents' },
-                  ...uniqueAgents.map((agent) => ({
-                    value: agent,
-                    label: agent,
-                  })),
-                ]}
+                onChange={(e) => { setFilters({ ...filters, agent: e.target.value }); setCurrentPage(1); }}
               />
-              <Select
+              <Input
                 label="Branch"
-                placeholder="All Branches"
+                placeholder="Filter by branch"
                 value={filters.branch}
-                onChange={(e) => setFilters({ ...filters, branch: e.target.value })}
-                options={[
-                  { value: '', label: 'All Branches' },
-                  ...uniqueBranches.map((branch) => ({
-                    value: branch,
-                    label: branch,
-                  })),
-                ]}
+                onChange={(e) => { setFilters({ ...filters, branch: e.target.value }); setCurrentPage(1); }}
               />
               <Select
                 label="Loan Type"
                 placeholder="All Types"
                 value={filters.loanType}
-                onChange={(e) => setFilters({ ...filters, loanType: e.target.value })}
+                onChange={(e) => { setFilters({ ...filters, loanType: e.target.value }); setCurrentPage(1); }}
                 options={[
                   { value: '', label: 'All Types' },
                   ...loanTypes.map((type) => ({
@@ -888,7 +787,7 @@ export default function CollectionReportsPage() {
                   label="Search"
                   placeholder="Search by Agent ID, Transaction ID, Loan ID, or Customer..."
                   value={filters.search}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setCurrentPage(1); }}
                   leftIcon={<Search className="h-4 w-4" />}
                 />
               </div>
@@ -925,17 +824,14 @@ export default function CollectionReportsPage() {
           <Button 
             variant="primary"
             onClick={() => {
-              let dataToExport: any[] = [];
+              let dataToExport: any[] = tabData;
               let filename = 'collection-reports';
               
               if (activeTab === 'summary') {
-                dataToExport = filteredSummaries;
                 filename = 'agent-collection-summary';
               } else if (activeTab === 'log') {
-                dataToExport = filteredLogs;
                 filename = 'collection-log';
               } else if (activeTab === 'reconciliation') {
-                dataToExport = filteredReconciliation;
                 filename = 'reconciliation-report';
               }
               
@@ -960,26 +856,30 @@ export default function CollectionReportsPage() {
                 label: 'Agent Collection Summary',
                 content: (
                   <div className="mt-4">
-                    <Table
-                      data={getPaginatedData(filteredSummaries)}
-                      columns={summaryColumns}
-                      onRowClick={(row) => {
-                        console.log('View agent:', row);
-                      }}
-                    />
-                    {totalPages(filteredSummaries) > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredSummaries.length)} of{' '}
-                          {filteredSummaries.length} agents
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages(filteredSummaries)}
-                          onPageChange={setCurrentPage}
+                    {tabLoading ? renderTabLoading() : error && tabData.length === 0 ? renderTabError() : tabData.length === 0 ? renderEmptyState() : (
+                      <>
+                        <Table
+                          data={tabData}
+                          columns={summaryColumns}
+                          onRowClick={(row) => {
+                            console.log('View agent:', row);
+                          }}
                         />
-                      </div>
+                        {totalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between">
+                            <p className="text-sm text-neutral-600">
+                              Showing {((currentPage - 1) * itemsPerPage) + 1} to{' '}
+                              {Math.min(currentPage * itemsPerPage, pagination?.totalItems ?? 0)} of{' '}
+                              {pagination?.totalItems ?? 0} agents
+                            </p>
+                            <Pagination
+                              currentPage={currentPage}
+                              totalPages={totalPages}
+                              onPageChange={setCurrentPage}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 ),
@@ -989,26 +889,30 @@ export default function CollectionReportsPage() {
                 label: 'Collection Log',
                 content: (
                   <div className="mt-4">
-                    <Table
-                      data={getPaginatedData(filteredLogs)}
-                      columns={logColumns}
-                      onRowClick={(row) => {
-                        console.log('View collection:', row);
-                      }}
-                    />
-                    {totalPages(filteredLogs) > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredLogs.length)} of{' '}
-                          {filteredLogs.length} collections
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages(filteredLogs)}
-                          onPageChange={setCurrentPage}
+                    {tabLoading ? renderTabLoading() : error && tabData.length === 0 ? renderTabError() : tabData.length === 0 ? renderEmptyState() : (
+                      <>
+                        <Table
+                          data={tabData}
+                          columns={logColumns}
+                          onRowClick={(row) => {
+                            console.log('View collection:', row);
+                          }}
                         />
-                      </div>
+                        {totalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between">
+                            <p className="text-sm text-neutral-600">
+                              Showing {((currentPage - 1) * itemsPerPage) + 1} to{' '}
+                              {Math.min(currentPage * itemsPerPage, pagination?.totalItems ?? 0)} of{' '}
+                              {pagination?.totalItems ?? 0} collections
+                            </p>
+                            <Pagination
+                              currentPage={currentPage}
+                              totalPages={totalPages}
+                              onPageChange={setCurrentPage}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 ),
@@ -1018,26 +922,30 @@ export default function CollectionReportsPage() {
                 label: 'Reconciliation Report',
                 content: (
                   <div className="mt-4">
-                    <Table
-                      data={getPaginatedData(filteredReconciliation)}
-                      columns={reconciliationColumns}
-                      onRowClick={(row) => {
-                        console.log('View reconciliation:', row);
-                      }}
-                    />
-                    {totalPages(filteredReconciliation) > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredReconciliation.length)} of{' '}
-                          {filteredReconciliation.length} records
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages(filteredReconciliation)}
-                          onPageChange={setCurrentPage}
+                    {tabLoading ? renderTabLoading() : error && tabData.length === 0 ? renderTabError() : tabData.length === 0 ? renderEmptyState() : (
+                      <>
+                        <Table
+                          data={tabData}
+                          columns={reconciliationColumns}
+                          onRowClick={(row) => {
+                            console.log('View reconciliation:', row);
+                          }}
                         />
-                      </div>
+                        {totalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between">
+                            <p className="text-sm text-neutral-600">
+                              Showing {((currentPage - 1) * itemsPerPage) + 1} to{' '}
+                              {Math.min(currentPage * itemsPerPage, pagination?.totalItems ?? 0)} of{' '}
+                              {pagination?.totalItems ?? 0} records
+                            </p>
+                            <Pagination
+                              currentPage={currentPage}
+                              totalPages={totalPages}
+                              onPageChange={setCurrentPage}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 ),
@@ -1055,4 +963,3 @@ export default function CollectionReportsPage() {
     </DashboardLayout>
   );
 }
-

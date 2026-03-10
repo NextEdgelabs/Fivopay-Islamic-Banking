@@ -118,6 +118,45 @@ export const API = {
         // investment transactions
         getAllInvestmentTransactions: "/api/v1/investment-transaction/get-all-transactions",
 
+        // ledger
+        createLedgerAccount: "/api/v1/ledger/create-account",
+        getAllLedgerAccounts: "/api/v1/ledger/get-all-accounts",
+        getLedgerAccountById: "/api/v1/ledger/get-account-by-id",
+        updateLedgerAccount: "/api/v1/ledger/update-account",
+        deleteLedgerAccount: "/api/v1/ledger/delete-account",
+        toggleLedgerAccountStatus: "/api/v1/ledger/toggle-account-status",
+        getFinancialSummary: "/api/v1/ledger/get-financial-summary",
+        createJournalEntry: "/api/v1/ledger/create-journal-entry",
+        getAllJournalEntries: "/api/v1/ledger/get-all-journal-entries",
+
+        // reports
+        reports: {
+            dashboard: "/api/v1/reports/dashboard",
+            transactionsSummary: "/api/v1/reports/transactions/summary",
+            transactionsList: "/api/v1/reports/transactions/list",
+            loansSummary: "/api/v1/reports/loans/summary",
+            loansApplications: "/api/v1/reports/loans/applications",
+            loansDisbursed: "/api/v1/reports/loans/disbursed",
+            loansAging: "/api/v1/reports/loans/aging",
+            collectionsSummary: "/api/v1/reports/collections/summary",
+            collectionsAgentSummary: "/api/v1/reports/collections/agent-summary",
+            collectionsLogs: "/api/v1/reports/collections/logs",
+            collectionsReconciliation: "/api/v1/reports/collections/reconciliation",
+            accountingSummary: "/api/v1/reports/accounting/summary",
+            accountingDaybook: "/api/v1/reports/accounting/daybook",
+            accountingInterestFees: "/api/v1/reports/accounting/interest-fees",
+            accountingProvisioning: "/api/v1/reports/accounting/provisioning",
+            accountingReconciliation: "/api/v1/reports/accounting/reconciliation",
+            complianceSummary: "/api/v1/reports/compliance/summary",
+            complianceKycExceptions: "/api/v1/reports/compliance/kyc-exceptions",
+            complianceAmlAlerts: "/api/v1/reports/compliance/aml-alerts",
+            complianceAuditTrail: "/api/v1/reports/compliance/audit-trail",
+            complianceRegulatorySubmissions: "/api/v1/reports/compliance/regulatory-submissions",
+            performanceSummary: "/api/v1/reports/performance/summary",
+            performanceTopBranches: "/api/v1/reports/performance/top-branches",
+            performanceTopAgents: "/api/v1/reports/performance/top-agents",
+        },
+
         // joint liability
         jointLiability: {
           groupCreate: "/api/v1/joint-liability/group/create",

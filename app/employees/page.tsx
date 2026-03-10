@@ -228,9 +228,76 @@ export default function EmployeesPage() {
   };
 
   const handleExport = () => {
+    if (!employees || employees.length === 0) {
+      addToast({
+        type: 'warning',
+        message: 'No employee data to export.',
+      });
+      return;
+    }
+
+    const headers = [
+      'Employee ID',
+      'Full Name',
+      'Email',
+      'Phone',
+      'Role',
+      'Department',
+      'Designation',
+      'Employment Type',
+      'Status',
+      'Branch',
+      'Organisation',
+    ];
+
+    const escapeCsv = (value: any) => {
+      if (value === null || value === undefined) return '';
+      const str = String(value);
+      if (/[",\n]/.test(str)) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const rows = employees.map((e) => {
+      const branchLabel =
+        typeof e.branch === 'string'
+          ? e.branch
+          : e.branch?.branchName ?? e.branch?._id ?? '';
+      const organisationLabel =
+        typeof e.organisation === 'string'
+          ? e.organisation
+          : e.organisation?.organisationName ?? e.organisation?._id ?? '';
+
+      return [
+        e.employeeId,
+        e.fullName,
+        e.email,
+        e.phone,
+        e.role,
+        e.department,
+        e.designation,
+        e.employmentType || '',
+        e.status,
+        branchLabel,
+        organisationLabel,
+      ].map(escapeCsv);
+    });
+
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `employees_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
     addToast({
       type: 'success',
-      message: 'Exporting employee data...',
+      message: `Exported ${employees.length} employees to CSV.`,
     });
   };
 

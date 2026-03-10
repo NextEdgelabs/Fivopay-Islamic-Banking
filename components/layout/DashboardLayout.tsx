@@ -28,6 +28,8 @@ import {
   Group,
   List,
   IndianRupee,
+  Building2,
+  Wallet,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -140,13 +142,13 @@ export default function DashboardLayout({
             href="/dashboard"
           />
           <NavItem
-            icon={<Users className="h-5 w-5" />}
+            icon={<Briefcase className="h-5 w-5" />}
             label="Employees"
             sidebarOpen={sidebarOpen}
             href="/employees"
           />
           <NavItem
-            icon={<Users className="h-5 w-5" />}
+            icon={<Building2 className="h-5 w-5" />}
             label="Agents"
             sidebarOpen={sidebarOpen}
             href="/agents"
@@ -232,12 +234,12 @@ export default function DashboardLayout({
             sidebarOpen={sidebarOpen}
             href="/general-ledger"
           />
-          <NavItem
+          {/* <NavItem
             icon={<Book className="h-5 w-5" />}
             label="Subledger"
             sidebarOpen={sidebarOpen}
             href="/sub-ledger"
-          />
+          /> */}
 
           <NavItem
             icon={<Calculator className="h-5 w-5" />}
@@ -363,23 +365,23 @@ export default function DashboardLayout({
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="relative max-w-md w-full">
+            {/* <div className="relative max-w-md w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
               <input
                 type="text"
                 placeholder="Search customers, transactions..."
                 className="w-full pl-10 pr-4 py-2 border border-border rounded-stripe text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
-            </div>
+            </div> */}
           </div>
           <div className="flex items-center gap-3">
             <button className="relative p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded-stripe transition-colors">
               <Bell className="h-5 w-5" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-error-500 rounded-full"></span>
             </button>
-            <button className="p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded-stripe transition-colors">
+            {/* <button className="p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded-stripe transition-colors">
               <Settings className="h-5 w-5" />
-            </button>
+            </button> */}
           </div>
         </header>
 

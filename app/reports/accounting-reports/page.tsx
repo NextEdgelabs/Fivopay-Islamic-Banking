@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -32,9 +32,11 @@ import {
   XCircle,
   FileSpreadsheet,
   Image as ImageIcon,
+  Loader2,
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils';
 import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
+import { reportsService } from '@/services/reports.service';
 import {
   LineChart,
   Line,
@@ -86,135 +88,35 @@ interface BankReconciliation {
   status: 'Matched' | 'Pending' | 'Discrepancy';
 }
 
-// Generate dummy data
-const generateDaybookEntries = (): DaybookEntry[] => {
-  const entries: DaybookEntry[] = [];
-  const ledgerHeads = [
-    'Loan Disbursements',
-    'Interest Income',
-    'Processing Fees',
-    'Cash Deposits',
-    'Loan Repayments',
-    'Operating Expenses',
-    'Salary Payments',
-    'Interest Payable',
-    'Provision for Bad Debts',
-    'Bank Charges',
-  ];
+const ledgerHeadOptions = [
+  'Loan Disbursements',
+  'Interest Income',
+  'Processing Fees',
+  'Cash Deposits',
+  'Loan Repayments',
+  'Operating Expenses',
+  'Salary Payments',
+  'Interest Payable',
+  'Provision for Bad Debts',
+  'Bank Charges',
+];
 
-  let runningBalance = 5000000; // Starting balance
+const productOptions = [
+  'Personal Loan',
+  'Home Loan',
+  'Business Loan',
+  'Education Loan',
+  'Vehicle Loan',
+  'Gold Loan',
+];
 
-  for (let i = 0; i < 100; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-    
-    const ledgerHead = ledgerHeads[Math.floor(Math.random() * ledgerHeads.length)];
-    const isDebit = Math.random() > 0.5;
-    const amount = Math.floor(Math.random() * 500000) + 10000;
-
-    if (isDebit) {
-      runningBalance += amount;
-    } else {
-      runningBalance -= amount;
-    }
-
-    entries.push({
-      id: `entry-${i + 1}`,
-      date: date.toISOString(),
-      ledgerHead,
-      debit: isDebit ? amount : 0,
-      credit: isDebit ? 0 : amount,
-      balance: runningBalance,
-      reference: `REF${String(i + 1).padStart(6, '0')}`,
-    });
-  }
-
-  return entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-};
-
-const generateInterestFees = (): InterestFeesReport[] => {
-  const reports: InterestFeesReport[] = [];
-  const products = ['Personal Loan', 'Home Loan', 'Business Loan', 'Education Loan', 'Vehicle Loan', 'Gold Loan'];
-  const months = ['Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024'];
-
-  products.forEach((product) => {
-    months.forEach((month) => {
-      const interestAccrued = Math.floor(Math.random() * 500000) + 50000;
-      const collected = Math.floor(interestAccrued * (0.75 + Math.random() * 0.2)); // 75-95% collected
-      const pending = interestAccrued - collected;
-
-      reports.push({
-        id: `int-${product}-${month}`,
-        period: month,
-        product,
-        interestAccrued,
-        collected,
-        pending,
-      });
-    });
-  });
-
-  return reports;
-};
-
-const generateProvisioning = (): ProvisioningECL[] => {
-  const buckets = [
-    { bucket: 'Standard (0-30 days)', provisionPercent: 1 },
-    { bucket: 'Watch (31-60 days)', provisionPercent: 5 },
-    { bucket: 'Substandard (61-90 days)', provisionPercent: 15 },
-    { bucket: 'Doubtful (91-180 days)', provisionPercent: 40 },
-    { bucket: 'Loss (180+ days)', provisionPercent: 100 },
-  ];
-
-  return buckets.map((b, index) => {
-    const outstanding = Math.floor(Math.random() * 5000000) + 500000;
-    const provisionAmount = (outstanding * b.provisionPercent) / 100;
-
-    return {
-      id: `prov-${index + 1}`,
-      loanBucket: b.bucket,
-      outstanding,
-      provisionPercent: b.provisionPercent,
-      provisionAmount: Math.round(provisionAmount),
-    };
-  });
-};
-
-const generateBankReconciliation = (): BankReconciliation[] => {
-  const banks = ['HDFC Bank', 'ICICI Bank', 'State Bank of India', 'Axis Bank', 'Kotak Mahindra Bank'];
-  const reconciliations: BankReconciliation[] = [];
-
-  banks.forEach((bank) => {
-    const statementAmount = Math.floor(Math.random() * 10000000) + 1000000;
-    const difference = Math.floor(Math.random() * 50000) - 25000; // Can be positive or negative
-    const systemAmount = statementAmount + difference;
-    
-    let status: BankReconciliation['status'];
-    if (Math.abs(difference) < 100) {
-      status = 'Matched';
-    } else if (Math.abs(difference) < 10000) {
-      status = 'Pending';
-    } else {
-      status = 'Discrepancy';
-    }
-
-    reconciliations.push({
-      id: `bank-${bank}`,
-      bank,
-      statementAmount,
-      systemAmount,
-      difference,
-      status,
-    });
-  });
-
-  return reconciliations;
-};
-
-const allDaybookEntries = generateDaybookEntries();
-const allInterestFees = generateInterestFees();
-const allProvisioning = generateProvisioning();
-const allBankReconciliation = generateBankReconciliation();
+const bankOptions = [
+  'HDFC Bank',
+  'ICICI Bank',
+  'State Bank of India',
+  'Axis Bank',
+  'Kotak Mahindra Bank',
+];
 
 export default function AccountingReportsPage() {
   const router = useRouter();
@@ -237,121 +139,114 @@ export default function AccountingReportsPage() {
   const [showFilters, setShowFilters] = useState(true);
   const chartsSectionRef = useRef<HTMLDivElement>(null);
 
-  // Calculate KPIs
-  const kpis = useMemo(() => {
-    const totalInterestIncome = allInterestFees.reduce((sum, r) => sum + r.collected, 0);
-    const feeIncome = allDaybookEntries
-      .filter(e => e.ledgerHead.includes('Fee'))
-      .reduce((sum, e) => sum + e.credit, 0);
-    const totalDisbursed = allDaybookEntries
-      .filter(e => e.ledgerHead.includes('Disbursement'))
-      .reduce((sum, e) => sum + e.debit, 0);
-    const provisionedAmount = allProvisioning.reduce((sum, p) => sum + p.provisionAmount, 0);
-    
-    // Net Cash Flow = Total Credits - Total Debits (simplified)
-    const totalCredits = allDaybookEntries.reduce((sum, e) => sum + e.credit, 0);
-    const totalDebits = allDaybookEntries.reduce((sum, e) => sum + e.debit, 0);
-    const netCashFlow = totalCredits - totalDebits;
-
-    return {
-      totalInterestIncome,
-      feeIncome,
-      totalDisbursed,
-      provisionedAmount,
-      netCashFlow,
+  // API data states
+  const [summaryData, setSummaryData] = useState<{
+    summary: {
+      totalInterestIncome: number;
+      feeIncome: number;
+      totalDisbursed: number;
+      provisionedAmount: number;
+      netCashFlow: number;
     };
-  }, []);
+    charts: {
+      cashFlowTrend: any[];
+      incomeComposition: any[];
+    };
+  } | null>(null);
 
-  // Chart data
-  const cashFlowTrendData = [
-    { month: 'Jan', inflow: 2500000, outflow: 1800000, net: 700000 },
-    { month: 'Feb', inflow: 2800000, outflow: 2000000, net: 800000 },
-    { month: 'Mar', inflow: 3200000, outflow: 2200000, net: 1000000 },
-    { month: 'Apr', inflow: 3000000, outflow: 2100000, net: 900000 },
-    { month: 'May', inflow: 3500000, outflow: 2400000, net: 1100000 },
-    { month: 'Jun', inflow: 3800000, outflow: 2600000, net: 1200000 },
-    { month: 'Jul', inflow: 4000000, outflow: 2800000, net: 1200000 },
-    { month: 'Aug', inflow: 4200000, outflow: 2900000, net: 1300000 },
-    { month: 'Sep', inflow: 4500000, outflow: 3100000, net: 1400000 },
-    { month: 'Oct', inflow: 4800000, outflow: 3300000, net: 1500000 },
-    { month: 'Nov', inflow: 5000000, outflow: 3500000, net: 1500000 },
-    { month: 'Dec', inflow: 5200000, outflow: 3600000, net: 1600000 },
-  ];
+  const [tabData, setTabData] = useState<any[]>([]);
+  const [tabPagination, setTabPagination] = useState<{
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const incomeCompositionData = [
-    { name: 'Interest Income', value: kpis.totalInterestIncome, color: '#3B82F6' },
-    { name: 'Processing Fees', value: kpis.feeIncome, color: '#10B981' },
-    { name: 'Penalty Charges', value: Math.floor(kpis.feeIncome * 0.3), color: '#F59E0B' },
-    { name: 'Other Income', value: Math.floor(kpis.feeIncome * 0.2), color: '#8B5CF6' },
-  ];
+  const kpis = useMemo(() => ({
+    totalInterestIncome: summaryData?.summary?.totalInterestIncome ?? 0,
+    feeIncome: summaryData?.summary?.feeIncome ?? 0,
+    totalDisbursed: summaryData?.summary?.totalDisbursed ?? 0,
+    provisionedAmount: summaryData?.summary?.provisionedAmount ?? 0,
+    netCashFlow: summaryData?.summary?.netCashFlow ?? 0,
+  }), [summaryData]);
 
-  // Filter data
-  const filteredDaybook = useMemo(() => {
-    let filtered = [...allDaybookEntries];
+  const cashFlowTrendData = summaryData?.charts?.cashFlowTrend ?? [];
+  const incomeCompositionData = summaryData?.charts?.incomeComposition ?? [];
 
-    if (filters.dateFrom) {
-      const fromDate = new Date(filters.dateFrom);
-      filtered = filtered.filter(e => new Date(e.date) >= fromDate);
+  const fetchSummary = useCallback(async () => {
+    setSummaryLoading(true);
+    try {
+      const res = await reportsService.getAccountingSummary({
+        dateFrom: filters.dateFrom || undefined,
+        dateTo: filters.dateTo || undefined,
+      });
+      setSummaryData(res.data);
+    } catch (err: any) {
+      console.error('Failed to fetch accounting summary:', err);
+    } finally {
+      setSummaryLoading(false);
     }
-    if (filters.dateTo) {
-      const toDate = new Date(filters.dateTo);
-      toDate.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(e => new Date(e.date) <= toDate);
+  }, [filters.dateFrom, filters.dateTo]);
+
+  const fetchTabData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params: Record<string, any> = {
+        page: currentPage,
+        limit: itemsPerPage,
+        dateFrom: filters.dateFrom || undefined,
+        dateTo: filters.dateTo || undefined,
+        search: filters.search || undefined,
+      };
+
+      switch (activeTab) {
+        case 'daybook': {
+          if (filters.ledgerHead) params.ledgerHead = filters.ledgerHead;
+          const res = await reportsService.getAccountingDaybook(params);
+          setTabData(res.data.entries ?? []);
+          setTabPagination(res.data.pagination ?? null);
+          break;
+        }
+        case 'interest': {
+          if (filters.product) params.product = filters.product;
+          const res = await reportsService.getAccountingInterestFees(params);
+          setTabData(res.data.interestFees ?? []);
+          setTabPagination(res.data.pagination ?? null);
+          break;
+        }
+        case 'provisioning': {
+          const res = await reportsService.getAccountingProvisioning(params);
+          setTabData(res.data.provisioning ?? []);
+          setTabPagination(null);
+          break;
+        }
+        case 'reconciliation': {
+          if (filters.bank) params.bank = filters.bank;
+          const res = await reportsService.getAccountingReconciliation(params);
+          setTabData(res.data.reconciliation ?? []);
+          setTabPagination(null);
+          break;
+        }
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to fetch data');
+      setTabData([]);
+      setTabPagination(null);
+    } finally {
+      setLoading(false);
     }
-    if (filters.ledgerHead) {
-      filtered = filtered.filter(e => e.ledgerHead === filters.ledgerHead);
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        e =>
-          e.ledgerHead.toLowerCase().includes(searchLower) ||
-          e.reference?.toLowerCase().includes(searchLower)
-      );
-    }
+  }, [activeTab, currentPage, filters, itemsPerPage]);
 
-    return filtered;
-  }, [filters]);
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
-  const filteredInterestFees = useMemo(() => {
-    let filtered = [...allInterestFees];
-
-    if (filters.product) {
-      filtered = filtered.filter(r => r.product === filters.product);
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(r => r.product.toLowerCase().includes(searchLower));
-    }
-
-    return filtered;
-  }, [filters]);
-
-  const filteredBankReconciliation = useMemo(() => {
-    let filtered = [...allBankReconciliation];
-
-    if (filters.bank) {
-      filtered = filtered.filter(r => r.bank === filters.bank);
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(r => r.bank.toLowerCase().includes(searchLower));
-    }
-
-    return filtered;
-  }, [filters]);
-
-  // Pagination
-  const getPaginatedData = (data: any[]) => {
-    return data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  };
-
-  const totalPages = (data: any[]) => Math.ceil(data.length / itemsPerPage);
-
-  // Get unique values for filters
-  const uniqueLedgerHeads = Array.from(new Set(allDaybookEntries.map(e => e.ledgerHead))).sort();
-  const uniqueProducts = Array.from(new Set(allInterestFees.map(r => r.product))).sort();
-  const uniqueBanks = Array.from(new Set(allBankReconciliation.map(r => r.bank))).sort();
+  useEffect(() => {
+    fetchTabData();
+  }, [fetchTabData]);
 
   // Reset filters
   const resetFilters = () => {
@@ -363,6 +258,7 @@ export default function AccountingReportsPage() {
       bank: '',
       search: '',
     });
+    setCurrentPage(1);
   };
 
   // Table columns
@@ -578,6 +474,24 @@ export default function AccountingReportsPage() {
     },
   ];
 
+  const renderPaginationInfo = () => {
+    if (!tabPagination || tabPagination.totalPages <= 1) return null;
+    const start = (currentPage - 1) * itemsPerPage + 1;
+    const end = Math.min(currentPage * itemsPerPage, tabPagination.totalItems);
+    return (
+      <div className="mt-4 flex items-center justify-between">
+        <p className="text-sm text-neutral-600">
+          Showing {start} to {end} of {tabPagination.totalItems} entries
+        </p>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={tabPagination.totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
+    );
+  };
+
   return (
     <DashboardLayout>
       <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -636,9 +550,25 @@ export default function AccountingReportsPage() {
           </div>
         </div>
 
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+            <p className="text-sm text-red-700">{error}</p>
+            <Button variant="outline" size="sm" className="ml-auto" onClick={fetchTabData}>
+              <RefreshCw className="h-4 w-4 mr-1" /> Retry
+            </Button>
+          </div>
+        )}
+
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card className="p-5 bg-neutral-50 border border-neutral-200">
+          <Card className="p-5 bg-neutral-50 border border-neutral-200 relative">
+            {summaryLoading && (
+              <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-lg">
+                <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-neutral-600 mb-1 uppercase tracking-wide">Total Interest Income</p>
@@ -651,7 +581,12 @@ export default function AccountingReportsPage() {
               </div>
             </div>
           </Card>
-          <Card className="p-5 bg-neutral-50 border border-neutral-200">
+          <Card className="p-5 bg-neutral-50 border border-neutral-200 relative">
+            {summaryLoading && (
+              <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-lg">
+                <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-neutral-600 mb-1 uppercase tracking-wide">Fee Income</p>
@@ -664,7 +599,12 @@ export default function AccountingReportsPage() {
               </div>
             </div>
           </Card>
-          <Card className="p-5 bg-neutral-50 border border-neutral-200">
+          <Card className="p-5 bg-neutral-50 border border-neutral-200 relative">
+            {summaryLoading && (
+              <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-lg">
+                <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-neutral-600 mb-1 uppercase tracking-wide">Total Disbursed</p>
@@ -677,7 +617,12 @@ export default function AccountingReportsPage() {
               </div>
             </div>
           </Card>
-          <Card className="p-5 bg-neutral-50 border border-neutral-200">
+          <Card className="p-5 bg-neutral-50 border border-neutral-200 relative">
+            {summaryLoading && (
+              <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-lg">
+                <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-neutral-600 mb-1 uppercase tracking-wide">Provisioned Amount</p>
@@ -690,7 +635,12 @@ export default function AccountingReportsPage() {
               </div>
             </div>
           </Card>
-          <Card className="p-5 bg-neutral-50 border border-neutral-200">
+          <Card className="p-5 bg-neutral-50 border border-neutral-200 relative">
+            {summaryLoading && (
+              <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-lg">
+                <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-neutral-600 mb-1 uppercase tracking-wide">Net Cash Flow</p>
@@ -723,51 +673,57 @@ export default function AccountingReportsPage() {
               Cash Flow Trend
             </h3>
             <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={cashFlowTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="month" stroke="#6B7280" style={{ fontSize: '12px' }} />
-                  <YAxis
-                    stroke="#6B7280"
-                    style={{ fontSize: '12px' }}
-                    tickFormatter={(value) => `₹${(value / 100000).toFixed(0)}L`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px',
-                    }}
-                    formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="inflow"
-                    stroke="#10B981"
-                    strokeWidth={2}
-                    name="Inflow"
-                    dot={{ fill: '#10B981', r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="outflow"
-                    stroke="#EF4444"
-                    strokeWidth={2}
-                    name="Outflow"
-                    dot={{ fill: '#EF4444', r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="net"
-                    stroke="#3B82F6"
-                    strokeWidth={2}
-                    name="Net Flow"
-                    strokeDasharray="5 5"
-                    dot={{ fill: '#3B82F6', r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {cashFlowTrendData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={cashFlowTrendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis dataKey="month" stroke="#6B7280" style={{ fontSize: '12px' }} />
+                    <YAxis
+                      stroke="#6B7280"
+                      style={{ fontSize: '12px' }}
+                      tickFormatter={(value) => `₹${(value / 100000).toFixed(0)}L`}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #E5E7EB',
+                        borderRadius: '8px',
+                      }}
+                      formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="inflow"
+                      stroke="#10B981"
+                      strokeWidth={2}
+                      name="Inflow"
+                      dot={{ fill: '#10B981', r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="outflow"
+                      stroke="#EF4444"
+                      strokeWidth={2}
+                      name="Outflow"
+                      dot={{ fill: '#EF4444', r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="net"
+                      stroke="#3B82F6"
+                      strokeWidth={2}
+                      name="Net Flow"
+                      strokeDasharray="5 5"
+                      dot={{ fill: '#3B82F6', r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-neutral-400">
+                  {summaryLoading ? <Loader2 className="h-8 w-8 animate-spin" /> : 'No chart data available'}
+                </div>
+              )}
             </div>
           </Card>
 
@@ -777,35 +733,41 @@ export default function AccountingReportsPage() {
               Income Composition
             </h3>
             <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={incomeCompositionData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={(props: any) =>
-                      `${props.name}: ${((props.percent || 0) * 100).toFixed(1)}%`
-                    }
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {incomeCompositionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px',
-                    }}
-                    formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              {incomeCompositionData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={incomeCompositionData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={(props: any) =>
+                        `${props.name}: ${((props.percent || 0) * 100).toFixed(1)}%`
+                      }
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {incomeCompositionData.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #E5E7EB',
+                        borderRadius: '8px',
+                      }}
+                      formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-neutral-400">
+                  {summaryLoading ? <Loader2 className="h-8 w-8 animate-spin" /> : 'No chart data available'}
+                </div>
+              )}
             </div>
           </Card>
           </div>
@@ -850,7 +812,7 @@ export default function AccountingReportsPage() {
                 onChange={(e) => setFilters({ ...filters, ledgerHead: e.target.value })}
                 options={[
                   { value: '', label: 'All Ledger Heads' },
-                  ...uniqueLedgerHeads.map((head) => ({
+                  ...ledgerHeadOptions.map((head) => ({
                     value: head,
                     label: head,
                   })),
@@ -863,7 +825,7 @@ export default function AccountingReportsPage() {
                 onChange={(e) => setFilters({ ...filters, product: e.target.value })}
                 options={[
                   { value: '', label: 'All Products' },
-                  ...uniqueProducts.map((product) => ({
+                  ...productOptions.map((product) => ({
                     value: product,
                     label: product,
                   })),
@@ -876,7 +838,7 @@ export default function AccountingReportsPage() {
                 onChange={(e) => setFilters({ ...filters, bank: e.target.value })}
                 options={[
                   { value: '', label: 'All Banks' },
-                  ...uniqueBanks.map((bank) => ({
+                  ...bankOptions.map((bank) => ({
                     value: bank,
                     label: bank,
                   })),
@@ -900,24 +862,14 @@ export default function AccountingReportsPage() {
           <Button 
             variant="outline"
             onClick={() => {
-              let dataToExport: any[] = [];
-              let filename = 'accounting-reports';
-              
-              if (activeTab === 'daybook') {
-                dataToExport = filteredDaybook;
-                filename = 'daybook-summary';
-              } else if (activeTab === 'interest') {
-                dataToExport = filteredInterestFees;
-                filename = 'interest-fees-report';
-              } else if (activeTab === 'provisioning') {
-                dataToExport = allProvisioning;
-                filename = 'provisioning-ecl';
-              } else if (activeTab === 'reconciliation') {
-                dataToExport = filteredBankReconciliation;
-                filename = 'bank-reconciliation';
-              }
-              
-              exportToCSV(dataToExport, `${filename}-${new Date().toISOString().split('T')[0]}`);
+              const tabNames: Record<string, string> = {
+                daybook: 'daybook-summary',
+                interest: 'interest-fees-report',
+                provisioning: 'provisioning-ecl',
+                reconciliation: 'bank-reconciliation',
+              };
+              const filename = tabNames[activeTab] || 'accounting-reports';
+              exportToCSV(tabData, `${filename}-${new Date().toISOString().split('T')[0]}`);
             }}
           >
             <FileSpreadsheet className="h-4 w-4 mr-2" />
@@ -930,7 +882,12 @@ export default function AccountingReportsPage() {
         </div>
 
         {/* Tabs */}
-        <Card className="p-6 bg-white border border-neutral-200">
+        <Card className="p-6 bg-white border border-neutral-200 relative">
+          {loading && (
+            <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center rounded-lg">
+              <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+            </div>
+          )}
           <Tabs
             tabs={[
               {
@@ -939,23 +896,13 @@ export default function AccountingReportsPage() {
                 content: (
                   <div className="mt-4">
                     <Table
-                      data={getPaginatedData(filteredDaybook)}
+                      data={tabData}
                       columns={daybookColumns}
                     />
-                    {totalPages(filteredDaybook) > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredDaybook.length)} of{' '}
-                          {filteredDaybook.length} entries
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages(filteredDaybook)}
-                          onPageChange={setCurrentPage}
-                        />
-                      </div>
+                    {tabData.length === 0 && !loading && (
+                      <p className="text-center text-neutral-400 py-8">No daybook entries found</p>
                     )}
+                    {renderPaginationInfo()}
                   </div>
                 ),
               },
@@ -965,23 +912,13 @@ export default function AccountingReportsPage() {
                 content: (
                   <div className="mt-4">
                     <Table
-                      data={getPaginatedData(filteredInterestFees)}
+                      data={tabData}
                       columns={interestFeesColumns}
                     />
-                    {totalPages(filteredInterestFees) > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredInterestFees.length)} of{' '}
-                          {filteredInterestFees.length} records
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages(filteredInterestFees)}
-                          onPageChange={setCurrentPage}
-                        />
-                      </div>
+                    {tabData.length === 0 && !loading && (
+                      <p className="text-center text-neutral-400 py-8">No interest & fees records found</p>
                     )}
+                    {renderPaginationInfo()}
                   </div>
                 ),
               },
@@ -991,9 +928,12 @@ export default function AccountingReportsPage() {
                 content: (
                   <div className="mt-4">
                     <Table
-                      data={allProvisioning}
+                      data={tabData}
                       columns={provisioningColumns}
                     />
+                    {tabData.length === 0 && !loading && (
+                      <p className="text-center text-neutral-400 py-8">No provisioning data found</p>
+                    )}
                   </div>
                 ),
               },
@@ -1003,9 +943,12 @@ export default function AccountingReportsPage() {
                 content: (
                   <div className="mt-4">
                     <Table
-                      data={filteredBankReconciliation}
+                      data={tabData}
                       columns={bankReconciliationColumns}
                     />
+                    {tabData.length === 0 && !loading && (
+                      <p className="text-center text-neutral-400 py-8">No reconciliation data found</p>
+                    )}
                   </div>
                 ),
               },
@@ -1040,7 +983,6 @@ export default function AccountingReportsPage() {
               </Button>
               <Button variant="primary" onClick={() => {
                 console.log('Save audit note:', auditNote);
-                // Save logic here
               }}>
                 Save Note
               </Button>
@@ -1051,4 +993,3 @@ export default function AccountingReportsPage() {
     </DashboardLayout>
   );
 }
-

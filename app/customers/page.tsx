@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -51,28 +51,27 @@ export default function CustomersPage() {
   const itemsPerPage = 10;
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<any>(null);
-
-  const [searchInput, setSearchInput] = useState(filters.search || '');
-
-  useEffect(() => {
-    setSearchInput(filters.search || '');
-  }, [filters.search]);
+  const [searchInputValue, setSearchInputValue] = useState(filters.search || '');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [filters]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setFilters(prev => {
-        const nextSearch = searchInput.trim() || undefined;
-        if ((prev.search || '') === (nextSearch || '')) return prev;
-        return { ...prev, search: nextSearch };
-      });
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
-  
+    setSearchInputValue(filters.search || '');
+  }, [filters.search]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInputValue(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: value }));
+      searchDebounceRef.current = null;
+    }, 1000);
+  };
+
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const state = e.target.value;
     setFilters(prev => ({ ...prev, state: state || undefined, city: undefined })); // Reset city when state changes
@@ -273,8 +272,9 @@ export default function CustomersPage() {
     { label: 'Customers', href: '/customers' },
   ];
 
-  // Loading state
-  if (loading) {
+  // Full-page loading only on initial load so search input stays mounted during refetch
+  const isInitialLoad = loading && !(customers?.length);
+  if (isInitialLoad) {
     return (
       <DashboardLayout>
         <div className="p-6 space-y-6 animate-pulse">
@@ -392,8 +392,8 @@ export default function CustomersPage() {
             <div className="w-full md:w-1/3">
               <Input
                 placeholder="Search by name, email, or ID..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                value={searchInputValue}
+                onChange={handleSearchChange}
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>

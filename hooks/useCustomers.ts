@@ -27,12 +27,13 @@ export function useCustomers(initialFilters?: CustomerFilters): UseCustomersResu
   const [filters, setFilters] = useState<CustomerFilters>(getDefaultCustomerFilters(initialFilters));
 
   const fetchCustomers = useCallback(async () => {
-    setLoading(true);
+    const isRefetch = customers.length > 0;
+    if (!isRefetch) {
+      setLoading(true);
+    }
     setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      const data:any = await getAllCustomers(filters);
+      const data: any = await getAllCustomers(filters);
       setCustomers(data.data.users);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch customers');

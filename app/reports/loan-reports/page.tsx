@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -28,6 +28,7 @@ import {
   IndianRupee,
   Users,
   Image as ImageIcon,
+  Loader2,
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils';
 import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
@@ -43,6 +44,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { reportsService } from '@/services/reports.service';
+import type { Pagination as PaginationType } from '@/services/reports.service';
 
 // Type definitions
 interface LoanApplication {
@@ -79,106 +82,14 @@ interface LoanAging {
   bounceCount?: number;
 }
 
-// Generate dummy data
-const generateLoanApplications = (): LoanApplication[] => {
-  const applications: LoanApplication[] = [];
-  const products = ['Personal Loan', 'Home Loan', 'Business Loan', 'Education Loan', 'Vehicle Loan', 'Gold Loan'];
-  const statuses: LoanApplication['status'][] = ['Applied', 'Under Review', 'Approved', 'Rejected', 'Disbursed', 'Closed'];
-  const reviewers = ['Rajesh Kumar', 'Priya Sharma', 'Amit Patel', 'Sneha Reddy', 'Vikram Singh'];
-  const applicants = ['Ramesh Kumar', 'Sunita Devi', 'Anil Mehta', 'Kavita Singh', 'Mohammed Ali', 'Lakshmi Nair', 'Suresh Reddy', 'Geeta Patel', 'Ravi Shankar'];
-
-  for (let i = 0; i < 120; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() - Math.floor(Math.random() * 90));
-    
-    applications.push({
-      id: `app-${i + 1}`,
-      applicationId: `APP${String(i + 1).padStart(6, '0')}`,
-      applicantName: applicants[Math.floor(Math.random() * applicants.length)],
-      product: products[Math.floor(Math.random() * products.length)],
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      submittedOn: date.toISOString(),
-      reviewer: reviewers[Math.floor(Math.random() * reviewers.length)],
-      timeInStage: Math.floor(Math.random() * 30) + 1,
-    });
-  }
-
-  return applications.sort((a, b) => new Date(b.submittedOn).getTime() - new Date(a.submittedOn).getTime());
-};
-
-const generateDisbursedLoans = (): DisbursedLoan[] => {
-  const loans: DisbursedLoan[] = [];
-  const customers = ['Ramesh Kumar', 'Sunita Devi', 'Anil Mehta', 'Kavita Singh', 'Mohammed Ali', 'Lakshmi Nair', 'Suresh Reddy', 'Geeta Patel', 'Ravi Shankar', 'Priya Desai'];
-
-  for (let i = 0; i < 80; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() - Math.floor(Math.random() * 365));
-    const nextPayment = new Date(date);
-    nextPayment.setMonth(nextPayment.getMonth() + 1);
-
-    const principal = Math.floor(Math.random() * 2000000) + 50000;
-    const interest = 8 + Math.random() * 6; // 8-14%
-    const tenure = [12, 24, 36, 48, 60][Math.floor(Math.random() * 5)];
-    const monthlyRate = interest / 100 / 12;
-    const emi = principal * (monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1);
-
-    loans.push({
-      id: `loan-${i + 1}`,
-      loanId: `LOAN${String(i + 1).padStart(6, '0')}`,
-      customer: customers[Math.floor(Math.random() * customers.length)],
-      principal,
-      disbursedDate: date.toISOString(),
-      tenure,
-      interest: parseFloat(interest.toFixed(2)),
-      emi: Math.round(emi),
-      nextPayment: nextPayment.toISOString(),
-      bounceCount: Math.random() < 0.15 ? Math.floor(Math.random() * 3) + 1 : 0,
-    });
-  }
-
-  return loans.sort((a, b) => new Date(b.disbursedDate).getTime() - new Date(a.disbursedDate).getTime());
-};
-
-const generateLoanAging = (): LoanAging[] => {
-  const aging: LoanAging[] = [];
-  const customers = ['Ramesh Kumar', 'Sunita Devi', 'Anil Mehta', 'Kavita Singh', 'Mohammed Ali', 'Lakshmi Nair', 'Suresh Reddy', 'Geeta Patel', 'Ravi Shankar'];
-
-  for (let i = 0; i < 45; i++) {
-    const daysOverdue = Math.floor(Math.random() * 120);
-    let bucket: LoanAging['bucket'];
-    if (daysOverdue <= 30) bucket = '0-30';
-    else if (daysOverdue <= 60) bucket = '31-60';
-    else if (daysOverdue <= 90) bucket = '61-90';
-    else bucket = '90+';
-
-    aging.push({
-      id: `aging-${i + 1}`,
-      loanId: `LOAN${String(i + 1).padStart(6, '0')}`,
-      customer: customers[Math.floor(Math.random() * customers.length)],
-      daysOverdue,
-      outstandingPrincipal: Math.floor(Math.random() * 1500000) + 100000,
-      bucket,
-      bounceCount: Math.random() < 0.2 ? Math.floor(Math.random() * 2) + 1 : 0,
-    });
-  }
-
-  return aging.sort((a, b) => b.daysOverdue - a.daysOverdue);
-};
-
-const allApplications = generateLoanApplications();
-const allDisbursedLoans = generateDisbursedLoans();
-const allLoanAging = generateLoanAging();
-
 // Funnel component
 const LoanPipelineFunnel: React.FC<{ data: { stage: string; count: number; color: string }[] }> = ({ data }) => {
-  const maxCount = Math.max(...data.map(d => d.count));
+  const maxCount = Math.max(...data.map(d => d.count), 1);
 
   return (
     <div className="space-y-4">
       {data.map((item, index) => {
         const widthPercent = (item.count / maxCount) * 100;
-        const isFirst = index === 0;
-        const isLast = index === data.length - 1;
 
         return (
           <div key={item.stage} className="flex items-center gap-4">
@@ -226,182 +137,106 @@ export default function LoanReportsPage() {
   const [showFilters, setShowFilters] = useState(true);
   const chartsSectionRef = useRef<HTMLDivElement>(null);
 
-  // Reset to page 1 when filters change
-  useEffect(() => {
+  // API data states
+  const [summaryData, setSummaryData] = useState<{
+    summary: { applicationsReceived: number; approved: number; disbursed: number; activeLoans: number };
+    charts: {
+      pipelineFunnel: Array<{ stage: string; count: number; color: string }>;
+      byProduct: Array<{ name: string; value: number }>;
+      disbursementTrend: Array<Record<string, string | number>>;
+    };
+  } | null>(null);
+  const [tabData, setTabData] = useState<any[]>([]);
+  const [pagination, setPagination] = useState<PaginationType | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [tabLoading, setTabLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const updateFilters = useCallback((newFilters: typeof filters) => {
+    setFilters(newFilters);
     setCurrentPage(1);
-  }, [filters]);
-
-  // Calculate KPIs
-  const kpis = useMemo(() => {
-    const applicationsReceived = allApplications.length;
-    const approved = allApplications.filter(a => a.status === 'Approved' || a.status === 'Disbursed' || a.status === 'Closed').length;
-    const disbursed = allDisbursedLoans.length;
-    const activeLoans = allDisbursedLoans.filter(l => {
-      const maturityDate = new Date(l.disbursedDate);
-      maturityDate.setMonth(maturityDate.getMonth() + l.tenure);
-      return maturityDate > new Date();
-    }).length;
-
-    return { applicationsReceived, approved, disbursed, activeLoans };
   }, []);
 
-  // Pipeline funnel data
-  const pipelineData = useMemo(() => {
-    const applied = allApplications.filter(a => a.status === 'Applied').length;
-    const underReview = allApplications.filter(a => a.status === 'Under Review').length;
-    const approved = allApplications.filter(a => a.status === 'Approved').length;
-    const disbursed = allApplications.filter(a => a.status === 'Disbursed').length;
-    const closed = allApplications.filter(a => a.status === 'Closed').length;
-
-    return [
-      { stage: 'Applied', count: applied, color: '#8B5CF6' },
-      { stage: 'Under Review', count: underReview, color: '#3B82F6' },
-      { stage: 'Approved', count: approved, color: '#10B981' },
-      { stage: 'Disbursed', count: disbursed, color: '#F59E0B' },
-      { stage: 'Closed', count: closed, color: '#6B7280' },
-    ];
-  }, []);
-
-  // Filter data
-  const filteredApplications = useMemo(() => {
-    let filtered = [...allApplications];
-
-    if (filters.dateFrom) {
-      const fromDate = new Date(filters.dateFrom);
-      filtered = filtered.filter(a => new Date(a.submittedOn) >= fromDate);
+  // Fetch summary data (KPIs + charts)
+  const fetchSummary = useCallback(async () => {
+    try {
+      setSummaryLoading(true);
+      const response = await reportsService.getLoansSummary({
+        dateFrom: filters.dateFrom || undefined,
+        dateTo: filters.dateTo || undefined,
+        product: filters.loanProduct || undefined,
+        status: filters.status || undefined,
+        search: filters.search || undefined,
+        branch: filters.branch || undefined,
+      });
+      setSummaryData(response.data);
+    } catch (err: any) {
+      console.error('Failed to fetch loan summary:', err);
+    } finally {
+      setSummaryLoading(false);
     }
-    if (filters.dateTo) {
-      const toDate = new Date(filters.dateTo);
-      toDate.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(a => new Date(a.submittedOn) <= toDate);
-    }
-    if (filters.loanProduct) {
-      filtered = filtered.filter(a => a.product === filters.loanProduct);
-    }
-    if (filters.status) {
-      filtered = filtered.filter(a => a.status === filters.status);
-    }
-    if (filters.approvalManager) {
-      filtered = filtered.filter(a => a.reviewer === filters.approvalManager);
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        a =>
-          a.applicationId.toLowerCase().includes(searchLower) ||
-          a.applicantName.toLowerCase().includes(searchLower)
-      );
-    }
-
-    return filtered;
   }, [filters]);
 
-  const filteredDisbursed = useMemo(() => {
-    let filtered = [...allDisbursedLoans];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  // Fetch tab-specific table data
+  const fetchTabData = useCallback(async () => {
+    try {
+      setTabLoading(true);
+      setError(null);
+      const params = {
+        page: currentPage,
+        limit: itemsPerPage,
+        dateFrom: filters.dateFrom || undefined,
+        dateTo: filters.dateTo || undefined,
+        product: filters.loanProduct || undefined,
+        status: filters.status || undefined,
+        search: filters.search || undefined,
+        branch: filters.branch || undefined,
+        emiPending: filters.emiPending || undefined,
+        bounce: filters.bounce || undefined,
+      };
 
-    if (filters.dateFrom) {
-      const fromDate = new Date(filters.dateFrom);
-      filtered = filtered.filter(l => new Date(l.disbursedDate) >= fromDate);
+      if (activeTab === 'applications') {
+        const response = await reportsService.getLoansApplications(params);
+        setTabData(response.data.applications || []);
+        setPagination(response.data.pagination || null);
+      } else if (activeTab === 'disbursed') {
+        const response = await reportsService.getLoansDisbursed(params);
+        setTabData(response.data.disbursedLoans || []);
+        setPagination(response.data.pagination || null);
+      } else if (activeTab === 'aging') {
+        const response = await reportsService.getLoansAging(params);
+        setTabData(response.data.agingData || []);
+        setPagination(response.data.pagination || null);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch tab data:', err);
+      setError(err.message || 'Failed to fetch data');
+      setTabData([]);
+      setPagination(null);
+    } finally {
+      setTabLoading(false);
     }
-    if (filters.dateTo) {
-      const toDate = new Date(filters.dateTo);
-      toDate.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(l => new Date(l.disbursedDate) <= toDate);
-    }
-    if (filters.emiPending === 'yes') {
-      filtered = filtered.filter(l => {
-        const nextDate = new Date(l.nextPayment);
-        nextDate.setHours(0, 0, 0, 0);
-        return nextDate < today;
-      });
-    } else if (filters.emiPending === 'no') {
-      filtered = filtered.filter(l => {
-        const nextDate = new Date(l.nextPayment);
-        nextDate.setHours(0, 0, 0, 0);
-        return nextDate >= today;
-      });
-    }
-    if (filters.bounce === 'yes') {
-      filtered = filtered.filter(l => Number(l.bounceCount) > 0);
-    } else if (filters.bounce === 'no') {
-      filtered = filtered.filter(l => !Number(l.bounceCount));
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        l =>
-          l.loanId.toLowerCase().includes(searchLower) ||
-          l.customer.toLowerCase().includes(searchLower)
-      );
-    }
+  }, [activeTab, currentPage, filters]);
 
-    return filtered;
-  }, [filters]);
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
-  const filteredAging = useMemo(() => {
-    let filtered = [...allLoanAging];
+  useEffect(() => {
+    fetchTabData();
+  }, [fetchTabData]);
 
-    if (filters.bounce === 'yes') {
-      filtered = filtered.filter(a => Number(a.bounceCount) > 0);
-    } else if (filters.bounce === 'no') {
-      filtered = filtered.filter(a => !Number(a.bounceCount));
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        a =>
-          a.loanId.toLowerCase().includes(searchLower) ||
-          a.customer.toLowerCase().includes(searchLower)
-      );
-    }
+  // Derived data from summary
+  const kpis = summaryData?.summary ?? { applicationsReceived: 0, approved: 0, disbursed: 0, activeLoans: 0 };
+  const pipelineData = summaryData?.charts?.pipelineFunnel ?? [];
+  const loansByProductData = summaryData?.charts?.byProduct ?? [];
+  const disbursementTrendData = summaryData?.charts?.disbursementTrend ?? [];
 
-    return filtered;
-  }, [filters]);
-
-  // Pagination
-  const getPaginatedData = (data: any[]) => {
-    return data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  };
-
-  const totalPages = (data: any[]) => Math.ceil(data.length / itemsPerPage);
-
-  // Chart data
-  const loansByProductData = useMemo(() => {
-    const productCounts: Record<string, number> = {};
-    allApplications
-      .filter(app => app.status === 'Disbursed' || app.status === 'Closed')
-      .forEach(app => {
-        productCounts[app.product] = (productCounts[app.product] || 0) + 1;
-      });
-
-    return Object.entries(productCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }, []);
-
-  const disbursementTrendData = [
-    { month: 'Jan', amount: 2500000 },
-    { month: 'Feb', amount: 3200000 },
-    { month: 'Mar', amount: 2800000 },
-    { month: 'Apr', amount: 3500000 },
-    { month: 'May', amount: 4100000 },
-    { month: 'Jun', amount: 3800000 },
-    { month: 'Jul', amount: 4200000 },
-    { month: 'Aug', amount: 3900000 },
-    { month: 'Sep', amount: 4500000 },
-    { month: 'Oct', amount: 4800000 },
-    { month: 'Nov', amount: 4400000 },
-    { month: 'Dec', amount: 5000000 },
-  ];
-
-  // Get unique values for filters
-  const uniqueProducts = Array.from(new Set(allApplications.map(a => a.product))).sort();
-  const uniqueReviewers = Array.from(new Set(allApplications.map(a => a.reviewer))).sort();
+  // Static filter options
+  const uniqueProducts = ['Personal Loan', 'Home Loan', 'Business Loan', 'Education Loan', 'Vehicle Loan', 'Gold Loan'];
+  const uniqueReviewers = ['Rajesh Kumar', 'Priya Sharma', 'Amit Patel', 'Sneha Reddy', 'Vikram Singh'];
   const uniqueBranches = ['Main Branch', 'Downtown Branch', 'City Center', 'Suburban Branch', 'North Branch'];
 
-  // Reset filters
   const resetFilters = () => {
     setFilters({
       dateFrom: '',
@@ -414,7 +249,14 @@ export default function LoanReportsPage() {
       emiPending: '',
       bounce: '',
     });
+    setCurrentPage(1);
   };
+
+  // Pagination helpers
+  const showingFrom = tabData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+  const showingTo = (currentPage - 1) * itemsPerPage + tabData.length;
+  const totalItems = pagination?.totalItems ?? 0;
+  const totalPages = pagination?.totalPages ?? 1;
 
   // Table columns
   const applicationsColumns = [
@@ -501,7 +343,7 @@ export default function LoanReportsPage() {
       width: '140px',
       render: (amount: number) => (
         <span className="text-sm font-semibold text-neutral-900">
-          ₹{amount.toLocaleString('en-IN')}
+          ₹{(amount ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },
@@ -541,7 +383,7 @@ export default function LoanReportsPage() {
       width: '120px',
       render: (amount: number) => (
         <span className="text-sm font-semibold text-neutral-900">
-          ₹{amount.toLocaleString('en-IN')}
+          ₹{(amount ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },
@@ -613,7 +455,7 @@ export default function LoanReportsPage() {
       width: '180px',
       render: (amount: number) => (
         <span className="text-sm font-semibold text-neutral-900">
-          ₹{amount.toLocaleString('en-IN')}
+          ₹{(amount ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },
@@ -647,6 +489,24 @@ export default function LoanReportsPage() {
         ),
     },
   ];
+
+  // Loading spinner for table areas
+  const tableLoader = (
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+    </div>
+  );
+
+  // Error display for table areas
+  const errorDisplay = error ? (
+    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+      <p className="text-red-700 text-sm">{error}</p>
+      <Button variant="outline" size="sm" onClick={fetchTabData} className="mt-2">
+        <RefreshCw className="h-4 w-4 mr-2" />
+        Retry
+      </Button>
+    </div>
+  ) : null;
 
   return (
     <DashboardLayout>
@@ -702,7 +562,11 @@ export default function LoanReportsPage() {
               <div>
                 <p className="text-sm text-neutral-600 mb-1">Applications Received</p>
                 <p className="text-2xl font-bold text-neutral-900">
-                  {kpis.applicationsReceived.toLocaleString()}
+                  {summaryLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+                  ) : (
+                    kpis.applicationsReceived.toLocaleString()
+                  )}
                 </p>
               </div>
               <div className="bg-primary-100 p-3 rounded-lg">
@@ -715,7 +579,11 @@ export default function LoanReportsPage() {
               <div>
                 <p className="text-sm text-neutral-600 mb-1">Approved</p>
                 <p className="text-2xl font-bold text-neutral-900">
-                  {kpis.approved.toLocaleString()}
+                  {summaryLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+                  ) : (
+                    kpis.approved.toLocaleString()
+                  )}
                 </p>
               </div>
               <div className="bg-success-100 p-3 rounded-lg">
@@ -728,7 +596,11 @@ export default function LoanReportsPage() {
               <div>
                 <p className="text-sm text-neutral-600 mb-1">Disbursed</p>
                 <p className="text-2xl font-bold text-neutral-900">
-                  {kpis.disbursed.toLocaleString()}
+                  {summaryLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+                  ) : (
+                    kpis.disbursed.toLocaleString()
+                  )}
                 </p>
               </div>
               <div className="bg-info-100 p-3 rounded-lg">
@@ -741,7 +613,11 @@ export default function LoanReportsPage() {
               <div>
                 <p className="text-sm text-neutral-600 mb-1">Active Loans</p>
                 <p className="text-2xl font-bold text-neutral-900">
-                  {kpis.activeLoans.toLocaleString()}
+                  {summaryLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+                  ) : (
+                    kpis.activeLoans.toLocaleString()
+                  )}
                 </p>
               </div>
               <div className="bg-warning-100 p-3 rounded-lg">
@@ -759,63 +635,91 @@ export default function LoanReportsPage() {
             <h2 className="text-lg font-semibold text-neutral-900 mb-4">
               Loan Pipeline Funnel
             </h2>
-            <LoanPipelineFunnel data={pipelineData} />
+            {summaryLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
+              </div>
+            ) : pipelineData.length > 0 ? (
+              <LoanPipelineFunnel data={pipelineData} />
+            ) : (
+              <p className="text-sm text-neutral-500 text-center py-8">No pipeline data available</p>
+            )}
           </Card>
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="p-6">
               <h3 className="text-lg font-semibold text-neutral-900 mb-4">Loans by Product Type</h3>
               <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={loansByProductData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                    <XAxis dataKey="name" stroke="#6B7280" style={{ fontSize: '12px' }} />
-                    <YAxis stroke="#6B7280" style={{ fontSize: '12px' }} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'white',
-                        border: '1px solid #E5E7EB',
-                        borderRadius: '8px',
-                      }}
-                    />
-                    <Legend />
-                    <Bar dataKey="value" fill="#635BFF" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {summaryLoading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
+                  </div>
+                ) : loansByProductData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={loansByProductData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis dataKey="name" stroke="#6B7280" style={{ fontSize: '12px' }} />
+                      <YAxis stroke="#6B7280" style={{ fontSize: '12px' }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'white',
+                          border: '1px solid #E5E7EB',
+                          borderRadius: '8px',
+                        }}
+                      />
+                      <Legend />
+                      <Bar dataKey="value" fill="#635BFF" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-sm text-neutral-500">No product data available</p>
+                  </div>
+                )}
               </div>
             </Card>
             <Card className="p-6">
               <h3 className="text-lg font-semibold text-neutral-900 mb-4">Loan Disbursements Over Time</h3>
               <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={disbursementTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                    <XAxis dataKey="month" stroke="#6B7280" style={{ fontSize: '12px' }} />
-                    <YAxis
-                      stroke="#6B7280"
-                      style={{ fontSize: '12px' }}
-                      tickFormatter={(value) => `₹${(value / 100000).toFixed(0)}L`}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'white',
-                        border: '1px solid #E5E7EB',
-                        borderRadius: '8px',
-                      }}
-                      formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`}
-                    />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="amount"
-                      stroke="#635BFF"
-                      strokeWidth={2}
-                      name="Disbursed Amount"
-                      dot={{ fill: '#635BFF', r: 4 }}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                {summaryLoading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
+                  </div>
+                ) : disbursementTrendData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={disbursementTrendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis dataKey="month" stroke="#6B7280" style={{ fontSize: '12px' }} />
+                      <YAxis
+                        stroke="#6B7280"
+                        style={{ fontSize: '12px' }}
+                        tickFormatter={(value) => `₹${(value / 100000).toFixed(0)}L`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'white',
+                          border: '1px solid #E5E7EB',
+                          borderRadius: '8px',
+                        }}
+                        formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`}
+                      />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="amount"
+                        stroke="#635BFF"
+                        strokeWidth={2}
+                        name="Disbursed Amount"
+                        dot={{ fill: '#635BFF', r: 4 }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-sm text-neutral-500">No disbursement data available</p>
+                  </div>
+                )}
               </div>
             </Card>
           </div>
@@ -845,19 +749,19 @@ export default function LoanReportsPage() {
                 type="date"
                 label="Date From"
                 value={filters.dateFrom}
-                onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                onChange={(e) => updateFilters({ ...filters, dateFrom: e.target.value })}
               />
               <Input
                 type="date"
                 label="Date To"
                 value={filters.dateTo}
-                onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                onChange={(e) => updateFilters({ ...filters, dateTo: e.target.value })}
               />
               <Select
                 label="Loan Product"
                 placeholder="All Products"
                 value={filters.loanProduct}
-                onChange={(e) => setFilters({ ...filters, loanProduct: e.target.value })}
+                onChange={(e) => updateFilters({ ...filters, loanProduct: e.target.value })}
                 options={[
                   { value: '', label: 'All Products' },
                   ...uniqueProducts.map((product) => ({
@@ -870,7 +774,7 @@ export default function LoanReportsPage() {
                 label="Status"
                 placeholder="All Statuses"
                 value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                onChange={(e) => updateFilters({ ...filters, status: e.target.value })}
                 options={[
                   { value: '', label: 'All Statuses' },
                   { value: 'Applied', label: 'Applied' },
@@ -885,7 +789,7 @@ export default function LoanReportsPage() {
                 label="Approval Manager"
                 placeholder="All Managers"
                 value={filters.approvalManager}
-                onChange={(e) => setFilters({ ...filters, approvalManager: e.target.value })}
+                onChange={(e) => updateFilters({ ...filters, approvalManager: e.target.value })}
                 options={[
                   { value: '', label: 'All Managers' },
                   ...uniqueReviewers.map((reviewer) => ({
@@ -898,7 +802,7 @@ export default function LoanReportsPage() {
                 label="Branch"
                 placeholder="All Branches"
                 value={filters.branch}
-                onChange={(e) => setFilters({ ...filters, branch: e.target.value })}
+                onChange={(e) => updateFilters({ ...filters, branch: e.target.value })}
                 options={[
                   { value: '', label: 'All Branches' },
                   ...uniqueBranches.map((branch) => ({
@@ -911,7 +815,7 @@ export default function LoanReportsPage() {
                 label="EMI Pending"
                 placeholder="All"
                 value={filters.emiPending}
-                onChange={(e) => setFilters(prev => ({ ...prev, emiPending: e.target.value }))}
+                onChange={(e) => updateFilters({ ...filters, emiPending: e.target.value })}
                 options={[
                   { value: '', label: 'All' },
                   { value: 'yes', label: 'Yes (Pending)' },
@@ -922,7 +826,7 @@ export default function LoanReportsPage() {
                 label="Bounce"
                 placeholder="All"
                 value={filters.bounce}
-                onChange={(e) => setFilters(prev => ({ ...prev, bounce: e.target.value }))}
+                onChange={(e) => updateFilters({ ...filters, bounce: e.target.value })}
                 options={[
                   { value: '', label: 'All' },
                   { value: 'yes', label: 'Yes (Has bounce)' },
@@ -934,7 +838,7 @@ export default function LoanReportsPage() {
                   label="Search"
                   placeholder="Search by Application ID, Loan ID, or Customer Name..."
                   value={filters.search}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  onChange={(e) => updateFilters({ ...filters, search: e.target.value })}
                   leftIcon={<Search className="h-4 w-4" />}
                 />
               </div>
@@ -950,21 +854,11 @@ export default function LoanReportsPage() {
               variant="outline" 
               size="sm"
               onClick={() => {
-                let dataToExport: any[] = [];
                 let filename = 'loan-reports';
-                
-                if (activeTab === 'applications') {
-                  dataToExport = filteredApplications;
-                  filename = 'loan-applications-pipeline';
-                } else if (activeTab === 'disbursed') {
-                  dataToExport = filteredDisbursed;
-                  filename = 'disbursed-loans';
-                } else if (activeTab === 'aging') {
-                  dataToExport = filteredAging;
-                  filename = 'loan-aging-report';
-                }
-                
-                exportToCSV(dataToExport, `${filename}-${new Date().toISOString().split('T')[0]}`);
+                if (activeTab === 'applications') filename = 'loan-applications-pipeline';
+                else if (activeTab === 'disbursed') filename = 'disbursed-loans';
+                else if (activeTab === 'aging') filename = 'loan-aging-report';
+                exportToCSV(tabData, `${filename}-${new Date().toISOString().split('T')[0]}`);
               }}
             >
               <Download className="h-4 w-4 mr-2" />
@@ -978,27 +872,31 @@ export default function LoanReportsPage() {
                 label: 'Applications Pipeline',
                 content: (
                   <div className="mt-4">
-                    <Table
-                      data={getPaginatedData(filteredApplications)}
-                      columns={applicationsColumns}
-                      onRowClick={(row) => {
-                        console.log('View application:', row);
-                        router.push(`/loans/${row.id}`);
-                      }}
-                    />
-                    {totalPages(filteredApplications) > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredApplications.length)} of{' '}
-                          {filteredApplications.length} applications
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages(filteredApplications)}
-                          onPageChange={setCurrentPage}
+                    {tabLoading ? tableLoader : error ? errorDisplay : (
+                      <>
+                        <Table
+                          data={tabData}
+                          columns={applicationsColumns}
+                          onRowClick={(row) => {
+                            router.push(`/loans/${row.id}`);
+                          }}
                         />
-                      </div>
+                        {totalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between">
+                            <p className="text-sm text-neutral-600">
+                              Showing {showingFrom} to {showingTo} of {totalItems} applications
+                            </p>
+                            <Pagination
+                              currentPage={currentPage}
+                              totalPages={totalPages}
+                              onPageChange={setCurrentPage}
+                            />
+                          </div>
+                        )}
+                        {!tabLoading && tabData.length === 0 && (
+                          <p className="text-sm text-neutral-500 text-center py-8">No applications found</p>
+                        )}
+                      </>
                     )}
                   </div>
                 ),
@@ -1008,27 +906,31 @@ export default function LoanReportsPage() {
                 label: 'Disbursed Loans',
                 content: (
                   <div className="mt-4">
-                    <Table
-                      data={getPaginatedData(filteredDisbursed)}
-                      columns={disbursedColumns}
-                      onRowClick={(row) => {
-                        console.log('View loan:', row);
-                        router.push(`/loans/${row.id}`);
-                      }}
-                    />
-                    {totalPages(filteredDisbursed) > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredDisbursed.length)} of{' '}
-                          {filteredDisbursed.length} loans
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages(filteredDisbursed)}
-                          onPageChange={setCurrentPage}
+                    {tabLoading ? tableLoader : error ? errorDisplay : (
+                      <>
+                        <Table
+                          data={tabData}
+                          columns={disbursedColumns}
+                          onRowClick={(row) => {
+                            router.push(`/loans/${row.id}`);
+                          }}
                         />
-                      </div>
+                        {totalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between">
+                            <p className="text-sm text-neutral-600">
+                              Showing {showingFrom} to {showingTo} of {totalItems} loans
+                            </p>
+                            <Pagination
+                              currentPage={currentPage}
+                              totalPages={totalPages}
+                              onPageChange={setCurrentPage}
+                            />
+                          </div>
+                        )}
+                        {!tabLoading && tabData.length === 0 && (
+                          <p className="text-sm text-neutral-500 text-center py-8">No disbursed loans found</p>
+                        )}
+                      </>
                     )}
                   </div>
                 ),
@@ -1038,27 +940,31 @@ export default function LoanReportsPage() {
                 label: 'Loan Aging Report',
                 content: (
                   <div className="mt-4">
-                    <Table
-                      data={getPaginatedData(filteredAging)}
-                      columns={agingColumns}
-                      onRowClick={(row) => {
-                        console.log('View loan:', row);
-                        router.push(`/loans/${row.id}`);
-                      }}
-                    />
-                    {totalPages(filteredAging) > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredAging.length)} of{' '}
-                          {filteredAging.length} loans
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages(filteredAging)}
-                          onPageChange={setCurrentPage}
+                    {tabLoading ? tableLoader : error ? errorDisplay : (
+                      <>
+                        <Table
+                          data={tabData}
+                          columns={agingColumns}
+                          onRowClick={(row) => {
+                            router.push(`/loans/${row.id}`);
+                          }}
                         />
-                      </div>
+                        {totalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between">
+                            <p className="text-sm text-neutral-600">
+                              Showing {showingFrom} to {showingTo} of {totalItems} loans
+                            </p>
+                            <Pagination
+                              currentPage={currentPage}
+                              totalPages={totalPages}
+                              onPageChange={setCurrentPage}
+                            />
+                          </div>
+                        )}
+                        {!tabLoading && tabData.length === 0 && (
+                          <p className="text-sm text-neutral-500 text-center py-8">No aging data found</p>
+                        )}
+                      </>
                     )}
                   </div>
                 ),
@@ -1068,6 +974,7 @@ export default function LoanReportsPage() {
             onChange={(tabId) => {
               setActiveTab(tabId);
               setCurrentPage(1);
+              setTabLoading(true);
             }}
           />
         </Card>
@@ -1075,4 +982,3 @@ export default function LoanReportsPage() {
     </DashboardLayout>
   );
 }
-

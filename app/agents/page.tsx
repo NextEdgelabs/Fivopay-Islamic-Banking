@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -47,7 +47,21 @@ export default function AgentsPage() {
     search: '',
     status: '',
   });
+  const [searchInputValue, setSearchInputValue] = useState(filters.search || '');
+  const [agentsSearchInput, setAgentsSearchInput] = useState('');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const itemsPerPage = 10;
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInputValue(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: value }));
+      setCurrentPage(1);
+      searchDebounceRef.current = null;
+    }, 1000);
+  };
 
   // Fetch batches
   const { batches, loading: batchesLoading, error: batchesError, refetch: refetchBatches } = useBatches({
@@ -59,22 +73,47 @@ export default function AgentsPage() {
   const { employees: allEmployees, loading: employeesLoading } = useEmployees();
 
   // Filter employees by agent type (role or designation contains "agent")
-  const agentEmployees = useMemo(() => {
-    return (allEmployees || []).filter(emp => 
-      emp.role?.toLowerCase().includes('agent') || 
+  const agentEmployeesBase = useMemo(() => {
+    return (allEmployees || []).filter(emp =>
+      emp.role?.toLowerCase().includes('agent') ||
       emp.designation?.toLowerCase().includes('agent') ||
       emp.department?.toLowerCase().includes('agent')
     );
   }, [allEmployees]);
 
+  // Client-side search for agents/adhoc lists
+  const agentEmployees = useMemo(() => {
+    if (!agentsSearchInput.trim()) return agentEmployeesBase;
+    const q = agentsSearchInput.trim().toLowerCase();
+    return agentEmployeesBase.filter(
+      (emp) =>
+        emp.fullName?.toLowerCase().includes(q) ||
+        emp.email?.toLowerCase().includes(q) ||
+        emp.employeeId?.toLowerCase().includes(q) ||
+        emp.phone?.toLowerCase().includes(q)
+    );
+  }, [agentEmployeesBase, agentsSearchInput]);
+
   // Filter employees by adhoc type (role or designation contains "adhoc")
-  const adhocEmployees = useMemo(() => {
-    return (allEmployees || []).filter(emp => 
-      emp.role?.toLowerCase().includes('adhoc') || 
+  const adhocEmployeesBase = useMemo(() => {
+    return (allEmployees || []).filter(emp =>
+      emp.role?.toLowerCase().includes('adhoc') ||
       emp.designation?.toLowerCase().includes('adhoc') ||
       emp.department?.toLowerCase().includes('adhoc')
     );
   }, [allEmployees]);
+
+  const adhocEmployees = useMemo(() => {
+    if (!agentsSearchInput.trim()) return adhocEmployeesBase;
+    const q = agentsSearchInput.trim().toLowerCase();
+    return adhocEmployeesBase.filter(
+      (emp) =>
+        emp.fullName?.toLowerCase().includes(q) ||
+        emp.email?.toLowerCase().includes(q) ||
+        emp.employeeId?.toLowerCase().includes(q) ||
+        emp.phone?.toLowerCase().includes(q)
+    );
+  }, [adhocEmployeesBase, agentsSearchInput]);
 
   const { deleteBatch } = useBatchMutations();
 
@@ -84,11 +123,6 @@ export default function AgentsPage() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedData = data?.slice(startIndex, startIndex + itemsPerPage) || [];
     return { paginatedData, totalPages, startIndex };
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters(prev => ({ ...prev, search: e.target.value }));
-    setCurrentPage(1);
   };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -316,56 +350,23 @@ export default function AgentsPage() {
     },
   ];
 
-  // Batches Tab Content
+  // Batches Tab Content (table only; search/filters rendered above Tabs)
   const BatchesTab = () => {
     const { paginatedData, totalPages, startIndex } = getPaginatedData(batches || []);
 
     return (
       <div className="space-y-6">
-        {/* Filters */}
         <Card>
-          <div className="p-4 flex flex-col md:flex-row gap-4">
-            <div className="w-full md:w-1/3">
-              <Input
-                placeholder="Search batches..."
-                value={filters.search || ''}
-                onChange={handleSearchChange}
-                leftIcon={<Search className="h-4 w-4" />}
-              />
-            </div>
-            <div className="w-full md:w-48">
-              <Select
-                name="status"
-                value={filters.status || ''}
-                onChange={handleFilterChange}
-                options={[
-                  { value: '', label: 'All Status' },
-                  { value: BatchStatus.Active, label: 'Active' },
-                  { value: BatchStatus.Inactive, label: 'Inactive' },
-                  { value: BatchStatus.Completed, label: 'Completed' },
-                  { value: BatchStatus.Closed, label: 'Closed' },
-                ]}
-              />
-            </div>
-            <Button variant="outline" onClick={() => addToast({ type: 'success', message: 'Exporting batch data...' })}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-          </div>
-        </Card>
-
-        {/* Batches Table */}
-        <Card>
-          {batchesLoading ? (
-            <div className="p-12 text-center">
-              <p className="text-neutral-500">Loading batches...</p>
-            </div>
-          ) : batchesError ? (
+          {batchesError ? (
             <div className="p-12 text-center">
               <p className="text-error-500 mb-4">Error: {batchesError}</p>
               <Button variant="primary" onClick={() => refetchBatches()}>
                 Try Again
               </Button>
+            </div>
+          ) : (batchesLoading && !(batches?.length)) ? (
+            <div className="p-12 text-center">
+              <p className="text-neutral-500">Loading batches...</p>
             </div>
           ) : paginatedData.length === 0 ? (
             <div className="p-12 text-center">
@@ -397,7 +398,7 @@ export default function AgentsPage() {
     );
   };
 
-  // Agents Tab Content
+  // Agents Tab Content (stats + table only; search rendered above Tabs)
   const AgentsTab = () => {
     const { paginatedData, totalPages, startIndex } = getPaginatedData(agentEmployees);
 
@@ -482,7 +483,7 @@ export default function AgentsPage() {
     );
   };
 
-  // Adhoc Tab Content
+  // Adhoc Tab Content (stats + table only; search rendered above Tabs)
   const AdhocTab = () => {
     const { paginatedData, totalPages, startIndex } = getPaginatedData(adhocEmployees);
 
@@ -602,6 +603,52 @@ export default function AgentsPage() {
             </Button>
           )}
         </div>
+
+        {/* Search bars rendered here so they are not inside tab content and keep focus */}
+        {activeTab === 'batches' && (
+          <Card>
+            <div className="p-4 flex flex-col md:flex-row gap-4">
+              <div className="w-full md:w-1/3">
+                <Input
+                  placeholder="Search by batch name or code..."
+                  value={searchInputValue}
+                  onChange={handleSearchChange}
+                  leftIcon={<Search className="h-4 w-4" />}
+                />
+              </div>
+              <div className="w-full md:w-48">
+                <Select
+                  name="status"
+                  value={filters.status || ''}
+                  onChange={handleFilterChange}
+                  options={[
+                    { value: '', label: 'All Status' },
+                    { value: BatchStatus.Active, label: 'Active' },
+                    { value: BatchStatus.Inactive, label: 'Inactive' },
+                    { value: BatchStatus.Completed, label: 'Completed' },
+                    { value: BatchStatus.Closed, label: 'Closed' },
+                  ]}
+                />
+              </div>
+              <Button variant="outline" onClick={() => addToast({ type: 'success', message: 'Exporting batch data...' })}>
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </div>
+          </Card>
+        )}
+        {(activeTab === 'agents' || activeTab === 'adhoc') && (
+          <Card>
+            <div className="p-4">
+              <Input
+                placeholder="Search by name, email, or ID..."
+                value={agentsSearchInput}
+                onChange={(e) => setAgentsSearchInput(e.target.value)}
+                leftIcon={<Search className="h-4 w-4" />}
+              />
+            </div>
+          </Card>
+        )}
 
         <Card>
           <Tabs

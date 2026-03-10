@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -29,6 +29,26 @@ export default function ProductsPage() {
   const { addToast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [searchInputValue, setSearchInputValue] = useState(filters.search || '');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setSearchInputValue(filters.search || '');
+  }, [filters.search]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInputValue(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: value }));
+      searchDebounceRef.current = null;
+    }, 1000);
+  };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -131,7 +151,8 @@ export default function ProductsPage() {
     },
   ];
 
-  if (loading)
+  const isInitialLoad = loading && !products.length;
+  if (isInitialLoad)
     return (
       <DashboardLayout>
         <div className="p-6">
@@ -167,10 +188,9 @@ export default function ProductsPage() {
           <div className="p-4 flex flex-col md:flex-row gap-4">
             <div className="w-full md:w-1/3">
               <Input
-                name="search"
                 placeholder="Search by name or ID..."
-                value={filters.search || ''}
-                onChange={handleFilterChange}
+                value={searchInputValue}
+                onChange={handleSearchChange}
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>

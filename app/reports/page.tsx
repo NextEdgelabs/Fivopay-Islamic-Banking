@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui';
@@ -23,8 +23,10 @@ import {
   ArrowRight,
   Download,
   Image as ImageIcon,
+  Loader2,
 } from 'lucide-react';
 import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
+import { reportsService, DashboardSummary } from '@/services/reports.service';
 import {
   LineChart as RechartsLineChart,
   Line,
@@ -40,32 +42,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-
-// Sample data for charts
-const dailyTransactionData = [
-  { date: 'Mon', volume: 45000 },
-  { date: 'Tue', volume: 52000 },
-  { date: 'Wed', volume: 48000 },
-  { date: 'Thu', volume: 61000 },
-  { date: 'Fri', volume: 55000 },
-  { date: 'Sat', volume: 42000 },
-  { date: 'Sun', volume: 38000 },
-];
-
-const disbursementData = [
-  { category: 'Personal', amount: 1250000 },
-  { category: 'Business', amount: 2100000 },
-  { category: 'Home', amount: 3500000 },
-  { category: 'Auto', amount: 850000 },
-  { category: 'Education', amount: 650000 },
-];
-
-const collectionDistributionData = [
-  { name: 'Agent A', value: 35, color: '#635BFF' },
-  { name: 'Agent B', value: 28, color: '#00D924' },
-  { name: 'Agent C', value: 22, color: '#FFA500' },
-  { name: 'Agent D', value: 15, color: '#DF1B41' },
-];
 
 interface KPICardProps {
   title: string;
@@ -163,18 +139,54 @@ export default function ReportsPage() {
   const chartsSectionRef = useRef<HTMLDivElement>(null);
   const reportName = 'Reports Overview';
 
-  const kpisForExport = [
-    { label: 'Total Deposits', value: '₹2.45 Cr' },
-    { label: 'Total Withdrawals', value: '₹1.82 Cr' },
-    { label: 'Active Loans', value: '1,247' },
-    { label: 'Loan Applications', value: '23' },
-    { label: 'Disbursed Amount', value: '₹3.2 Cr' },
-    { label: 'Outstanding Principal', value: '₹12.8 Cr' },
-    { label: 'Collection Rate', value: '94.2%' },
-    { label: 'Agent Cash-in-Hand', value: '₹45.8L' },
-    { label: 'NPA / Delinquency', value: '3.8%' },
-    { label: 'Net Interest Income', value: '₹28.5L' },
-  ];
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [charts, setCharts] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const formatCurrency = (val: number) => {
+    if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)} Cr`;
+    if (val >= 100000) return `₹${(val / 100000).toFixed(1)}L`;
+    if (val >= 1000) return `₹${(val / 1000).toFixed(1)}K`;
+    return `₹${val.toLocaleString()}`;
+  };
+
+  const fetchDashboard = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await reportsService.getDashboard();
+      setSummary(response.data.summary);
+      setCharts(response.data.charts);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboard();
+  }, [fetchDashboard]);
+
+  const s = summary;
+
+  const kpisForExport = s ? [
+    { label: 'Total Deposits', value: formatCurrency(s.totalDeposits) },
+    { label: 'Total Withdrawals', value: formatCurrency(s.totalWithdrawals) },
+    { label: 'Active Loans', value: s.activeLoans.toLocaleString() },
+    { label: 'Loan Applications', value: s.loanApplicationsToday.toString() },
+    { label: 'Disbursed Amount', value: formatCurrency(s.disbursedAmount) },
+    { label: 'Outstanding Principal', value: formatCurrency(s.outstandingPrincipal) },
+    { label: 'Collection Rate', value: `${s.collectionRate}%` },
+    { label: 'Agent Cash-in-Hand', value: formatCurrency(s.agentCashInHand) },
+    { label: 'NPA / Delinquency', value: `${s.npaRate}%` },
+    { label: 'Net Interest Income', value: formatCurrency(s.netInterestIncome) },
+  ] : [];
+
+  const dailyTransactionData = charts?.dailyTransactions || [];
+  const disbursementData = charts?.disbursementsByCategory || [];
+  const collectionDistributionData = charts?.collectionByAgent || [];
 
   return (
     <DashboardLayout>
@@ -207,86 +219,91 @@ export default function ReportsPage() {
           </div>
         </div>
 
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+            <span className="ml-2 text-neutral-600">Loading dashboard data...</span>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-error-50 border border-error-200 rounded-lg p-4 text-error-700">
+            {error}
+            <button onClick={fetchDashboard} className="ml-2 underline">Retry</button>
+          </div>
+        )}
+
+        {!loading && !error && (
+          <>
         {/* KPI Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           <KPICard
             title="Total Deposits"
-            value="₹2.45 Cr"
-            subtitle="Today: ₹12.5L"
+            value={s ? formatCurrency(s.totalDeposits) : '—'}
+            subtitle={s ? `Today: ${formatCurrency(s.totalDepositsToday)}` : ''}
             icon={<CreditCard className="h-6 w-6 text-primary-600" />}
-            trend={{ value: 12.5, isPositive: true }}
             iconBg="bg-primary-100"
           />
           <KPICard
             title="Total Withdrawals"
-            value="₹1.82 Cr"
-            subtitle="MTD: ₹45.2L"
+            value={s ? formatCurrency(s.totalWithdrawals) : '—'}
+            subtitle={s ? `MTD: ${formatCurrency(s.totalWithdrawalsMtd)}` : ''}
             icon={<TrendingDown className="h-6 w-6 text-info-600" />}
-            trend={{ value: 8.3, isPositive: false }}
             iconBg="bg-info-100"
           />
           <KPICard
             title="Active Loans"
-            value="1,247"
-            subtitle="YTD: ₹8.5 Cr"
+            value={s ? s.activeLoans.toLocaleString() : '—'}
             icon={<FileText className="h-6 w-6 text-success-600" />}
-            trend={{ value: 15.2, isPositive: true }}
             iconBg="bg-success-100"
           />
           <KPICard
             title="Loan Applications"
-            value="23"
+            value={s ? s.loanApplicationsToday.toString() : '—'}
             subtitle="Today"
             icon={<ClipboardList className="h-6 w-6 text-warning-600" />}
-            trend={{ value: 22.1, isPositive: true }}
             iconBg="bg-warning-100"
           />
           <KPICard
             title="Disbursed Amount"
-            value="₹3.2 Cr"
+            value={s ? formatCurrency(s.disbursedAmount) : '—'}
             subtitle="This Month"
             icon={<IndianRupee className="h-6 w-6 text-primary-600" />}
-            trend={{ value: 18.7, isPositive: true }}
             iconBg="bg-primary-100"
           />
           <KPICard
             title="Outstanding Principal"
-            value="₹12.8 Cr"
+            value={s ? formatCurrency(s.outstandingPrincipal) : '—'}
             subtitle="Total Portfolio"
             icon={<BarChart3 className="h-6 w-6 text-neutral-700" />}
-            trend={{ value: 5.4, isPositive: false }}
             iconBg="bg-neutral-100"
           />
           <KPICard
             title="Collection Rate"
-            value="94.2%"
+            value={s ? `${s.collectionRate}%` : '—'}
             subtitle="Current Period"
             icon={<TrendingUp className="h-6 w-6 text-success-600" />}
-            trend={{ value: 2.3, isPositive: true }}
             iconBg="bg-success-100"
           />
           <KPICard
             title="Agent Cash-in-Hand"
-            value="₹45.8L"
+            value={s ? formatCurrency(s.agentCashInHand) : '—'}
             subtitle="Across All Agents"
             icon={<UserCheck className="h-6 w-6 text-info-600" />}
-            trend={{ value: 1.2, isPositive: true }}
             iconBg="bg-info-100"
           />
           <KPICard
             title="NPA / Delinquency"
-            value="3.8%"
+            value={s ? `${s.npaRate}%` : '—'}
             subtitle="Portfolio Risk"
             icon={<Shield className="h-6 w-6 text-error-600" />}
-            trend={{ value: 0.5, isPositive: true }}
             iconBg="bg-error-100"
           />
           <KPICard
             title="Net Interest Income"
-            value="₹28.5L"
+            value={s ? formatCurrency(s.netInterestIncome) : '—'}
             subtitle="MTD"
             icon={<Calculator className="h-6 w-6 text-primary-600" />}
-            trend={{ value: 9.6, isPositive: true }}
             iconBg="bg-primary-100"
           />
         </div>
@@ -397,7 +414,7 @@ export default function ReportsPage() {
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {collectionDistributionData.map((entry, index) => (
+                    {collectionDistributionData.map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -415,6 +432,8 @@ export default function ReportsPage() {
           </Card>
           </div>
         </div>
+          </>
+        )}
 
         {/* Quick Access Reports Section */}
         <div className="mt-8">

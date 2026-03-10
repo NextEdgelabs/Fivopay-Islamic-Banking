@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import {
@@ -27,105 +27,25 @@ import {
   Wallet,
   Building2,
   Coins,
-  TrendingUp,
-  TrendingDown,
+  Loader2,
 } from 'lucide-react';
+import {
+  ledgerService,
+  LedgerAccount,
+  LedgerAccountFilters,
+  AccountType,
+} from '@/services/ledger.service';
 
-// Type definitions
 interface ChartOfAccount {
   id: string;
   accountId: string;
   accountName: string;
-  accountType: 'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense';
+  accountType: AccountType;
   balance: number;
   description: string;
   color: string;
   isActive?: boolean;
 }
-
-// Initial Chart of Accounts Data (same as General Ledger)
-const initialAccounts: ChartOfAccount[] = [
-  {
-    id: 'acc-1000',
-    accountId: '1000',
-    accountName: 'Cash',
-    accountType: 'Asset',
-    balance: 1245600,
-    description: 'This is the company\'s operational cash',
-    color: '#3B82F6',
-    isActive: true,
-  },
-  {
-    id: 'acc-1010',
-    accountId: '1010',
-    accountName: 'Loans Receivable',
-    accountType: 'Asset',
-    balance: 8105000,
-    description: 'Total principal owed by all customers',
-    color: '#10B981',
-    isActive: true,
-  },
-  {
-    id: 'acc-2000',
-    accountId: '2000',
-    accountName: 'Customer Deposits',
-    accountType: 'Liability',
-    balance: 500000,
-    description: 'Total deposits from customers',
-    color: '#EC4899',
-    isActive: true,
-  },
-  {
-    id: 'acc-3000',
-    accountId: '3000',
-    accountName: 'Share Capital',
-    accountType: 'Equity',
-    balance: 1500000,
-    description: 'Total value of all member shares',
-    color: '#8B5CF6',
-    isActive: true,
-  },
-  {
-    id: 'acc-4000',
-    accountId: '4000',
-    accountName: 'Profit Income',
-    accountType: 'Income',
-    balance: 5100,
-    description: 'Revenue earned this period',
-    color: '#F59E0B',
-    isActive: true,
-  },
-  {
-    id: 'acc-4001',
-    accountId: '4001',
-    accountName: 'Processing Fee Income',
-    accountType: 'Income',
-    balance: 15000,
-    description: 'Fees collected from loan processing',
-    color: '#14B8A6',
-    isActive: true,
-  },
-  {
-    id: 'acc-5000',
-    accountId: '5000',
-    accountName: 'Rent Expense',
-    accountType: 'Expense',
-    balance: 25000,
-    description: 'Branch rent payments',
-    color: '#EF4444',
-    isActive: true,
-  },
-  {
-    id: 'acc-5001',
-    accountId: '5001',
-    accountName: 'Salary Expense',
-    accountType: 'Expense',
-    balance: 120000,
-    description: 'Employee salary payments',
-    color: '#F97316',
-    isActive: true,
-  },
-];
 
 const accountTypeColors: Record<string, string> = {
   Asset: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -135,13 +55,27 @@ const accountTypeColors: Record<string, string> = {
   Expense: 'bg-red-100 text-red-700 border-red-200',
 };
 
+const mapToLocal = (acc: LedgerAccount): ChartOfAccount => ({
+  id: acc._id,
+  accountId: acc.accountId,
+  accountName: acc.accountName,
+  accountType: acc.accountType,
+  balance: acc.balance,
+  description: acc.description || '',
+  color: acc.color || '#3B82F6',
+  isActive: acc.isActive,
+});
+
 export default function AccountManagementPage() {
   const { incomeLabel, feeIncomeLabel, revenueEarnedDescription } = useInterestProfitTerm();
   const displayAccountName = (accountName: string) =>
     accountName === 'Profit Income' ? incomeLabel : accountName === 'Profit Fee Income' ? feeIncomeLabel : accountName;
 
-  const [accounts, setAccounts] = useState<ChartOfAccount[]>(initialAccounts);
-  const [filters, setFilters] = useState({
+  const [accounts, setAccounts] = useState<ChartOfAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [filters, setFilters] = useState<LedgerAccountFilters>({
     search: '',
     accountType: '',
     status: '',
@@ -161,76 +95,95 @@ export default function AccountManagementPage() {
     isActive: true,
   });
 
-  // Filter accounts
-  const filteredAccounts = useMemo(() => {
-    return accounts.filter(account => {
-      const matchesSearch = 
-        account.accountId.toLowerCase().includes(filters.search.toLowerCase()) ||
-        account.accountName.toLowerCase().includes(filters.search.toLowerCase()) ||
-        account.description.toLowerCase().includes(filters.search.toLowerCase());
-      
-      const matchesType = !filters.accountType || account.accountType === filters.accountType;
-      const matchesStatus = !filters.status || 
-        (filters.status === 'active' && account.isActive) ||
-        (filters.status === 'inactive' && !account.isActive);
+  const fetchAccounts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await ledgerService.getAllAccounts(filters);
+      if (res.success && res.result?.accounts) {
+        setAccounts(res.result.accounts.map(mapToLocal));
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err.message || 'Failed to load accounts');
+    } finally {
+      setLoading(false);
+    }
+  }, [filters]);
 
-      return matchesSearch && matchesType && matchesStatus;
-    });
-  }, [accounts, filters]);
+  useEffect(() => {
+    fetchAccounts();
+  }, [fetchAccounts]);
 
-  // Statistics
   const stats = useMemo(() => {
     const totalAccounts = accounts.length;
     const activeAccounts = accounts.filter(acc => acc.isActive).length;
     const totalBalance = accounts
       .filter(acc => acc.accountType === 'Asset' || acc.accountType === 'Liability' || acc.accountType === 'Equity')
       .reduce((sum, acc) => sum + acc.balance, 0);
-    
     return { totalAccounts, activeAccounts, totalBalance };
   }, [accounts]);
 
-  // Handle Add Account
-  const handleAddAccount = () => {
-    const newAccount: ChartOfAccount = {
-      id: `acc-${formData.accountId}`,
-      accountId: formData.accountId || '',
-      accountName: formData.accountName || '',
-      accountType: formData.accountType || 'Asset',
-      description: formData.description || '',
-      color: formData.color || '#3B82F6',
-      balance: formData.balance || 0,
-      isActive: formData.isActive ?? true,
-    };
-    
-    setAccounts([...accounts, newAccount]);
-    setShowAddModal(false);
-    resetForm();
+  const handleAddAccount = async () => {
+    try {
+      setSaving(true);
+      await ledgerService.createAccount({
+        accountId: formData.accountId || '',
+        accountName: formData.accountName || '',
+        accountType: (formData.accountType as AccountType) || 'Asset',
+        description: formData.description || '',
+        color: formData.color || '#3B82F6',
+        balance: formData.balance || 0,
+        isActive: formData.isActive ?? true,
+      });
+      setShowAddModal(false);
+      resetForm();
+      await fetchAccounts();
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to create account');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Handle Edit Account
-  const handleEditAccount = () => {
+  const handleEditAccount = async () => {
     if (!selectedAccount) return;
-    
-    setAccounts(accounts.map(acc => 
-      acc.id === selectedAccount.id 
-        ? { ...acc, ...formData }
-        : acc
-    ));
-    setShowEditModal(false);
-    setSelectedAccount(null);
-    resetForm();
+    try {
+      setSaving(true);
+      await ledgerService.updateAccount(selectedAccount.id, {
+        accountId: formData.accountId,
+        accountName: formData.accountName,
+        accountType: formData.accountType as AccountType,
+        description: formData.description,
+        color: formData.color,
+        balance: formData.balance,
+        isActive: formData.isActive,
+      });
+      setShowEditModal(false);
+      setSelectedAccount(null);
+      resetForm();
+      await fetchAccounts();
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to update account');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Handle Delete Account
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
     if (!selectedAccount) return;
-    
-    setAccounts(accounts.filter(acc => acc.id !== selectedAccount.id));
-    setShowDeleteModal(false);
-    setSelectedAccount(null);
+    try {
+      setSaving(true);
+      await ledgerService.deleteAccount(selectedAccount.id);
+      setShowDeleteModal(false);
+      setSelectedAccount(null);
+      await fetchAccounts();
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to delete account');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Open Edit Modal
   const openEditModal = (account: ChartOfAccount) => {
     setSelectedAccount(account);
     setFormData({
@@ -245,19 +198,16 @@ export default function AccountManagementPage() {
     setShowEditModal(true);
   };
 
-  // Open View Modal
   const openViewModal = (account: ChartOfAccount) => {
     setSelectedAccount(account);
     setShowViewModal(true);
   };
 
-  // Open Delete Modal
   const openDeleteModal = (account: ChartOfAccount) => {
     setSelectedAccount(account);
     setShowDeleteModal(true);
   };
 
-  // Reset Form
   const resetForm = () => {
     setFormData({
       accountId: '',
@@ -270,13 +220,13 @@ export default function AccountManagementPage() {
     });
   };
 
-  // Toggle Account Status
-  const toggleAccountStatus = (account: ChartOfAccount) => {
-    setAccounts(accounts.map(acc => 
-      acc.id === account.id 
-        ? { ...acc, isActive: !acc.isActive }
-        : acc
-    ));
+  const handleToggleStatus = async (account: ChartOfAccount) => {
+    try {
+      await ledgerService.toggleAccountStatus(account.id);
+      await fetchAccounts();
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to toggle status');
+    }
   };
 
   return (
@@ -296,7 +246,7 @@ export default function AccountManagementPage() {
               Ledger Management
             </h1>
             <p className="text-neutral-600 mt-1">
-              Manage Chart of Accounts
+              Manage Chart of Ledger Accounts
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -309,7 +259,7 @@ export default function AccountManagementPage() {
               setShowAddModal(true);
             }}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Account
+              Add Ledger Account
             </Button>
           </div>
         </div>
@@ -369,7 +319,7 @@ export default function AccountManagementPage() {
             <Input
               label=""
               placeholder="Search accounts..."
-              value={filters.search}
+              value={filters.search || ''}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               leftIcon={<Search className="h-4 w-4" />}
               className="flex-1 min-w-[200px]"
@@ -377,7 +327,7 @@ export default function AccountManagementPage() {
             <Select
               label=""
               placeholder="All Types"
-              value={filters.accountType}
+              value={filters.accountType || ''}
               onChange={(e) => setFilters({ ...filters, accountType: e.target.value })}
               options={[
                 { value: '', label: 'All Types' },
@@ -392,7 +342,7 @@ export default function AccountManagementPage() {
             <Select
               label=""
               placeholder="All Status"
-              value={filters.status}
+              value={filters.status || ''}
               onChange={(e) => setFilters({ ...filters, status: e.target.value })}
               options={[
                 { value: '', label: 'All Status' },
@@ -416,144 +366,158 @@ export default function AccountManagementPage() {
 
         {/* Accounts Table */}
         <Card className="p-6">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-neutral-50 border-b border-border-light">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    Ledger ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    Ledger Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    Balance
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-light">
-                {filteredAccounts.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+              <span className="ml-3 text-neutral-600">Loading accounts...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-sm text-red-600 mb-4">{error}</p>
+              <Button variant="outline" size="sm" onClick={fetchAccounts}>
+                Retry
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-neutral-50 border-b border-border-light">
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
-                      <p className="text-sm text-neutral-500">
-                        No accounts found matching your filters.
-                      </p>
-                    </td>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                      Ledger ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                      Ledger Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                      Balance
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ) : (
-                  filteredAccounts.map((account) => (
-                    <tr key={account.id} className="hover:bg-neutral-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <span className="font-mono text-sm font-semibold text-neutral-900">
-                          {account.accountId}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: account.color }}
-                          />
-                          <span className="text-sm font-medium text-neutral-900">
-                            {displayAccountName(account.accountName)}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <Badge
-                          variant="neutral"
-                          className={cn('text-xs', accountTypeColors[account.accountType])}
-                        >
-                          {account.accountType}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-mono font-semibold text-neutral-900">
-                          ₹{account.balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => toggleAccountStatus(account)}
-                          className={cn(
-                            'px-3 py-1 rounded-full text-xs font-medium transition-colors',
-                            account.isActive
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                              : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                          )}
-                        >
-                          {account.isActive ? 'Active' : 'Inactive'}
-                        </button>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => openViewModal(account)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="View Details"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => openEditModal(account)}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Edit Account"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(account)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Account"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="divide-y divide-border-light">
+                  {accounts.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-12 text-center">
+                        <p className="text-sm text-neutral-500">
+                          No ledger accounts found matching your filters.
+                        </p>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ) : (
+                    accounts.map((account) => (
+                      <tr key={account.id} className="hover:bg-neutral-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <span className="font-mono text-sm font-semibold text-neutral-900">
+                            {account.accountId}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: account.color }}
+                            />
+                            <span className="text-sm font-medium text-neutral-900">
+                              {displayAccountName(account.accountName)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge
+                            variant="neutral"
+                            className={cn('text-xs', accountTypeColors[account.accountType])}
+                          >
+                            {account.accountType}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm font-mono font-semibold text-neutral-900">
+                            ₹{account.balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => handleToggleStatus(account)}
+                            className={cn(
+                              'px-3 py-1 rounded-full text-xs font-medium transition-colors',
+                              account.isActive
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                            )}
+                          >
+                            {account.isActive ? 'Active' : 'Inactive'}
+                          </button>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openViewModal(account)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="View Details"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => openEditModal(account)}
+                              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Edit Ledger Account"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(account)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Ledger Account"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Card>
 
-        {/* Add Account Modal */}
+        {/* Add Ledger Account Modal */}
         <Modal
           isOpen={showAddModal}
           onClose={() => {
             setShowAddModal(false);
             resetForm();
           }}
-          title="Add New Account"
+          title="Add New Ledger Account"
           size="md"
         >
           <div className="p-6 space-y-4">
             <Input
-              label="Account ID"
+              label="Ledger Account ID"
               placeholder="e.g., 1020"
               value={formData.accountId || ''}
               onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
               required
             />
             <Input
-              label="Account Name"
+              label="Ledger Account Name"
               placeholder="e.g., Bank Account"
               value={formData.accountName || ''}
               onChange={(e) => setFormData({ ...formData, accountName: e.target.value })}
               required
             />
             <Select
-              label="Account Type"
+              label="Ledger Account Type"
               value={formData.accountType || 'Asset'}
               onChange={(e) => setFormData({ ...formData, accountType: e.target.value as any })}
               options={[
@@ -566,7 +530,7 @@ export default function AccountManagementPage() {
               required
             />
             <Textarea
-              label="Description"
+              label="Ledger Account Description"
               placeholder="Enter account description..."
               value={formData.description || ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -575,7 +539,7 @@ export default function AccountManagementPage() {
             <div className="grid grid-cols-2 gap-4">
               <Input
                 type="number"
-                label="Opening Balance"
+                label="Ledger Account Opening Balance"
                 placeholder="0.00"
                 value={formData.balance || 0}
                 onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
@@ -614,9 +578,9 @@ export default function AccountManagementPage() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleAddAccount}>
-                <Save className="h-4 w-4 mr-2" />
-                Add Account
+              <Button onClick={handleAddAccount} disabled={saving}>
+                {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                Add Ledger Account
               </Button>
             </div>
           </div>
@@ -630,24 +594,24 @@ export default function AccountManagementPage() {
             setSelectedAccount(null);
             resetForm();
           }}
-          title="Edit Account"
+          title="Edit Ledger Account"
           size="md"
         >
           <div className="p-6 space-y-4">
             <Input
-              label="Account ID"
+              label="Ledger Account ID"
               value={formData.accountId || ''}
               onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
               required
             />
             <Input
-              label="Account Name"
+              label="Ledger Account Name"
               value={formData.accountName || ''}
               onChange={(e) => setFormData({ ...formData, accountName: e.target.value })}
               required
             />
             <Select
-              label="Account Type"
+              label="Ledger Account Type"
               value={formData.accountType || 'Asset'}
               onChange={(e) => setFormData({ ...formData, accountType: e.target.value as any })}
               options={[
@@ -660,7 +624,7 @@ export default function AccountManagementPage() {
               required
             />
             <Textarea
-              label="Description"
+              label="Ledger Account Description"
               value={formData.description || ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
@@ -668,7 +632,7 @@ export default function AccountManagementPage() {
             <div className="grid grid-cols-2 gap-4">
               <Input
                 type="number"
-                label="Balance"
+                label="Ledger Account Balance"
                 value={formData.balance || 0}
                 onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
               />
@@ -707,8 +671,8 @@ export default function AccountManagementPage() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleEditAccount}>
-                <Save className="h-4 w-4 mr-2" />
+              <Button onClick={handleEditAccount} disabled={saving}>
+                {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                 Save Changes
               </Button>
             </div>
@@ -722,7 +686,7 @@ export default function AccountManagementPage() {
             setShowViewModal(false);
             setSelectedAccount(null);
           }}
-          title="Account Details"
+          title="Ledger Account Details"
           size="md"
         >
           {selectedAccount && (
@@ -748,7 +712,7 @@ export default function AccountManagementPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-neutral-500 mb-1">Account Type</p>
+                  <p className="text-xs text-neutral-500 mb-1">Ledger Account Type</p>
                   <Badge
                     variant="neutral"
                     className={cn('text-xs', accountTypeColors[selectedAccount.accountType])}
@@ -759,7 +723,7 @@ export default function AccountManagementPage() {
                 <div>
                   <p className="text-xs text-neutral-500 mb-1">Status</p>
                   <span
-                    className={cn(
+                    className={cn(  
                       'px-3 py-1 rounded-full text-xs font-medium',
                       selectedAccount.isActive
                         ? 'bg-green-100 text-green-700'
@@ -832,8 +796,8 @@ export default function AccountManagementPage() {
                 >
                   Cancel
                 </Button>
-                <Button variant="danger" onClick={handleDeleteAccount}>
-                  <Trash2 className="h-4 w-4 mr-2" />
+                <Button variant="danger" onClick={handleDeleteAccount} disabled={saving}>
+                  {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
                   Delete Account
                 </Button>
               </div>
@@ -844,4 +808,3 @@ export default function AccountManagementPage() {
     </DashboardLayout>
   );
 }
-

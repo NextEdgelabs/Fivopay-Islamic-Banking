@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { branchService, Branch, BranchFilters } from '@/services/branch.service';
 
 interface UseBranchesResult {
@@ -15,13 +15,15 @@ export const useBranches = (initialFilters?: BranchFilters): UseBranchesResult =
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<BranchFilters>(initialFilters || {});
+  const hasFetchedRef = useRef(false);
 
   const fetchBranches = useCallback(async () => {
-    setLoading(true);
+    if (!hasFetchedRef.current) setLoading(true);
     setError(null);
     try {
       const data = await branchService.getAll(filters);
       setBranches(data.data.branches);
+      hasFetchedRef.current = true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch branches');
     } finally {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -34,9 +34,11 @@ import {
   Lock,
   Activity,
   Image as ImageIcon,
+  Loader2,
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils';
 import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
+import { reportsService } from '@/services/reports.service';
 import {
   BarChart,
   Bar,
@@ -91,178 +93,26 @@ interface RegulatorySubmission {
   regulator: string;
 }
 
-// Generate dummy data
-const generateKYCExceptions = (): KYCException[] => {
-  const exceptions: KYCException[] = [];
-  const customers = [
-    'Ramesh Kumar', 'Sunita Devi', 'Anil Mehta', 'Kavita Singh', 'Mohammed Ali',
-    'Lakshmi Nair', 'Suresh Reddy', 'Geeta Patel', 'Ravi Shankar', 'Priya Desai',
-    'Vikram Mehta', 'Anjali Joshi', 'Rajesh Iyer', 'Meera Nair', 'Kiran Shetty'
-  ];
-  const reasons = [
-    'Incomplete Address Proof',
-    'PAN Verification Failed',
-    'Aadhaar Mismatch',
-    'Photo Quality Issue',
-    'Document Expired',
-    'Signature Mismatch',
-    'Missing Nominee Details',
-    'Incomplete KYC Form',
-  ];
-  const actions = [
-    'Resubmit Documents',
-    'Update PAN Details',
-    'Verify Aadhaar',
-    'Upload Clear Photo',
-    'Renew Documents',
-    'Match Signature',
-    'Complete Nominee Form',
-    'Fill KYC Form',
-  ];
-  const statuses: KYCException['status'][] = ['Pending', 'In Review', 'Resolved', 'Escalated'];
+interface SummaryData {
+  summary: {
+    kycPending: number;
+    amlFlags: number;
+    transactionsFlagged: number;
+    regulatorySubmitted: number;
+  };
+  charts: {
+    severityDistribution: Array<{ name: string; value: number; color: string }>;
+    complianceTrends: Array<{ week: string; alerts: number; resolved: number; compliance: number }>;
+  };
+}
 
-  customers.forEach((customer, index) => {
-    const reason = reasons[Math.floor(Math.random() * reasons.length)];
-    const action = actions[Math.floor(Math.random() * actions.length)];
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-
-    exceptions.push({
-      id: `kyc-${index + 1}`,
-      customerId: `CUST${String(index + 1).padStart(6, '0')}`,
-      name: customer,
-      reason,
-      actionNeeded: action,
-      status,
-    });
-  });
-
-  return exceptions;
-};
-
-const generateAMLAlerts = (): AMLAlert[] => {
-  const alerts: AMLAlert[] = [];
-  const customers = [
-    'Ramesh Kumar', 'Sunita Devi', 'Anil Mehta', 'Kavita Singh', 'Mohammed Ali',
-    'Lakshmi Nair', 'Suresh Reddy', 'Geeta Patel', 'Ravi Shankar', 'Priya Desai'
-  ];
-  const flagTypes = [
-    'Large Transaction',
-    'Unusual Pattern',
-    'Multiple Small Transactions',
-    'Cross-Border Transfer',
-    'High-Risk Country',
-    'PEP Match',
-    'Sanctions List Match',
-    'Rapid Movement',
-  ];
-  const severities: AMLAlert['severity'][] = ['Low', 'Medium', 'High', 'Critical'];
-  const assignees = ['Compliance Officer A', 'Compliance Officer B', 'AML Analyst X', 'AML Analyst Y'];
-  const resolutions = [
-    'Verified - Legitimate',
-    'False Positive',
-    'Escalated to Authorities',
-    'Account Frozen',
-    'Under Investigation',
-    'Pending Review',
-  ];
-  const statuses: AMLAlert['status'][] = ['Open', 'Under Investigation', 'Resolved', 'False Positive'];
-
-  for (let i = 0; i < 50; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-
-    alerts.push({
-      id: `aml-${i + 1}`,
-      transactionId: `TXN${String(i + 1).padStart(8, '0')}`,
-      customer: customers[Math.floor(Math.random() * customers.length)],
-      flagType: flagTypes[Math.floor(Math.random() * flagTypes.length)],
-      severity: severities[Math.floor(Math.random() * severities.length)],
-      assignedTo: assignees[Math.floor(Math.random() * assignees.length)],
-      resolution: resolutions[Math.floor(Math.random() * resolutions.length)],
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-    });
-  }
-
-  return alerts.sort((a, b) => {
-    const severityOrder = { Critical: 4, High: 3, Medium: 2, Low: 1 };
-    return severityOrder[b.severity] - severityOrder[a.severity];
-  });
-};
-
-const generateAuditTrail = (): AuditTrail[] => {
-  const trails: AuditTrail[] = [];
-  const actions = [
-    'Created', 'Updated', 'Deleted', 'Approved', 'Rejected',
-    'Status Changed', 'Amount Modified', 'Document Uploaded', 'KYC Verified', 'Account Activated'
-  ];
-  const users = [
-    'Admin User', 'Compliance Officer', 'Loan Officer', 'Branch Manager',
-    'System Admin', 'Auditor', 'Supervisor'
-  ];
-  const entityTypes = ['Customer', 'Loan', 'Transaction', 'Account', 'Document', 'KYC'];
-
-  for (let i = 0; i < 200; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() - Math.floor(Math.random() * 90));
-    date.setHours(Math.floor(Math.random() * 24));
-    date.setMinutes(Math.floor(Math.random() * 60));
-
-    const action = actions[Math.floor(Math.random() * actions.length)];
-    const entityType = entityTypes[Math.floor(Math.random() * entityTypes.length)];
-
-    trails.push({
-      id: `audit-${i + 1}`,
-      action: `${action} ${entityType}`,
-      user: users[Math.floor(Math.random() * users.length)],
-      timestamp: date.toISOString(),
-      oldValue: action.includes('Created') ? '-' : `Old ${entityType} Value`,
-      newValue: `New ${entityType} Value`,
-      entityType,
-    });
-  }
-
-  return trails.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-};
-
-const generateRegulatorySubmissions = (): RegulatorySubmission[] => {
-  const submissions: RegulatorySubmission[] = [];
-  const reportNames = [
-    'Monthly Transaction Report',
-    'KYC Compliance Report',
-    'AML Suspicious Activity Report',
-    'Quarterly Financial Statement',
-    'Annual Compliance Report',
-    'Customer Due Diligence Report',
-    'Risk Assessment Report',
-    'Regulatory Filing - RBI',
-  ];
-  const periods = ['Jan 2024', 'Feb 2024', 'Mar 2024', 'Q1 2024', 'Q2 2024', 'FY 2023-24'];
-  const regulators = ['RBI', 'SEBI', 'IRDAI', 'Ministry of Finance'];
-  const statuses: RegulatorySubmission['status'][] = ['Draft', 'Submitted', 'Approved', 'Rejected'];
-
-  reportNames.forEach((report, index) => {
-    const period = periods[Math.floor(Math.random() * periods.length)];
-    const date = new Date();
-    date.setDate(date.getDate() - Math.floor(Math.random() * 60));
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-
-    submissions.push({
-      id: `reg-${index + 1}`,
-      reportName: report,
-      period,
-      submittedOn: date.toISOString(),
-      status,
-      regulator: regulators[Math.floor(Math.random() * regulators.length)],
-    });
-  });
-
-  return submissions.sort((a, b) => new Date(b.submittedOn).getTime() - new Date(a.submittedOn).getTime());
-};
-
-const allKYCExceptions = generateKYCExceptions();
-const allAMLAlerts = generateAMLAlerts();
-const allAuditTrail = generateAuditTrail();
-const allRegulatorySubmissions = generateRegulatorySubmissions();
+interface PaginationData {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
 
 export default function ComplianceReportsPage() {
   const router = useRouter();
@@ -284,150 +134,101 @@ export default function ComplianceReportsPage() {
   const [showFilters, setShowFilters] = useState(true);
   const chartsSectionRef = useRef<HTMLDivElement>(null);
 
-  // Calculate KPIs
-  const kpis = useMemo(() => {
-    const kycPending = allKYCExceptions.filter(e => e.status === 'Pending' || e.status === 'In Review').length;
-    const amlFlags = allAMLAlerts.filter(a => a.status === 'Open' || a.status === 'Under Investigation').length;
-    const transactionsFlagged = allAMLAlerts.length;
-    const regulatorySubmitted = allRegulatorySubmissions.filter(s => s.status === 'Submitted' || s.status === 'Approved').length;
+  // API data states
+  const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
+  const [tabData, setTabData] = useState<any[]>([]);
+  const [pagination, setPagination] = useState<PaginationData | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [tabLoading, setTabLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    return {
-      kycPending,
-      amlFlags,
-      transactionsFlagged,
-      regulatorySubmitted,
-    };
-  }, []);
-
-  // Chart data
-  const alertSeverityData = useMemo(() => {
-    const severityCounts = {
-      Critical: allAMLAlerts.filter(a => a.severity === 'Critical').length,
-      High: allAMLAlerts.filter(a => a.severity === 'High').length,
-      Medium: allAMLAlerts.filter(a => a.severity === 'Medium').length,
-      Low: allAMLAlerts.filter(a => a.severity === 'Low').length,
-    };
-
-    return [
-      { name: 'Critical', value: severityCounts.Critical, color: '#DC2626' },
-      { name: 'High', value: severityCounts.High, color: '#F59E0B' },
-      { name: 'Medium', value: severityCounts.Medium, color: '#3B82F6' },
-      { name: 'Low', value: severityCounts.Low, color: '#10B981' },
-    ];
-  }, []);
-
-  const complianceTrendData = [
-    { week: 'Week 1', alerts: 12, resolved: 8, compliance: 95 },
-    { week: 'Week 2', alerts: 15, resolved: 12, compliance: 92 },
-    { week: 'Week 3', alerts: 18, resolved: 15, compliance: 94 },
-    { week: 'Week 4', alerts: 10, resolved: 9, compliance: 96 },
-    { week: 'Week 5', alerts: 14, resolved: 11, compliance: 93 },
-    { week: 'Week 6', alerts: 16, resolved: 14, compliance: 95 },
-    { week: 'Week 7', alerts: 13, resolved: 10, compliance: 94 },
-    { week: 'Week 8', alerts: 11, resolved: 9, compliance: 97 },
-  ];
-
-  // Filter data
-  const filteredKYC = useMemo(() => {
-    let filtered = [...allKYCExceptions];
-
-    if (filters.status) {
-      filtered = filtered.filter(e => e.status === filters.status);
+  // Fetch summary data (KPIs + charts) — depends only on filters, not page
+  const fetchSummary = useCallback(async () => {
+    try {
+      setSummaryLoading(true);
+      setError(null);
+      const params: Record<string, any> = {};
+      if (filters.dateFrom) params.dateFrom = filters.dateFrom;
+      if (filters.dateTo) params.dateTo = filters.dateTo;
+      if (filters.status) params.status = filters.status;
+      if (filters.severity) params.severity = filters.severity;
+      if (filters.search) params.search = filters.search;
+      const response = await reportsService.getComplianceSummary(params);
+      setSummaryData(response.data as any);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to fetch compliance summary');
+    } finally {
+      setSummaryLoading(false);
     }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        e =>
-          e.customerId.toLowerCase().includes(searchLower) ||
-          e.name.toLowerCase().includes(searchLower) ||
-          e.reason.toLowerCase().includes(searchLower)
-      );
-    }
-
-    return filtered;
   }, [filters]);
 
-  const filteredAML = useMemo(() => {
-    let filtered = [...allAMLAlerts];
+  // Fetch tab-specific data with server-side pagination
+  const fetchTabData = useCallback(async () => {
+    try {
+      setTabLoading(true);
+      setError(null);
+      const params: Record<string, any> = {
+        page: currentPage,
+        limit: itemsPerPage,
+      };
+      if (filters.dateFrom) params.dateFrom = filters.dateFrom;
+      if (filters.dateTo) params.dateTo = filters.dateTo;
+      if (filters.status) params.status = filters.status;
+      if (filters.severity) params.severity = filters.severity;
+      if (filters.user) params.user = filters.user;
+      if (filters.regulator) params.regulator = filters.regulator;
+      if (filters.search) params.search = filters.search;
 
-    if (filters.severity) {
-      filtered = filtered.filter(a => a.severity === filters.severity);
+      switch (activeTab) {
+        case 'kyc': {
+          const res = await reportsService.getComplianceKycExceptions(params);
+          setTabData(res.data.exceptions || []);
+          setPagination(res.data.pagination || null);
+          break;
+        }
+        case 'aml': {
+          const res = await reportsService.getComplianceAmlAlerts(params);
+          setTabData(res.data.alerts || []);
+          setPagination(res.data.pagination || null);
+          break;
+        }
+        case 'audit': {
+          const res = await reportsService.getComplianceAuditTrail(params);
+          setTabData(res.data.auditTrail || []);
+          setPagination(res.data.pagination || null);
+          break;
+        }
+        case 'regulatory': {
+          const res = await reportsService.getComplianceRegulatorySubmissions(params);
+          setTabData(res.data.submissions || []);
+          setPagination(res.data.pagination || null);
+          break;
+        }
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to fetch data');
+    } finally {
+      setTabLoading(false);
     }
-    if (filters.status) {
-      filtered = filtered.filter(a => a.status === filters.status);
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        a =>
-          a.transactionId.toLowerCase().includes(searchLower) ||
-          a.customer.toLowerCase().includes(searchLower) ||
-          a.flagType.toLowerCase().includes(searchLower)
-      );
-    }
+  }, [activeTab, currentPage, filters]);
 
-    return filtered;
-  }, [filters]);
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
-  const filteredAudit = useMemo(() => {
-    let filtered = [...allAuditTrail];
+  useEffect(() => {
+    fetchTabData();
+  }, [fetchTabData]);
 
-    if (filters.dateFrom) {
-      const fromDate = new Date(filters.dateFrom);
-      filtered = filtered.filter(t => new Date(t.timestamp) >= fromDate);
-    }
-    if (filters.dateTo) {
-      const toDate = new Date(filters.dateTo);
-      toDate.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(t => new Date(t.timestamp) <= toDate);
-    }
-    if (filters.user) {
-      filtered = filtered.filter(t => t.user === filters.user);
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        t =>
-          t.action.toLowerCase().includes(searchLower) ||
-          t.user.toLowerCase().includes(searchLower) ||
-          t.entityType.toLowerCase().includes(searchLower)
-      );
-    }
-
-    return filtered;
-  }, [filters]);
-
-  const filteredRegulatory = useMemo(() => {
-    let filtered = [...allRegulatorySubmissions];
-
-    if (filters.status) {
-      filtered = filtered.filter(s => s.status === filters.status);
-    }
-    if (filters.regulator) {
-      filtered = filtered.filter(s => s.regulator === filters.regulator);
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        s =>
-          s.reportName.toLowerCase().includes(searchLower) ||
-          s.regulator.toLowerCase().includes(searchLower)
-      );
-    }
-
-    return filtered;
-  }, [filters]);
-
-  // Pagination
-  const getPaginatedData = (data: any[]) => {
-    return data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  // Derived values from API state
+  const kpis = summaryData?.summary ?? {
+    kycPending: 0,
+    amlFlags: 0,
+    transactionsFlagged: 0,
+    regulatorySubmitted: 0,
   };
-
-  const totalPages = (data: any[]) => Math.ceil(data.length / itemsPerPage);
-
-  // Get unique values for filters
-  const uniqueUsers = Array.from(new Set(allAuditTrail.map(t => t.user))).sort();
-  const uniqueRegulators = Array.from(new Set(allRegulatorySubmissions.map(s => s.regulator))).sort();
+  const alertSeverityData = summaryData?.charts?.severityDistribution ?? [];
+  const complianceTrendData = summaryData?.charts?.complianceTrends ?? [];
 
   // Reset filters
   const resetFilters = () => {
@@ -440,6 +241,7 @@ export default function ComplianceReportsPage() {
       regulator: '',
       search: '',
     });
+    setCurrentPage(1);
   };
 
   // Table columns
@@ -653,6 +455,12 @@ export default function ComplianceReportsPage() {
     },
   ];
 
+  // Pagination helpers for display text
+  const paginationStart = pagination ? (pagination.currentPage - 1) * itemsPerPage + 1 : 0;
+  const paginationEnd = pagination
+    ? Math.min(pagination.currentPage * itemsPerPage, pagination.totalItems)
+    : 0;
+
   return (
     <DashboardLayout>
       <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -700,73 +508,101 @@ export default function ComplianceReportsPage() {
           </Button>
         </div>
 
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-600" />
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                fetchSummary();
+                fetchTabData();
+              }}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </div>
+        )}
+
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-blue-700 mb-1 font-medium">KYC Pending Verifications</p>
-                <p className="text-2xl font-bold text-blue-900">
-                  {kpis.kycPending}
-                </p>
-                <p className="text-xs text-blue-600 mt-1">
-                  {allKYCExceptions.length} total exceptions
-                </p>
+        {summaryLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+            <span className="ml-2 text-neutral-600">Loading summary...</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-blue-700 mb-1 font-medium">KYC Pending Verifications</p>
+                  <p className="text-2xl font-bold text-blue-900">
+                    {kpis.kycPending}
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Pending verification
+                  </p>
+                </div>
+                <div className="bg-blue-200 p-3 rounded-lg">
+                  <UserCheck className="h-6 w-6 text-blue-700" />
+                </div>
               </div>
-              <div className="bg-blue-200 p-3 rounded-lg">
-                <UserCheck className="h-6 w-6 text-blue-700" />
+            </Card>
+            <Card className="p-6 bg-gradient-to-br from-red-50 to-red-100 border border-red-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-red-700 mb-1 font-medium">AML Flags Raised</p>
+                  <p className="text-2xl font-bold text-red-900">
+                    {kpis.amlFlags}
+                  </p>
+                  <p className="text-xs text-red-600 mt-1">
+                    Active investigations
+                  </p>
+                </div>
+                <div className="bg-red-200 p-3 rounded-lg">
+                  <AlertTriangle className="h-6 w-6 text-red-700" />
+                </div>
               </div>
-            </div>
-          </Card>
-          <Card className="p-6 bg-gradient-to-br from-red-50 to-red-100 border border-red-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-red-700 mb-1 font-medium">AML Flags Raised</p>
-                <p className="text-2xl font-bold text-red-900">
-                  {kpis.amlFlags}
-                </p>
-                <p className="text-xs text-red-600 mt-1">
-                  {allAMLAlerts.length} total alerts
-                </p>
+            </Card>
+            <Card className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-orange-700 mb-1 font-medium">Transactions Flagged</p>
+                  <p className="text-2xl font-bold text-orange-900">
+                    {kpis.transactionsFlagged}
+                  </p>
+                  <p className="text-xs text-orange-600 mt-1">
+                    For review
+                  </p>
+                </div>
+                <div className="bg-orange-200 p-3 rounded-lg">
+                  <Activity className="h-6 w-6 text-orange-700" />
+                </div>
               </div>
-              <div className="bg-red-200 p-3 rounded-lg">
-                <AlertTriangle className="h-6 w-6 text-red-700" />
+            </Card>
+            <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-green-700 mb-1 font-medium">Regulatory Reports Submitted</p>
+                  <p className="text-2xl font-bold text-green-900">
+                    {kpis.regulatorySubmitted}
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    Reports filed
+                  </p>
+                </div>
+                <div className="bg-green-200 p-3 rounded-lg">
+                  <FileCheck className="h-6 w-6 text-green-700" />
+                </div>
               </div>
-            </div>
-          </Card>
-          <Card className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-orange-700 mb-1 font-medium">Transactions Flagged</p>
-                <p className="text-2xl font-bold text-orange-900">
-                  {kpis.transactionsFlagged}
-                </p>
-                <p className="text-xs text-orange-600 mt-1">
-                  For review
-                </p>
-              </div>
-              <div className="bg-orange-200 p-3 rounded-lg">
-                <Activity className="h-6 w-6 text-orange-700" />
-              </div>
-            </div>
-          </Card>
-          <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-green-700 mb-1 font-medium">Regulatory Reports Submitted</p>
-                <p className="text-2xl font-bold text-green-900">
-                  {kpis.regulatorySubmitted}
-                </p>
-                <p className="text-xs text-green-600 mt-1">
-                  {allRegulatorySubmissions.length} total reports
-                </p>
-              </div>
-              <div className="bg-green-200 p-3 rounded-lg">
-                <FileCheck className="h-6 w-6 text-green-700" />
-              </div>
-            </div>
-          </Card>
-        </div>
+            </Card>
+          </div>
+        )}
 
         {/* Charts */}
         <div ref={chartsSectionRef} className="space-y-4">
@@ -778,26 +614,36 @@ export default function ComplianceReportsPage() {
               Alert Severity Distribution
             </h3>
             <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={alertSeverityData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={(props: any) => `${props.name}: ${props.value}`}
-                  >
-                    {alertSeverityData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              {summaryLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+                </div>
+              ) : alertSeverityData.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-neutral-500">
+                  No severity data available
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={alertSeverityData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                      label={(props: any) => `${props.name}: ${props.value}`}
+                    >
+                      {alertSeverityData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </Card>
 
@@ -807,23 +653,33 @@ export default function ComplianceReportsPage() {
               Compliance Trends (Weekly)
             </h3>
             <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={complianceTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="week" stroke="#6B7280" style={{ fontSize: '12px' }} />
-                  <YAxis stroke="#6B7280" style={{ fontSize: '12px' }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="alerts" fill="#EF4444" name="Alerts" radius={[8, 8, 0, 0]} />
-                  <Bar dataKey="resolved" fill="#10B981" name="Resolved" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {summaryLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+                </div>
+              ) : complianceTrendData.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-neutral-500">
+                  No trend data available
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={complianceTrendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis dataKey="week" stroke="#6B7280" style={{ fontSize: '12px' }} />
+                    <YAxis stroke="#6B7280" style={{ fontSize: '12px' }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #E5E7EB',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="alerts" fill="#EF4444" name="Alerts" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="resolved" fill="#10B981" name="Resolved" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </Card>
           </div>
@@ -838,7 +694,7 @@ export default function ComplianceReportsPage() {
             Create Case
           </Button>
           <Button variant="outline" onClick={() => {
-            exportToCSV(filteredAudit, `audit-trail-${new Date().toISOString().split('T')[0]}`, [
+            exportToCSV(tabData, `audit-trail-${new Date().toISOString().split('T')[0]}`, [
               { key: 'action', label: 'Action' },
               { key: 'user', label: 'User' },
               { key: 'timestamp', label: 'Timestamp' },
@@ -851,21 +707,19 @@ export default function ComplianceReportsPage() {
             Download Audit Log (CSV)
           </Button>
           <Button variant="outline" onClick={() => {
-            let dataToExport: any[] = [];
             let filename = 'compliance-reports';
-            
+
             if (activeTab === 'kyc') {
-              dataToExport = filteredKYC;
               filename = 'kyc-exceptions';
             } else if (activeTab === 'aml') {
-              dataToExport = filteredAML;
               filename = 'aml-alerts';
             } else if (activeTab === 'regulatory') {
-              dataToExport = filteredRegulatory;
               filename = 'regulatory-submissions';
+            } else if (activeTab === 'audit') {
+              filename = 'audit-trail';
             }
-            
-            exportToCSV(dataToExport, `${filename}-${new Date().toISOString().split('T')[0]}`);
+
+            exportToCSV(tabData, `${filename}-${new Date().toISOString().split('T')[0]}`);
           }}>
             <FileSpreadsheet className="h-4 w-4 mr-2" />
             Export CSV
@@ -941,10 +795,13 @@ export default function ComplianceReportsPage() {
                 onChange={(e) => setFilters({ ...filters, user: e.target.value })}
                 options={[
                   { value: '', label: 'All Users' },
-                  ...uniqueUsers.map((user) => ({
-                    value: user,
-                    label: user,
-                  })),
+                  { value: 'Admin User', label: 'Admin User' },
+                  { value: 'Auditor', label: 'Auditor' },
+                  { value: 'Branch Manager', label: 'Branch Manager' },
+                  { value: 'Compliance Officer', label: 'Compliance Officer' },
+                  { value: 'Loan Officer', label: 'Loan Officer' },
+                  { value: 'Supervisor', label: 'Supervisor' },
+                  { value: 'System Admin', label: 'System Admin' },
                 ]}
               />
               <Select
@@ -954,10 +811,10 @@ export default function ComplianceReportsPage() {
                 onChange={(e) => setFilters({ ...filters, regulator: e.target.value })}
                 options={[
                   { value: '', label: 'All Regulators' },
-                  ...uniqueRegulators.map((regulator) => ({
-                    value: regulator,
-                    label: regulator,
-                  })),
+                  { value: 'IRDAI', label: 'IRDAI' },
+                  { value: 'Ministry of Finance', label: 'Ministry of Finance' },
+                  { value: 'RBI', label: 'RBI' },
+                  { value: 'SEBI', label: 'SEBI' },
                 ]}
               />
               <div className="md:col-span-2 lg:col-span-3">
@@ -982,27 +839,38 @@ export default function ComplianceReportsPage() {
                 label: 'KYC Exceptions',
                 content: (
                   <div className="mt-4">
-                    <Table
-                      data={getPaginatedData(filteredKYC)}
-                      columns={kycColumns}
-                      onRowClick={(row) => {
-                        console.log('View KYC exception:', row);
-                      }}
-                    />
-                    {totalPages(filteredKYC) > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredKYC.length)} of{' '}
-                          {filteredKYC.length} exceptions
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages(filteredKYC)}
-                          onPageChange={setCurrentPage}
-                        />
+                    {tabLoading && activeTab === 'kyc' ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+                        <span className="ml-2 text-neutral-600">Loading KYC exceptions...</span>
                       </div>
-                    )}
+                    ) : activeTab === 'kyc' && tabData.length === 0 ? (
+                      <div className="text-center py-12 text-neutral-500">No KYC exceptions found.</div>
+                    ) : activeTab === 'kyc' ? (
+                      <>
+                        <Table
+                          data={tabData}
+                          columns={kycColumns}
+                          onRowClick={(row) => {
+                            console.log('View KYC exception:', row);
+                          }}
+                        />
+                        {pagination && pagination.totalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between">
+                            <p className="text-sm text-neutral-600">
+                              Showing {paginationStart} to{' '}
+                              {paginationEnd} of{' '}
+                              {pagination.totalItems} exceptions
+                            </p>
+                            <Pagination
+                              currentPage={pagination.currentPage}
+                              totalPages={pagination.totalPages}
+                              onPageChange={setCurrentPage}
+                            />
+                          </div>
+                        )}
+                      </>
+                    ) : null}
                   </div>
                 ),
               },
@@ -1011,27 +879,38 @@ export default function ComplianceReportsPage() {
                 label: 'AML Alerts',
                 content: (
                   <div className="mt-4">
-                    <Table
-                      data={getPaginatedData(filteredAML)}
-                      columns={amlColumns}
-                      onRowClick={(row) => {
-                        console.log('View AML alert:', row);
-                      }}
-                    />
-                    {totalPages(filteredAML) > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredAML.length)} of{' '}
-                          {filteredAML.length} alerts
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages(filteredAML)}
-                          onPageChange={setCurrentPage}
-                        />
+                    {tabLoading && activeTab === 'aml' ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+                        <span className="ml-2 text-neutral-600">Loading AML alerts...</span>
                       </div>
-                    )}
+                    ) : activeTab === 'aml' && tabData.length === 0 ? (
+                      <div className="text-center py-12 text-neutral-500">No AML alerts found.</div>
+                    ) : activeTab === 'aml' ? (
+                      <>
+                        <Table
+                          data={tabData}
+                          columns={amlColumns}
+                          onRowClick={(row) => {
+                            console.log('View AML alert:', row);
+                          }}
+                        />
+                        {pagination && pagination.totalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between">
+                            <p className="text-sm text-neutral-600">
+                              Showing {paginationStart} to{' '}
+                              {paginationEnd} of{' '}
+                              {pagination.totalItems} alerts
+                            </p>
+                            <Pagination
+                              currentPage={pagination.currentPage}
+                              totalPages={pagination.totalPages}
+                              onPageChange={setCurrentPage}
+                            />
+                          </div>
+                        )}
+                      </>
+                    ) : null}
                   </div>
                 ),
               },
@@ -1040,27 +919,38 @@ export default function ComplianceReportsPage() {
                 label: 'Audit Trail',
                 content: (
                   <div className="mt-4">
-                    <Table
-                      data={getPaginatedData(filteredAudit)}
-                      columns={auditColumns}
-                      onRowClick={(row) => {
-                        console.log('View audit trail:', row);
-                      }}
-                    />
-                    {totalPages(filteredAudit) > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredAudit.length)} of{' '}
-                          {filteredAudit.length} entries
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages(filteredAudit)}
-                          onPageChange={setCurrentPage}
-                        />
+                    {tabLoading && activeTab === 'audit' ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+                        <span className="ml-2 text-neutral-600">Loading audit trail...</span>
                       </div>
-                    )}
+                    ) : activeTab === 'audit' && tabData.length === 0 ? (
+                      <div className="text-center py-12 text-neutral-500">No audit entries found.</div>
+                    ) : activeTab === 'audit' ? (
+                      <>
+                        <Table
+                          data={tabData}
+                          columns={auditColumns}
+                          onRowClick={(row) => {
+                            console.log('View audit trail:', row);
+                          }}
+                        />
+                        {pagination && pagination.totalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between">
+                            <p className="text-sm text-neutral-600">
+                              Showing {paginationStart} to{' '}
+                              {paginationEnd} of{' '}
+                              {pagination.totalItems} entries
+                            </p>
+                            <Pagination
+                              currentPage={pagination.currentPage}
+                              totalPages={pagination.totalPages}
+                              onPageChange={setCurrentPage}
+                            />
+                          </div>
+                        )}
+                      </>
+                    ) : null}
                   </div>
                 ),
               },
@@ -1069,27 +959,38 @@ export default function ComplianceReportsPage() {
                 label: 'Regulatory Submissions',
                 content: (
                   <div className="mt-4">
-                    <Table
-                      data={getPaginatedData(filteredRegulatory)}
-                      columns={regulatoryColumns}
-                      onRowClick={(row) => {
-                        console.log('View regulatory submission:', row);
-                      }}
-                    />
-                    {totalPages(filteredRegulatory) > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredRegulatory.length)} of{' '}
-                          {filteredRegulatory.length} submissions
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages(filteredRegulatory)}
-                          onPageChange={setCurrentPage}
-                        />
+                    {tabLoading && activeTab === 'regulatory' ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+                        <span className="ml-2 text-neutral-600">Loading regulatory submissions...</span>
                       </div>
-                    )}
+                    ) : activeTab === 'regulatory' && tabData.length === 0 ? (
+                      <div className="text-center py-12 text-neutral-500">No regulatory submissions found.</div>
+                    ) : activeTab === 'regulatory' ? (
+                      <>
+                        <Table
+                          data={tabData}
+                          columns={regulatoryColumns}
+                          onRowClick={(row) => {
+                            console.log('View regulatory submission:', row);
+                          }}
+                        />
+                        {pagination && pagination.totalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between">
+                            <p className="text-sm text-neutral-600">
+                              Showing {paginationStart} to{' '}
+                              {paginationEnd} of{' '}
+                              {pagination.totalItems} submissions
+                            </p>
+                            <Pagination
+                              currentPage={pagination.currentPage}
+                              totalPages={pagination.totalPages}
+                              onPageChange={setCurrentPage}
+                            />
+                          </div>
+                        )}
+                      </>
+                    ) : null}
                   </div>
                 ),
               },
@@ -1105,4 +1006,3 @@ export default function ComplianceReportsPage() {
     </DashboardLayout>
   );
 }
-

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -32,8 +32,24 @@ export default function DepositsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [txnPage, setTxnPage] = useState(1);
   const [txnSource, setTxnSource] = useState<'all' | 'share' | 'investment'>('all');
+  const [searchInputValue, setSearchInputValue] = useState(filters.search || '');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const itemsPerPage = 10;
   const txnPerPage = 15;
+
+  useEffect(() => {
+    setSearchInputValue(filters.search || '');
+  }, [filters.search]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInputValue(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: value }));
+      searchDebounceRef.current = null;
+    }, 1000);
+  };
 
   const {
     transactions: allTransactions,
@@ -83,7 +99,8 @@ export default function DepositsPage() {
     return <Badge variant={variants[status] || 'neutral'}>{status}</Badge>;
   };
 
-  if (loading) {
+  const isInitialLoad = loading && !deposits.length;
+  if (isInitialLoad) {
     return (
       <DashboardLayout>
         <div className="p-6 space-y-6">
@@ -234,11 +251,11 @@ export default function DepositsPage() {
 
         <Card>
           <div className="p-4 flex flex-col md:flex-row gap-4">
-            <div className="w-full md:w-1/3">
+            <div className="w-full md:w-1/2">
               <Input
-                placeholder="Search deposits..."
-                value={filters.search || ''}
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                placeholder="Search by deposit ID, account, or customer..."
+                value={searchInputValue}
+                onChange={handleSearchChange}
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>

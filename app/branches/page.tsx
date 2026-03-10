@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, Button, Table, Input, Select, Pagination, Badge, Skeleton, Breadcrumbs, Modal } from '@/components/ui';
@@ -20,10 +20,26 @@ export default function BranchesPage() {
   const itemsPerPage = 10;
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
-  
+  const [searchInputValue, setSearchInputValue] = useState(filters.search || '');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [filters]);
+
+  useEffect(() => {
+    setSearchInputValue(filters.search || '');
+  }, [filters.search]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInputValue(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: value }));
+      searchDebounceRef.current = null;
+    }, 1000);
+  };
 
   const paginatedBranches = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -84,7 +100,9 @@ export default function BranchesPage() {
     },
   ];
 
-  if (loading) return <DashboardLayout><div className="p-6"><Skeleton className="h-96 w-full" /></div></DashboardLayout>;
+  // Full-page loading only on initial load so search input stays mounted during refetch
+  const isInitialLoad = loading && !branches.length;
+  if (isInitialLoad) return <DashboardLayout><div className="p-6"><Skeleton className="h-96 w-full" /></div></DashboardLayout>;
   if (error) return <DashboardLayout><div className="p-6 text-error-500">{error}</div></DashboardLayout>;
 
   return (
@@ -131,7 +149,7 @@ export default function BranchesPage() {
 
         <Card>
           <div className="p-4 flex flex-col md:flex-row gap-4">
-            <Input className="w-full md:w-1/3" placeholder="Search by name, code..." value={filters.search || ''} onChange={e => setFilters(prev => ({ ...prev, search: e.target.value }))} leftIcon={<Search className="h-4 w-4" />} />
+            <Input className="w-full md:w-1/3" placeholder="Search by name, code..." value={searchInputValue} onChange={handleSearchChange} leftIcon={<Search className="h-4 w-4" />} />
             <Select 
               className="w-full md:w-auto"
               name="state"

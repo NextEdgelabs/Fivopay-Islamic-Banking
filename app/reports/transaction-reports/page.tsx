@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -28,6 +28,7 @@ import {
   Eye,
   X,
   Image as ImageIcon,
+  Loader2,
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils';
 import { exportChartAsPNG, exportKPIsAsCSV } from '@/lib/reportExport';
@@ -44,8 +45,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { reportsService } from '@/services/reports.service';
 
-// Transaction type definitions
 interface Transaction {
   id: string;
   transactionId: string;
@@ -62,75 +63,6 @@ interface Transaction {
   reference: string;
 }
 
-// Dummy data
-const generateDummyTransactions = (): Transaction[] => {
-  const transactions: Transaction[] = [];
-  const types: Transaction['type'][] = ['Deposit', 'Withdrawal', 'Transfer', 'Loan Disbursement', 'Loan Repayment'];
-  const statuses: Transaction['status'][] = ['Completed', 'Pending', 'Failed', 'Reversed'];
-  const paymentMethods: Transaction['paymentMethod'][] = ['Cash', 'UPI', 'Bank Transfer', 'Cheque', 'Card'];
-  const agents = ['Rajesh Kumar', 'Priya Sharma', 'Amit Patel', 'Sneha Reddy', 'Vikram Singh'];
-  const branches = ['Main Branch', 'Downtown Branch', 'City Center', 'Suburban Branch', 'North Branch'];
-  const users = ['Ramesh Kumar', 'Sunita Devi', 'Anil Mehta', 'Kavita Singh', 'Mohammed Ali', 'Lakshmi Nair', 'Suresh Reddy'];
-
-  for (let i = 0; i < 150; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-    date.setHours(Math.floor(Math.random() * 24));
-    date.setMinutes(Math.floor(Math.random() * 60));
-
-    const amount = Math.floor(Math.random() * 500000) + 1000;
-    const type = types[Math.floor(Math.random() * types.length)];
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const paymentMethod = paymentMethods[Math.floor(Math.random() * paymentMethods.length)];
-
-    transactions.push({
-      id: `txn-${i + 1}`,
-      transactionId: `TXN${String(i + 1).padStart(8, '0')}`,
-      dateTime: date.toISOString(),
-      user: users[Math.floor(Math.random() * users.length)],
-      userId: `USR${String(Math.floor(Math.random() * 1000)).padStart(6, '0')}`,
-      type,
-      amount,
-      status,
-      agent: agents[Math.floor(Math.random() * agents.length)],
-      branch: branches[Math.floor(Math.random() * branches.length)],
-      paymentMethod,
-      balanceAfter: Math.floor(Math.random() * 10000000) + amount,
-      reference: `REF${String(Math.floor(Math.random() * 100000)).padStart(8, '0')}`,
-    });
-  }
-
-  return transactions.sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime());
-};
-
-const allTransactions = generateDummyTransactions();
-
-// Chart data
-const dailyTrendData = [
-  { date: '01 Jan', transactions: 45, amount: 1250000 },
-  { date: '02 Jan', transactions: 52, amount: 1420000 },
-  { date: '03 Jan', transactions: 48, amount: 1380000 },
-  { date: '04 Jan', transactions: 61, amount: 1650000 },
-  { date: '05 Jan', transactions: 55, amount: 1520000 },
-  { date: '06 Jan', transactions: 42, amount: 1180000 },
-  { date: '07 Jan', transactions: 58, amount: 1680000 },
-  { date: '08 Jan', transactions: 49, amount: 1350000 },
-  { date: '09 Jan', transactions: 53, amount: 1480000 },
-  { date: '10 Jan', transactions: 47, amount: 1320000 },
-  { date: '11 Jan', transactions: 56, amount: 1620000 },
-  { date: '12 Jan', transactions: 44, amount: 1280000 },
-  { date: '13 Jan', transactions: 50, amount: 1450000 },
-  { date: '14 Jan', transactions: 59, amount: 1720000 },
-];
-
-const paymentMethodData = [
-  { name: 'Cash', value: 35, color: '#635BFF' },
-  { name: 'UPI', value: 28, color: '#00D924' },
-  { name: 'Bank Transfer', value: 22, color: '#FFA500' },
-  { name: 'Card', value: 10, color: '#DF1B41' },
-  { name: 'Cheque', value: 5, color: '#8B5CF6' },
-];
-
 export default function TransactionReportsPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('all');
@@ -138,7 +70,6 @@ export default function TransactionReportsPage() {
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const itemsPerPage = 15;
 
-  // Filter states
   const [filters, setFilters] = useState({
     dateFrom: '',
     dateTo: '',
@@ -155,77 +86,73 @@ export default function TransactionReportsPage() {
   const [showFilters, setShowFilters] = useState(true);
   const chartsSectionRef = useRef<HTMLDivElement>(null);
 
-  // Filter transactions based on active tab and filters
-  const filteredTransactions = useMemo(() => {
-    let filtered = [...allTransactions];
+  const [summaryData, setSummaryData] = useState<any>(null);
+  const [transactionsData, setTransactionsData] = useState<Transaction[]>([]);
+  const [pagination, setPagination] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    // Apply tab filter
-    if (activeTab === 'failed') {
-      filtered = filtered.filter((t) => t.status === 'Failed' || t.status === 'Reversed');
-    } else if (activeTab === 'high-value') {
-      filtered = filtered.filter((t) => t.amount >= 100000);
+  const fetchSummary = useCallback(async () => {
+    try {
+      const response = await reportsService.getTransactionsSummary({});
+      setSummaryData(response.data);
+    } catch (err: any) {
+      console.error('Failed to fetch summary:', err);
     }
+  }, []);
 
-    // Apply other filters
-    if (filters.dateFrom) {
-      const fromDate = new Date(filters.dateFrom);
-      filtered = filtered.filter((t) => new Date(t.dateTime) >= fromDate);
+  const fetchTransactions = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = {
+        page: currentPage,
+        limit: itemsPerPage,
+        tab: activeTab,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        type: filters.transactionType,
+        status: filters.status,
+        agent: filters.agent,
+        branch: filters.branch,
+        minAmount: filters.amountMin,
+        maxAmount: filters.amountMax,
+        paymentMethod: filters.paymentMethod,
+        search: filters.search,
+      };
+      const response = await reportsService.getTransactionsList(params);
+      setTransactionsData(response.data.transactions || []);
+      setPagination(response.data.pagination || null);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch transactions');
+      setTransactionsData([]);
+      setPagination(null);
+    } finally {
+      setLoading(false);
     }
-    if (filters.dateTo) {
-      const toDate = new Date(filters.dateTo);
-      toDate.setHours(23, 59, 59, 999);
-      filtered = filtered.filter((t) => new Date(t.dateTime) <= toDate);
-    }
-    if (filters.transactionType) {
-      filtered = filtered.filter((t) => t.type === filters.transactionType);
-    }
-    if (filters.status) {
-      filtered = filtered.filter((t) => t.status === filters.status);
-    }
-    if (filters.agent) {
-      filtered = filtered.filter((t) => t.agent === filters.agent);
-    }
-    if (filters.branch) {
-      filtered = filtered.filter((t) => t.branch === filters.branch);
-    }
-    if (filters.amountMin) {
-      filtered = filtered.filter((t) => t.amount >= parseFloat(filters.amountMin));
-    }
-    if (filters.amountMax) {
-      filtered = filtered.filter((t) => t.amount <= parseFloat(filters.amountMax));
-    }
-    if (filters.paymentMethod) {
-      filtered = filtered.filter((t) => t.paymentMethod === filters.paymentMethod);
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        (t) =>
-          t.transactionId.toLowerCase().includes(searchLower) ||
-          t.user.toLowerCase().includes(searchLower) ||
-          t.reference.toLowerCase().includes(searchLower)
-      );
-    }
+  }, [currentPage, activeTab, filters]);
 
-    return filtered;
-  }, [activeTab, filters]);
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
-  const paginatedTransactions = filteredTransactions.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
-  // Summary stats
-  const summaryStats = useMemo(() => {
-    const totalCount = filteredTransactions.length;
-    const totalAmount = filteredTransactions.reduce((sum, t) => sum + t.amount, 0);
-    const avgValue = totalCount > 0 ? totalAmount / totalCount : 0;
-    return { totalCount, totalAmount, avgValue };
-  }, [filteredTransactions]);
+  const summaryStats = useMemo(() => ({
+    totalCount: summaryData?.summary?.totalCount ?? 0,
+    totalAmount: summaryData?.summary?.totalAmount ?? 0,
+    avgValue: summaryData?.summary?.avgValue ?? 0,
+  }), [summaryData]);
 
-  // Reset filters
+  const dailyTrendData = useMemo(() => summaryData?.charts?.dailyTrends ?? [], [summaryData]);
+  const paymentMethodData = useMemo(() => summaryData?.charts?.paymentMethodBreakdown ?? [], [summaryData]);
+
+  const totalPages = pagination?.totalPages ?? 1;
+  const totalItems = pagination?.totalItems ?? 0;
+  const paginatedTransactions = transactionsData;
+
   const resetFilters = () => {
     setFilters({
       dateFrom: '',
@@ -239,9 +166,9 @@ export default function TransactionReportsPage() {
       paymentMethod: '',
       search: '',
     });
+    setCurrentPage(1);
   };
 
-  // Handle row selection
   const handleSelectRow = (transactionId: string, checked: boolean) => {
     const newSelected = new Set(selectedRows);
     if (checked) {
@@ -260,7 +187,6 @@ export default function TransactionReportsPage() {
     }
   };
 
-  // Table columns
   const columns = [
     {
       key: 'select',
@@ -405,9 +331,44 @@ export default function TransactionReportsPage() {
     },
   ];
 
-  // Get unique values for filter dropdowns
-  const uniqueAgents = Array.from(new Set(allTransactions.map((t) => t.agent))).sort();
-  const uniqueBranches = Array.from(new Set(allTransactions.map((t) => t.branch))).sort();
+  const renderTableContent = () => (
+    <div className="mt-4">
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+        </div>
+      ) : paginatedTransactions.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-neutral-500">
+          <FileText className="h-12 w-12 mb-3 text-neutral-300" />
+          <p className="text-sm">No transactions found</p>
+        </div>
+      ) : (
+        <>
+          <Table
+            data={paginatedTransactions}
+            columns={columns}
+            onRowClick={(row) => {
+              console.log('View transaction:', row);
+            }}
+          />
+          {totalPages > 1 && (
+            <div className="mt-4 flex items-center justify-between">
+              <p className="text-sm text-neutral-600">
+                Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
+                {Math.min(currentPage * itemsPerPage, totalItems)} of{' '}
+                {totalItems} transactions
+              </p>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
 
   return (
     <DashboardLayout>
@@ -458,6 +419,20 @@ export default function TransactionReportsPage() {
           </button>
           </div>
         </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => { fetchSummary(); fetchTransactions(); }}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </div>
+        )}
 
         {/* Advanced Filters */}
         <Card className="p-6">
@@ -539,10 +514,6 @@ export default function TransactionReportsPage() {
                 }
                 options={[
                   { value: '', label: 'All Agents' },
-                  ...uniqueAgents.map((agent) => ({
-                    value: agent,
-                    label: agent,
-                  })),
                 ]}
               />
               <Select
@@ -554,10 +525,6 @@ export default function TransactionReportsPage() {
                 }
                 options={[
                   { value: '', label: 'All Branches' },
-                  ...uniqueBranches.map((branch) => ({
-                    value: branch,
-                    label: branch,
-                  })),
                 ]}
               />
               <Input
@@ -672,7 +639,7 @@ export default function TransactionReportsPage() {
             <Button
               variant="primary"
               onClick={() => {
-                exportToCSV(filteredTransactions, `transaction-reports-${new Date().toISOString().split('T')[0]}`, [
+                exportToCSV(transactionsData, `transaction-reports-${new Date().toISOString().split('T')[0]}`, [
                   { key: 'transactionId', label: 'Transaction ID' },
                   { key: 'dateTime', label: 'Date/Time' },
                   { key: 'user', label: 'User' },
@@ -694,7 +661,6 @@ export default function TransactionReportsPage() {
             <Button
               variant="outline"
               onClick={() => {
-                // Export PDF logic
                 console.log('Export PDF');
               }}
             >
@@ -705,7 +671,6 @@ export default function TransactionReportsPage() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  // Reconcile logic
                   console.log('Reconcile Selected', Array.from(selectedRows));
                 }}
               >
@@ -723,90 +688,17 @@ export default function TransactionReportsPage() {
               {
                 id: 'all',
                 label: 'All Transactions',
-                content: (
-                  <div className="mt-4">
-                    <Table
-                      data={paginatedTransactions}
-                      columns={columns}
-                      onRowClick={(row) => {
-                        // View details logic
-                        console.log('View transaction:', row);
-                      }}
-                    />
-                    {totalPages > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredTransactions.length)} of{' '}
-                          {filteredTransactions.length} transactions
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages}
-                          onPageChange={setCurrentPage}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ),
+                content: renderTableContent(),
               },
               {
                 id: 'failed',
                 label: 'Failed / Reversed Transactions',
-                content: (
-                  <div className="mt-4">
-                    <Table
-                      data={paginatedTransactions}
-                      columns={columns}
-                      onRowClick={(row) => {
-                        console.log('View transaction:', row);
-                      }}
-                    />
-                    {totalPages > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredTransactions.length)} of{' '}
-                          {filteredTransactions.length} transactions
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages}
-                          onPageChange={setCurrentPage}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ),
+                content: renderTableContent(),
               },
               {
                 id: 'high-value',
                 label: 'High-Value Transactions',
-                content: (
-                  <div className="mt-4">
-                    <Table
-                      data={paginatedTransactions}
-                      columns={columns}
-                      onRowClick={(row) => {
-                        console.log('View transaction:', row);
-                      }}
-                    />
-                    {totalPages > 1 && (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-sm text-neutral-600">
-                          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredTransactions.length)} of{' '}
-                          {filteredTransactions.length} transactions
-                        </p>
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={totalPages}
-                          onPageChange={setCurrentPage}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ),
+                content: renderTableContent(),
               },
             ]}
             defaultTab="all"
@@ -901,7 +793,7 @@ export default function TransactionReportsPage() {
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {paymentMethodData.map((entry, index) => (
+                    {paymentMethodData.map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -924,4 +816,3 @@ export default function TransactionReportsPage() {
     </DashboardLayout>
   );
 }
-
