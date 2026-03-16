@@ -126,7 +126,7 @@ export default function ViewCustomerPage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="p-6 space-y-6 animate-pulse">
+      <div className="p-4 sm:p-6 space-y-6 animate-pulse">
           <div className="h-6 bg-neutral-200 rounded w-1/4"></div>
           <div className="h-32 bg-neutral-200 rounded"></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -142,8 +142,8 @@ export default function ViewCustomerPage() {
 
   if (error || !customer) {
     return (
-      <DashboardLayout>
-        <div className="p-6">
+    <DashboardLayout>
+      <div className="p-4 sm:p-6">
           <Card>
             <div className="p-12 text-center">
               <XCircle className="h-16 w-16 text-error-500 mx-auto mb-4" />
@@ -218,7 +218,7 @@ export default function ViewCustomerPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
         <Breadcrumbs items={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Customers', href: '/customers' },
@@ -235,7 +235,7 @@ export default function ViewCustomerPage() {
                 <p className="text-neutral-600 mt-1">{customer.memberId || customer.customerId || customer._id} • {customer.email}</p>
               </div>
             </div>
-            <div className="flex gap-2 flex-shrink-0">
+            <div className="flex flex-wrap gap-2 flex-shrink-0 mt-4 md:mt-0">
               {!customer.isApproved && (
                 <Button variant="primary" onClick={() => setShowApproveModal(true)} loading={isDeleting}>
                   <CheckCircle className="mr-2 h-4 w-4" /> Approve User
@@ -348,9 +348,9 @@ export default function ViewCustomerPage() {
 // For brevity, only the structure of CustomerOverviewTab is shown.
 
 const CustomerOverviewTab = ({ customer }: { customer: any }) => (
-  <div className="space-y-6 mt-4">
+  <div className="space-y-6 mt-4 p-4 sm:p-6">
     {/* Stats Cards */}
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
        <Card padding="sm">
          <div className="flex items-center justify-between">
            <div>
@@ -404,7 +404,7 @@ const CustomerOverviewTab = ({ customer }: { customer: any }) => (
     </div>
 
     {/* Shareholder Information Cards */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
        <Card padding="sm">
          <div className="flex items-center justify-between">
            <div>
@@ -583,7 +583,7 @@ const CustomerTransactionsTab = ({ transactions }: { transactions: any[] }) => {
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {transactions.length > 0 ? (
         <div className="overflow-x-auto">
           <Table data={transactions} columns={transactionColumns} />
@@ -600,7 +600,7 @@ const CustomerTransactionsTab = ({ transactions }: { transactions: any[] }) => {
 
 const CustomerActivityTab = ({ activities }: { activities: any[] }) => {
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {activities.length > 0 ? (
         <div className="space-y-4">
           {activities.map((activity) => (
@@ -659,7 +659,7 @@ const CustomerActivityTab = ({ activities }: { activities: any[] }) => {
 };
 
 const CustomerKycTab = ({ customer }: { customer: any }) => (
-  <div className="p-6 space-y-6">
+  <div className="p-4 sm:p-6 space-y-6">
     <div className="flex items-center justify-between mb-4">
       <div>
         <h3 className="text-lg font-semibold text-neutral-900">KYC Verification Status</h3>
@@ -920,8 +920,9 @@ const CustomerDocumentsTab = ({ customer, loans, deposits, onDocumentUpload }: {
   };
 
   return (
-    <Card>
-      <div className="p-6">
+    <div className="p-4 sm:p-6">
+      <Card>
+        <div className="p-4 sm:p-6">
         <h2 className="text-xl font-semibold">Document Center</h2>
         <p className="text-neutral-600 mt-1">Manage and verify customer documents.</p>
       </div>
@@ -962,12 +963,13 @@ const CustomerDocumentsTab = ({ customer, loans, deposits, onDocumentUpload }: {
           </tbody>
         </table>
       </div>
-    </Card>
+      </Card>
+    </div>
   );
 };
 
 const CustomerLoansTab = ({ loans }: { loans: any[] }) => (
-  <div className="p-6">
+  <div className="p-4 sm:p-6">
     {loans.length === 0 ? (
       <div className="text-center py-8 text-neutral-500">
         <p>No loans found for this customer</p>
@@ -1009,7 +1011,7 @@ const CustomerLoansTab = ({ loans }: { loans: any[] }) => (
 const CustomerDepositsTab = ({ deposits }: { deposits: any[] }) => {
   const { rateLabel, earnedLabel } = useInterestProfitTerm();
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {deposits.length === 0 ? (
         <div className="text-center py-8 text-neutral-500">
           <p>No deposits found for this customer</p>

@@ -108,10 +108,18 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-neutral-50 flex">
+      {/* Backdrop for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-20 md:hidden" 
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
         className={`${
-          sidebarOpen ? "w-64" : "w-20"
+          sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full w-64 md:translate-x-0 md:w-20"
         } bg-white border-r border-border-light transition-all duration-300 flex flex-col fixed h-screen z-30`}
       >
         {/* Logo */}
@@ -353,8 +361,8 @@ export default function DashboardLayout({
       {/* Main Content */}
       <div
         className={`flex-1 flex flex-col ${
-          sidebarOpen ? "ml-64" : "ml-20"
-        } transition-all duration-300`}
+          sidebarOpen ? "md:ml-64" : "md:ml-20"
+        } ml-0 transition-all duration-300`}
       >
         {/* Header */}
         <header className="h-16 bg-white border-b border-border-light flex items-center justify-between px-6 sticky top-0 z-20">

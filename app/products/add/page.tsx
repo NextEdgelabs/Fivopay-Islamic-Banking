@@ -221,7 +221,7 @@ export default function AddProductPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
         <Breadcrumbs items={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Products', href: '/products' }, { label: 'Add' }]} />
         
         <div className="flex items-center justify-between">
@@ -231,7 +231,7 @@ export default function AddProductPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Core Details */}
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Core Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input 
@@ -301,7 +301,7 @@ export default function AddProductPage() {
           </Card>
 
           {/* Loan Details */}
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Loan Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input 
@@ -364,7 +364,7 @@ export default function AddProductPage() {
           </Card>
 
           {/* Fees & Charges */}
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Fees & Charges</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
@@ -431,7 +431,7 @@ export default function AddProductPage() {
           </Card>
 
           {/* Eligibility Criteria */}
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Eligibility Criteria</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
@@ -482,7 +482,7 @@ export default function AddProductPage() {
           </Card>
 
           {/* Features & Benefits */}
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Features & Benefits</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -505,7 +505,7 @@ export default function AddProductPage() {
           </Card>
 
           {/* Documents Required */}
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Documents Required</h2>
             <ArrayEditor
               items={formData.documentsRequired || []}
@@ -515,7 +515,7 @@ export default function AddProductPage() {
           </Card>
 
           {/* Application Process */}
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Application Process</h2>
             <div className="space-y-4">
               <Input
@@ -545,7 +545,7 @@ export default function AddProductPage() {
           </Card>
 
           {/* Terms & Conditions */}
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Terms & Conditions</h2>
             <Textarea
               name="termsAndConditions"

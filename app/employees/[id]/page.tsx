@@ -90,7 +90,7 @@ export default function ViewEmployeePage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="p-6 space-y-6 animate-pulse">
+      <div className="p-4 sm:p-6 space-y-6 animate-pulse">
           <div className="h-6 bg-neutral-200 rounded w-1/4"></div>
           <div className="h-32 bg-neutral-200 rounded"></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -107,7 +107,7 @@ export default function ViewEmployeePage() {
   if (error || !employee) {
     return (
       <DashboardLayout>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <Card>
             <div className="p-12 text-center">
               <XCircle className="h-16 w-16 text-error-500 mx-auto mb-4" />
@@ -152,7 +152,7 @@ export default function ViewEmployeePage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
         <Breadcrumbs items={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Employees', href: '/employees' },
@@ -169,7 +169,7 @@ export default function ViewEmployeePage() {
                 <p className="text-neutral-600 mt-1">{employee.employeeId} • {employee.email}</p>
               </div>
             </div>
-            <div className="flex gap-2 flex-shrink-0">
+            <div className="flex flex-wrap gap-2 flex-shrink-0 mt-4 md:mt-0">
               <Button variant="outline" onClick={() => router.push(`/employees/${employeeId}/edit`)}>
                 <Edit className="mr-2 h-4 w-4" /> Edit
               </Button>
@@ -231,9 +231,9 @@ const EmployeeOverviewTab = ({ employee, organizations }: { employee: Employee, 
   };
 
   return (
-    <div className="space-y-6 mt-4">
+    <div className="space-y-6 mt-4 p-4 sm:p-6">
     {/* Stats Cards */}
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
       <Card padding="sm">
         <div className="flex items-center justify-between">
           <div>
@@ -337,7 +337,7 @@ const EmployeeOverviewTab = ({ employee, organizations }: { employee: Employee, 
 };
 
 const EmployeeProfessionalTab = ({ employee }: { employee: Employee }) => (
-  <div className="space-y-6 mt-4">
+  <div className="space-y-6 mt-4 p-4 sm:p-6">
     <Card>
       <h3 className="text-lg font-semibold text-neutral-900 mb-4">Professional Information</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -420,7 +420,7 @@ const EmployeeProfessionalTab = ({ employee }: { employee: Employee }) => (
 );
 
 const EmployeeDocumentsTab = ({ employee }: { employee: Employee }) => (
-  <div className="space-y-6 mt-4">
+  <div className="space-y-6 mt-4 p-4 sm:p-6">
     <Card>
       <h3 className="text-lg font-semibold text-neutral-900 mb-4">Identity Documents</h3>
       <div className="space-y-4">

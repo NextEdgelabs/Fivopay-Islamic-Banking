@@ -185,7 +185,7 @@ export default function ShareCertificatePreview() {
 
       {/* Navigation Bar (hidden in print) */}
       <div className="no-print bg-white border-b border-neutral-200 p-4 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
@@ -199,7 +199,7 @@ export default function ShareCertificatePreview() {
               Certificate {currentIndex + 1} of {approvedPurchases.length}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <Button
               variant="outline"
               onClick={handlePrevious}

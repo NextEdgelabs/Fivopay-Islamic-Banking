@@ -105,14 +105,14 @@ export default function EmployeesPage() {
       key: 'email',
       header: 'Contact',
       render: (_: any, row: Employee) => (
-        <div>
-          <p className="text-sm text-neutral-900 flex items-center gap-1">
-            <Mail className="h-3 w-3" />
-            {row.email}
+        <div className="min-w-0 max-w-[220px]">
+          <p className="text-sm text-neutral-900 flex items-center gap-1 min-w-0 truncate" title={row.email}>
+            <Mail className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">{row.email}</span>
           </p>
-          <p className="text-sm text-neutral-500 flex items-center gap-1 mt-1">
-            <Phone className="h-3 w-3" />
-            {row.phone}
+          <p className="text-sm text-neutral-500 flex items-center gap-1 mt-1 min-w-0 truncate" title={row.phone}>
+            <Phone className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">{row.phone}</span>
           </p>
         </div>
       ),
@@ -169,7 +169,7 @@ export default function EmployeesPage() {
       key: 'actions',
       header: 'Actions',
       render: (_: any, row: Employee) => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-nowrap items-center gap-1">
           <IconButton
             icon={<Eye className="h-4 w-4" />}
             variant="ghost"
@@ -311,8 +311,8 @@ export default function EmployeesPage() {
   if (isInitialLoad) {
     return (
       <DashboardLayout>
-        <div className="p-6 space-y-6 animate-pulse">
-          <div className="h-8 bg-neutral-200 rounded w-1/4"></div>
+      <div className="p-4 sm:p-6 space-y-6 animate-pulse">
+        <div className="h-8 bg-neutral-200 rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-24 bg-neutral-200 rounded"></div>
@@ -328,7 +328,7 @@ export default function EmployeesPage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <Card>
             <div className="p-12 text-center">
               <p className="text-error-500 mb-4">Error: {error}</p>
@@ -344,14 +344,14 @@ export default function EmployeesPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div>
           <Breadcrumbs items={breadcrumbItems} />
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-4 gap-4">
             <div>
               <h1 className="text-3xl font-bold text-neutral-900">Employees</h1>
-              <p className="text-neutral-600 mt-1">Manage all employee accounts</p>
+              <p className="text-neutral-600 mt-2">Manage all employee accounts</p>
             </div>
             <Link href="/employees/add">
               <Button variant="primary" size="lg">
@@ -363,10 +363,10 @@ export default function EmployeesPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           <Card padding="sm">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-4 min-h-[72px]">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm text-neutral-600">Total Employees</p>
                 <p className="text-2xl font-bold text-neutral-900 mt-1">
                   {employees?.length || 0}
@@ -379,8 +379,8 @@ export default function EmployeesPage() {
           </Card>
 
           <Card padding="sm">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-4 min-h-[72px]">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm text-neutral-600">Active Employees</p>
                 <p className="text-2xl font-bold text-neutral-900 mt-1">
                   {employees?.filter((e) => e.status === 'active').length || 0}
@@ -396,8 +396,8 @@ export default function EmployeesPage() {
           </Card>
 
           <Card padding="sm">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-4 min-h-[72px]">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm text-neutral-600">Managers</p>
                 <p className="text-2xl font-bold text-neutral-900 mt-1">
                   {employees?.filter((e) => e.role === 'manager' || e.role === 'branch_manager').length || 0}
@@ -410,8 +410,8 @@ export default function EmployeesPage() {
           </Card>
 
           <Card padding="sm">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-4 min-h-[72px]">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm text-neutral-600">Departments</p>
                 <p className="text-2xl font-bold text-neutral-900 mt-1">
                   {new Set(employees?.map(e => e.department)).size || 0}
@@ -426,31 +426,34 @@ export default function EmployeesPage() {
 
         {/* Filters and Search */}
         <Card>
-          <div className="p-4 flex flex-col md:flex-row gap-4">
-            <div className="w-full md:w-1/3">
+          <div className="p-4 flex flex-col md:flex-row md:flex-wrap md:items-center gap-4">
+            <div className="w-full md:flex-1 md:min-w-[200px] md:max-w-sm">
               <Input
                 placeholder="Search by name, email, or ID..."
                 value={searchInputValue}
                 onChange={handleSearchChange}
                 leftIcon={<Search className="h-4 w-4" />}
+                className="min-h-[40px]"
               />
             </div>
-            <div className="w-full md:w-48">
+            <div className="w-full sm:w-[180px] md:w-[200px]">
               <Select
                 name="organisation"
                 value={filters.organisation || ''}
                 onChange={handleFilterChange}
+                className="min-h-[40px] py-2.5 leading-normal"
                 options={[
                   { value: '', label: 'All Organizations' },
                   ...organizations.map(org => ({ value: org._id || org.id || '', label: org.organisationName || org.organizationName || org.name || 'Unknown' }))
                 ]}
               />
             </div>
-            <div className="w-full md:w-48">
+            <div className="w-full sm:w-[180px] md:w-[200px]">
               <Select
                 name="branch"
                 value={filters.branch || ''}
                 onChange={handleFilterChange}
+                className="min-h-[40px] py-2.5 leading-normal"
                 options={[
                   { value: '', label: 'All Branches' },
                   ...branches.map((b) => ({
@@ -460,11 +463,12 @@ export default function EmployeesPage() {
                 ]}
               />
             </div>
-            <div className="w-full md:w-48">
+            <div className="w-full sm:w-[180px] md:w-[200px]">
               <Select
                 name="department"
                 value={filters.department || ''}
                 onChange={handleFilterChange}
+                className="min-h-[40px] py-2.5 leading-normal"
                 options={[
                   { value: '', label: 'All Departments' },
                   { value: 'administration', label: 'Administration' },
@@ -480,11 +484,12 @@ export default function EmployeesPage() {
                 ]}
               />
             </div>
-            <div className="w-full md:w-48">
+            <div className="w-full sm:w-[160px] md:w-[180px]">
               <Select
                 name="status"
                 value={filters.status || ''}
                 onChange={handleFilterChange}
+                className="min-h-[40px] py-2.5 leading-normal"
                 options={[
                   { value: '', label: 'All Status' },
                   { value: 'active', label: 'Active' },
@@ -494,10 +499,12 @@ export default function EmployeesPage() {
                 ]}
               />
             </div>
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
+            <div className="w-full md:w-auto flex-shrink-0">
+              <Button variant="outline" onClick={handleExport} className="w-full md:w-auto min-h-[40px]">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </div>
           </div>
         </Card>
 
@@ -519,7 +526,7 @@ export default function EmployeesPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="p-4 border-t mt-6 flex items-center justify-between">
+            <div className="p-4 border-t mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-sm text-neutral-600">
                 Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, employees?.length || 0)} of{' '}
                 {employees?.length || 0} employees

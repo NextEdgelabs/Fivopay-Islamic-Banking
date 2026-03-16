@@ -186,7 +186,7 @@ export default function AddLoanPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6">
         <Breadcrumbs items={breadcrumbItems} />
 
         <div className="flex items-center justify-between">
@@ -200,7 +200,7 @@ export default function AddLoanPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Card className="p-6 space-y-6">
+          <Card className="p-4 sm:p-6 space-y-6">
             <h2 className="text-xl font-semibold text-neutral-900">Loan Details</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

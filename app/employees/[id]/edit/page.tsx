@@ -21,6 +21,7 @@ import { UpdateEmployeeDto } from '@/services/employee.service';
 import { useBranches } from '@/hooks/useBranches';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { INDIAN_STATES, CITIES_BY_STATE } from '@/lib/indiaData';
+import { getOrganisationId, isAdmin } from '@/lib/auth';
 import Link from 'next/link';
 
 export default function EditEmployeePage() {
@@ -30,8 +31,9 @@ export default function EditEmployeePage() {
   const { addToast } = useToast();
   const { employee, loading: loadingEmployee } = useEmployee(employeeId);
   const { updateEmployee, loading: isSubmitting } = useEmployeeMutations();
-  const { branches } = useBranches();
+  const { branches, setFilters: setBranchFilters } = useBranches();
   const { organizations } = useOrganizations();
+  const isUserAdmin = isAdmin();
 
   const [formData, setFormData] = useState<Partial<UpdateEmployeeDto>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -73,6 +75,23 @@ export default function EditEmployeePage() {
     }
   }, [employee]);
 
+  // Filter branches by selected organisation
+  useEffect(() => {
+    const orgId = formData.organisation || getOrganisationId() || '';
+    setBranchFilters(prev => ({ ...prev, organisationId: orgId || undefined }));
+  }, [formData.organisation, setBranchFilters]);
+
+  // For admins: if no organisation after prefill, default to first organisation
+  useEffect(() => {
+    if (!isUserAdmin) return;
+    if (formData.organisation) return;
+    if (!organizations || organizations.length === 0) return;
+    const first = organizations[0];
+    const firstId = String(first._id || first.id || '');
+    if (!firstId) return;
+    setFormData(prev => ({ ...prev, organisation: firstId, branch: '' }));
+  }, [isUserAdmin, organizations, formData.organisation]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -87,6 +106,8 @@ export default function EditEmployeePage() {
           : `${prev.firstName || ''} ${value}`.trim();
         return { ...newData, fullName };
       });
+    } else if (name === 'organisation') {
+      setFormData(prev => ({ ...prev, [name]: value, branch: '' }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -168,7 +189,7 @@ export default function EditEmployeePage() {
   if (loadingEmployee) {
     return (
       <DashboardLayout>
-        <div className="p-6 space-y-6 animate-pulse">
+      <div className="p-4 sm:p-6 space-y-6 animate-pulse">
           <div className="h-8 bg-neutral-200 rounded w-1/4"></div>
           <div className="h-96 bg-neutral-200 rounded"></div>
         </div>
@@ -179,7 +200,7 @@ export default function EditEmployeePage() {
   if (!employee) {
     return (
       <DashboardLayout>
-        <div className="p-6">
+      <div className="p-4 sm:p-6">
           <Card>
             <div className="p-12 text-center">
               <p className="text-error-500 mb-4">Employee not found</p>
@@ -195,10 +216,10 @@ export default function EditEmployeePage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6">
         <Breadcrumbs items={breadcrumbItems} />
         
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-neutral-900">Edit Employee</h1>
             <p className="text-neutral-600 mt-1">Update employee information</p>
@@ -222,10 +243,21 @@ export default function EditEmployeePage() {
                 value={formData.organisation || ''}
                 onChange={handleChange}
                 error={errors.organisation}
-                options={[
-                  { value: '', label: 'Select Organization' },
-                  ...(organizations || []).map(org => ({ value: org._id || org.id || '', label: org.organisationName || org.organizationName || org.name || 'Unknown' }))
-                ]}
+                disabled={!isUserAdmin}
+                options={
+                  isUserAdmin
+                    ? [
+                        { value: '', label: 'Select Organization' },
+                        ...(organizations || []).map(org => ({ value: org._id || org.id || '', label: org.organisationName || org.organizationName || org.name || 'Unknown' }))
+                      ]
+                    : (() => {
+                        const currentId = formData.organisation || getOrganisationId() || '';
+                        const match = (organizations || []).find(org => String(org._id || org.id) === String(currentId));
+                        return match
+                          ? [{ value: String(match._id || match.id), label: match.organisationName || match.organizationName || match.name || 'Unknown' }]
+                          : currentId ? [{ value: String(currentId), label: 'Current Organization' }] : [{ value: '', label: 'Select Organization' }];
+                      })()
+                }
                 required
               />
               <Select
@@ -234,6 +266,7 @@ export default function EditEmployeePage() {
                 value={formData.branch || ''}
                 onChange={handleChange}
                 error={errors.branch}
+                disabled={!isUserAdmin}
                 options={[
                   { value: '', label: 'Select Branch' },
                   ...(branches || []).map(b => ({ value: b._id || b.id || '', label: b.branchName }))
@@ -533,13 +566,13 @@ export default function EditEmployeePage() {
           </Card>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-4">
-            <Link href={`/employees/${employeeId}`}>
-              <Button variant="outline" type="button">
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-4 w-full">
+            <Link href={`/employees/${employeeId}`} className="w-full sm:w-auto">
+              <Button variant="outline" type="button" className="w-full">
                 Cancel
               </Button>
             </Link>
-            <Button variant="primary" type="submit" loading={isSubmitting}>
+            <Button variant="primary" type="submit" loading={isSubmitting} className="w-full sm:w-auto">
               <Save className="h-4 w-4 mr-2" />
               Update Employee
             </Button>

@@ -217,7 +217,7 @@ export default function JointLiabilityLoansPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-neutral-900">Joint Liability Loans</h1>
@@ -286,8 +286,9 @@ export default function JointLiabilityLoansPage() {
           />
         </div>
 
-        <Table
-          data={filteredLoans}
+        <div className="overflow-x-auto">
+          <Table
+            data={filteredLoans}
           loading={loading}
           emptyMessage="No loans found."
           columns={[
@@ -365,6 +366,7 @@ export default function JointLiabilityLoansPage() {
             }
           ]}
         />
+        </div>
 
         {/* Apply Loan Modal */}
         <Modal

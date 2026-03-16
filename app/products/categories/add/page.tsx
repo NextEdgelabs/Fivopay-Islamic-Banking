@@ -182,7 +182,7 @@ export default function AddLoanCategoryPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6">
         <Breadcrumbs items={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Products', href: '/products' },
@@ -204,7 +204,7 @@ export default function AddLoanCategoryPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <Card>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -316,7 +316,7 @@ export default function AddLoanCategoryPage() {
 
           {/* Loan Amount & Interest/Profit */}
           <Card>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <h2 className="text-xl font-semibold mb-4">{loanAmountSectionTitle}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -370,7 +370,7 @@ export default function AddLoanCategoryPage() {
 
           {/* Tenure */}
           <Card>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <h2 className="text-xl font-semibold mb-4">Tenure (in months)</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -408,7 +408,7 @@ export default function AddLoanCategoryPage() {
 
           {/* Eligibility Criteria */}
           <Card>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <h2 className="text-xl font-semibold mb-4">Eligibility Criteria</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -557,7 +557,7 @@ export default function AddLoanCategoryPage() {
 
           {/* Fees & Charges */}
           <Card>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <h2 className="text-xl font-semibold mb-4">Fees & Charges</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
@@ -709,7 +709,7 @@ export default function AddLoanCategoryPage() {
 
           {/* Key Features */}
           <Card>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <h2 className="text-xl font-semibold mb-4">Key Features</h2>
               <div className="space-y-2">
                 {(formData.keyFeatures || []).map((feature, index) => (
@@ -752,7 +752,7 @@ export default function AddLoanCategoryPage() {
 
           {/* Terms & Conditions */}
           <Card>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <h2 className="text-xl font-semibold mb-4">Terms & Conditions</h2>
               <Textarea
                 name="termsAndConditions"
@@ -766,7 +766,7 @@ export default function AddLoanCategoryPage() {
 
           {/* Sub-categories */}
           <Card>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Sub-categories</h2>
                 <Button type="button" variant="outline" onClick={addSubCategory}>

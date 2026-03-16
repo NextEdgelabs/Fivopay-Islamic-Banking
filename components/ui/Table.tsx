@@ -76,8 +76,8 @@ function Table<T extends Record<string, any>>({
 
   return (
     <div className={cn('bg-white rounded-stripe border border-border-light overflow-hidden', className)}>
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="overflow-x-auto w-full">
+        <table className="w-full min-w-max">
           <thead className="bg-neutral-50 border-b border-border-light">
             <tr>
               {columns.map((column) => (

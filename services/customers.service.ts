@@ -298,6 +298,25 @@ export const saveUserBasicInformation = async (customer: any)=> {
 
 // Helper Functions
 /**
+ * Format date to YYYY-MM-DD for HTML date inputs (handles ISO strings, Date objects, etc.)
+ */
+export function formatDateForInput(value: string | Date | null | undefined): string {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+    if (trimmed.includes('T')) return trimmed.split('T')[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+    const d = new Date(trimmed);
+    return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+  }
+  if (value instanceof Date) {
+    return isNaN(value.getTime()) ? '' : value.toISOString().split('T')[0];
+  }
+  return '';
+}
+
+/**
  * Normalize customer data from API to match frontend expectations
  */
 function normalizeCustomer(customer: any): Customer {
@@ -313,6 +332,8 @@ function normalizeCustomer(customer: any): Customer {
     status: customer.status || (customer.isActive ? 'Active' : 'Inactive'),
     joinedDate: customer.createdAt || customer.joinedDate,
     branch: branchId,
+    // Ensure dateOfBirth is YYYY-MM-DD for HTML date inputs (backend returns ISO string from MongoDB Date)
+    dateOfBirth: formatDateForInput(customer.dateOfBirth),
     // Ensure required fields have defaults
     memberId: customer.memberId || customer._id || customer.id || '',
     totalSharesPurchased: customer.totalSharesPurchased ?? 0,

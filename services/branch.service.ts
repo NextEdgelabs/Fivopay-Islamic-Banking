@@ -33,7 +33,10 @@ export interface Branch {
   totalCustomers: number;
 }
 
-export interface CreateBranchDto extends Omit<Branch, 'id' | 'branchCode' | 'country' | 'totalCustomers'> {}
+export interface CreateBranchDto extends Omit<Branch, 'id' | 'branchCode' | 'country' | 'totalCustomers'> {
+  organisationId?: string;
+  organisation?: string;
+}
 export interface UpdateBranchDto extends Partial<CreateBranchDto> {
   id: string;
 }
@@ -74,9 +77,15 @@ export interface BranchesListResponse {
 export const createBranch = async (data: CreateBranchDto): Promise<BranchResponse> => {
   try {
     const token = getAuthToken();
+    const organisationId = data.organisationId ?? data.organisation ?? getOrganisationId();
+    const payload = {
+      ...data,
+      organisation: organisationId || undefined,
+    };
+    delete (payload as any).organisationId;
     const response = await axios.post(
       `${API.domain}${API.endPoints.createBranch}`,
-      data,
+      payload,
       {
         headers: {
           'Content-Type': 'application/json',

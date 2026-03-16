@@ -271,7 +271,7 @@ export default function BalanceSheetPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
         {/* Header (hidden in PDF) */}
         <div className="flex items-center justify-between print:hidden">
           <div>

@@ -3,8 +3,8 @@ import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
 
 export const metadata: Metadata = {
-  title: "FivoPay Banking - Islamic Banking Solution",
-  description: "Comprehensive Islamic Banking Management System",
+  title: "FivoPay Banking",
+  description: "FivoPay Banking Management System",
 };
 
 export default function RootLayout({

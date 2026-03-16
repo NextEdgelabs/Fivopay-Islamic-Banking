@@ -1,11 +1,13 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, Button, Input, Select, Breadcrumbs, Textarea, Checkbox } from '@/components/ui';
 import { Save, X } from 'lucide-react';
 import { useBranchMutations } from '@/hooks/useBranchMutations';
 import { useToast } from '@/components/ui/Toast';
+import { useOrganizations } from '@/hooks/useOrganizations';
+import { getOrganisationId, isAdmin } from '@/lib/auth';
 import { INDIAN_STATES, CITIES_BY_STATE, BRANCH_SERVICES, LOAN_TYPES } from '@/lib/indiaData';
 import { CreateBranchDto } from '@/services/branches';
 
@@ -13,7 +15,9 @@ export default function AddBranchPage() {
   const router = useRouter();
   const { createBranch, loading } = useBranchMutations();
   const { addToast } = useToast();
-  const [formData, setFormData] = useState<Omit<CreateBranchDto, 'status'> & { loanTypes: string[] }>({
+  const { organizations } = useOrganizations();
+  const isUserAdmin = isAdmin(); // Used for admin default org when profile has none
+  const [formData, setFormData] = useState<Omit<CreateBranchDto, 'status'> & { loanTypes: string[]; organisationId?: string }>({
     branchName: '',
     branchType: 'Main Branch',
     addressLine1: '',
@@ -36,8 +40,26 @@ export default function AddBranchPage() {
     },
     services: [],
     loanTypes: [] as string[],
+    organisationId: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const orgId = getOrganisationId();
+    if (orgId) {
+      setFormData(prev => ({ ...prev, organisationId: orgId }));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isUserAdmin) return;
+    if (formData.organisationId) return;
+    if (!organizations || organizations.length === 0) return;
+    const first = organizations[0];
+    const firstId = String(first._id || first.id || '');
+    if (!firstId) return;
+    setFormData(prev => ({ ...prev, organisationId: firstId }));
+  }, [isUserAdmin, organizations, formData.organisationId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -82,6 +104,7 @@ export default function AddBranchPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.branchName.trim()) newErrors.branchName = 'Branch name is required';
+    if (organizations.length > 0 && !formData.organisationId) newErrors.organisationId = 'Organization is required';
     if (!formData.addressLine1.trim()) newErrors.addressLine1 = 'Address Line 1 is required';
     if (!formData.city) newErrors.city = 'City is required';
     if (!formData.state) newErrors.state = 'State is required';
@@ -115,6 +138,7 @@ export default function AddBranchPage() {
         latitude: formData.latitude ? parseFloat(String(formData.latitude)) : undefined,
         longitude: formData.longitude ? parseFloat(String(formData.longitude)) : undefined,
         status: 'Active' as const,
+        organisationId: formData.organisationId || undefined,
       };
       delete (dataToSubmit as any).loanTypes;
 
@@ -128,7 +152,7 @@ export default function AddBranchPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
         <Breadcrumbs items={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Branches', href: '/branches' }, { label: 'Add' }]} />
         
         <div className="flex items-center justify-between">
@@ -137,9 +161,27 @@ export default function AddBranchPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Branch Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {organizations.length > 0 && (
+                <Select
+                  name="organisationId"
+                  label="Organization"
+                  value={formData.organisationId || ''}
+                  onChange={handleChange}
+                  error={errors.organisationId}
+                  disabled
+                  required={organizations.length > 0}
+                  options={[
+                    { label: 'Select Organization', value: '' },
+                    ...organizations.map(org => ({
+                      label: org.organisationName || org.organizationName || org.name || 'Unknown',
+                      value: org._id || org.id || '',
+                    }))
+                  ]}
+                />
+              )}
               <Input name="branchName" label="Branch Name" value={formData.branchName} onChange={handleChange} required error={errors.branchName} />
               <Select
                 name="branchType"
@@ -156,7 +198,7 @@ export default function AddBranchPage() {
             </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Location Information</h2>
             <div className="space-y-4">
               <Input name="addressLine1" label="Address Line 1" value={formData.addressLine1} onChange={handleChange} required error={errors.addressLine1} />
@@ -172,7 +214,7 @@ export default function AddBranchPage() {
             </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Contact & Manager Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input name="phone" label="Branch Phone" value={formData.phone} onChange={handleChange} required error={errors.phone} />
@@ -182,7 +224,7 @@ export default function AddBranchPage() {
             </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Operating Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input name="openingDate" type="date" label="Opening Date" value={formData.openingDate} onChange={handleChange} required error={errors.openingDate} />
@@ -197,7 +239,7 @@ export default function AddBranchPage() {
             </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Services Offered</h2>
             {errors.services && <p className="text-sm text-error-500 mb-2">{errors.services}</p>}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -214,7 +256,7 @@ export default function AddBranchPage() {
             </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-semibold mb-4">Types of Loan Offered</h2>
             <p className="text-sm text-neutral-600 mb-4">Select the loan types this branch offers</p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

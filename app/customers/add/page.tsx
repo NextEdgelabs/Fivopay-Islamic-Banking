@@ -31,20 +31,18 @@ import { validateFile, convertToBase64 } from '@/lib/fileUpload';
 import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import SharePurchaseHistory from '@/components/customers/SharePurchaseHistory';
 import { createCustomer } from '@/services/customers.service';
-import { getAllBranches } from '@/services/branch.service';
-import { getAllOrganizations } from '@/services/organization.service';
-import type { Branch } from '@/services/branch.service';
-import type { Organization } from '@/services/organization.service';
+import { useBranches } from '@/hooks/useBranches';
+import { useOrganizations } from '@/hooks/useOrganizations';
+import { getOrganisationId, getBranchId, isAdmin } from '@/lib/auth';
 
 export default function AddCustomerPage() {
   const router = useRouter();
   const { addToast } = useToast();
   const { loading: isSubmitting } = useCustomerMutations();
   const { isEthicalBanking } = useOrganizationSettings();
-
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
+  const { branches, setFilters: setBranchFilters } = useBranches();
+  const { organizations } = useOrganizations();
+  const isUserAdmin = isAdmin();
   const [activeTab, setActiveTab] = useState('primary');
 
   const [formData, setFormData] = useState({
@@ -89,41 +87,33 @@ export default function AddCustomerPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Filter branches by selected organisation
   useEffect(() => {
-    const loadData = async () => {
-      setLoadingData(true);
-      try {
-        const [branchesRes, orgs] = await Promise.all([
-          getAllBranches({ limit: 100 }),
-          getAllOrganizations(),
-        ]);
-        const branchList = branchesRes?.data?.branches || [];
-        setBranches(branchList);
-        setOrganizations(Array.isArray(orgs) ? orgs : []);
+    const orgId = formData.organisation || getOrganisationId() || '';
+    setBranchFilters(prev => ({ ...prev, organisationId: orgId || undefined }));
+  }, [formData.organisation, setBranchFilters]);
 
-        if (orgs?.length && !formData.organisation) {
-          const firstOrg = orgs[0];
-          const orgId = firstOrg._id || (firstOrg as any).id;
-          if (orgId) {
-            setFormData((prev) => ({ ...prev, organisation: orgId }));
-          }
-        }
-        if (branchList.length === 1 && !formData.branch) {
-          const firstBranch = branchList[0];
-          const branchId = firstBranch._id || (firstBranch as any).id;
-          if (branchId) {
-            setFormData((prev) => ({ ...prev, branch: String(branchId) }));
-          }
-        }
-      } catch {
-        setBranches([]);
-        setOrganizations([]);
-      } finally {
-        setLoadingData(false);
-      }
-    };
-    loadData();
+  // Preselect organisation and branch from user profile
+  useEffect(() => {
+    const orgId = getOrganisationId();
+    const branchId = getBranchId();
+    setFormData(prev => ({
+      ...prev,
+      ...(orgId && { organisation: orgId }),
+      ...(branchId && { branch: branchId }),
+    }));
   }, []);
+
+  // For admins: if no organisation set from profile, default to first organisation once loaded
+  useEffect(() => {
+    if (!isUserAdmin) return;
+    if (formData.organisation) return;
+    if (!organizations || organizations.length === 0) return;
+    const first = organizations[0];
+    const firstId = String(first._id || first.id || '');
+    if (!firstId) return;
+    setFormData(prev => ({ ...prev, organisation: firstId, branch: '' }));
+  }, [isUserAdmin, organizations, formData.organisation]);
 
   const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -159,6 +149,8 @@ export default function AddCustomerPage() {
           });
         }
       }
+    } else if (name === 'organisation') {
+      setFormData((prev) => ({ ...prev, [name]: value, branch: '' }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -299,7 +291,7 @@ export default function AddCustomerPage() {
 
   // Primary Details Tab Content
   const primaryDetailsContent = (
-    <div className="p-6 space-y-8">
+    <div className="p-4 sm:p-6 space-y-8">
       {/* Personal Information */}
       <div>
         <div className="flex items-center gap-2 mb-6">
@@ -502,23 +494,32 @@ export default function AddCustomerPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {organizations.length > 0 && (
-            <Select
-              label="Organization"
-              name="organisation"
-              value={formData.organisation}
-              onChange={handleChange}
-              error={errors.organisation}
-              required={organizations.length > 0}
-              options={[
-                { value: '', label: 'Select organization' },
-                ...organizations.map((org) => ({
-                  value: org._id || (org as any).id || '',
-                  label: org.organisationName || org.organizationName || org.name || 'Unknown',
-                })),
-              ]}
-            />
-          )}
+          <Select
+            label="Organization"
+            name="organisation"
+            value={formData.organisation}
+            onChange={handleChange}
+            error={errors.organisation}
+            disabled={!isUserAdmin}
+            required={organizations.length > 0}
+            options={
+              isUserAdmin
+                ? [
+                    { value: '', label: 'Select organization' },
+                    ...organizations.map((org) => ({
+                      value: org._id || (org as any).id || '',
+                      label: org.organisationName || org.organizationName || org.name || 'Unknown',
+                    })),
+                  ]
+                : (() => {
+                    const currentId = formData.organisation || getOrganisationId() || '';
+                    const match = organizations.find((org) => String(org._id || org.id) === String(currentId));
+                    return match
+                      ? [{ value: String(match._id || match.id), label: match.organisationName || match.organizationName || match.name || 'Unknown' }]
+                      : currentId ? [{ value: String(currentId), label: 'Current Organization' }] : [{ value: '', label: 'Select organization' }];
+                  })()
+            }
+          />
 
           <Select
             label="Account Type"
@@ -553,10 +554,10 @@ export default function AddCustomerPage() {
             onChange={handleChange}
             error={errors.branch}
             required
-            disabled={loadingData}
+            disabled={!isUserAdmin}
             options={[
-              { value: '', label: loadingData ? 'Loading branches...' : 'Select branch' },
-              ...branches.map((b) => ({
+              { value: '', label: 'Select branch' },
+              ...(branches || []).map((b) => ({
                 value: String(b._id || (b as any).id),
                 label: `${b.branchName}${b.branchCode ? ` (${b.branchCode})` : ''}`,
               })),
@@ -615,7 +616,7 @@ export default function AddCustomerPage() {
 
   // KYC Documents Tab Content
   const kycDocumentsContent = (
-    <div className="p-6 space-y-8">
+    <div className="p-4 sm:p-6 space-y-8">
       {/* Aadhaar Card */}
       <div>
         <div className="flex items-center gap-2 mb-6">
@@ -868,7 +869,7 @@ export default function AddCustomerPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div>
           <Breadcrumbs items={breadcrumbItems} />
@@ -914,11 +915,12 @@ export default function AddCustomerPage() {
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-4 w-full">
             <Button
               type="button"
               variant="outline"
               size="lg"
+              className="w-full sm:w-auto"
               onClick={handleCancel}
               disabled={isSubmitting}
             >
@@ -929,6 +931,7 @@ export default function AddCustomerPage() {
               type="submit"
               variant="primary"
               size="lg"
+              className="w-full sm:w-auto"
               loading={isSubmitting}
               disabled={isSubmitting}
             >

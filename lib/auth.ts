@@ -78,6 +78,18 @@ export const getOrganisationId = (): string | null => {
   return localStorage.getItem('selectedOrganisationId');
 };
 
+/** Get current branch ID (from logged-in employee) */
+export const getBranchId = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const user = getCurrentUser();
+  const branch = (user as any)?.branch;
+  if (branch != null) {
+    if (typeof branch === 'string') return branch;
+    if (typeof (branch as any)?._id === 'string') return (branch as any)._id;
+  }
+  return null;
+};
+
 /** Set selected organisation ID when user switches org (e.g. org selector) */
 export const setSelectedOrganisationId = (organisationId: string | null): void => {
   if (typeof window === 'undefined') return;

@@ -105,7 +105,7 @@ export default function LoansPage() {
   if (isInitialLoad) {
     return (
       <DashboardLayout>
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           <Skeleton className="h-8 w-48" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24" />)}
@@ -119,7 +119,7 @@ export default function LoansPage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <Card className="p-6 text-center text-error-500">
             <p>Error: {error}</p>
             <Button onClick={refetch} className="mt-4">
@@ -300,7 +300,7 @@ export default function LoansPage() {
       </div>
 
       <Card>
-        <div className="p-4 flex flex-col md:flex-row gap-4">
+        <div className="p-4 flex flex-col md:flex-row md:flex-wrap gap-4">
           <div className="w-full md:w-1/1">
             <Input
               placeholder="Search loans by ID, App No, or Customer..."
@@ -362,7 +362,9 @@ export default function LoansPage() {
           </div>
         ) : (
           <>
-            <Table columns={columns} data={paginatedLoans} onRowClick={(row) => router.push(`/loans/${row.id || row._id || ''}`)} />
+            <div className="overflow-x-auto">
+              <Table columns={columns} data={paginatedLoans} onRowClick={(row) => router.push(`/loans/${row.id || row._id || ''}`)} />
+            </div>
 
             {totalPages > 1 && (
               <div className="p-4 border-t flex items-center justify-between">
@@ -399,7 +401,7 @@ export default function LoansPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         <Breadcrumbs items={breadcrumbItems} />
 
         <div className="flex items-center justify-between">

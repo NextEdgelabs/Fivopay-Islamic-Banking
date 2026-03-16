@@ -35,8 +35,20 @@ import { useCustomerMutations } from '@/hooks/useCustomerMutations';
 import { validateFile, convertToBase64 } from '@/lib/fileUpload';
 import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import SharePurchaseHistory from '@/components/customers/SharePurchaseHistory';
-import { getAllBranches } from '@/services/branch.service';
-import type { Branch } from '@/services/branch.service';
+import { useBranches } from '@/hooks/useBranches';
+import { useOrganizations } from '@/hooks/useOrganizations';
+import { getOrganisationId, isAdmin } from '@/lib/auth';
+import { formatDateForInput } from '@/services/customers.service';
+
+function extractId(ref: unknown): string {
+  if (!ref) return '';
+  if (typeof ref === 'string') return ref;
+  const obj = ref as Record<string, unknown>;
+  const id = obj?._id ?? obj?.id;
+  if (typeof id === 'string') return id;
+  if (id && typeof id === 'object' && '$oid' in (id as object)) return (id as { $oid: string }).$oid;
+  return '';
+}
 
 export default function EditCustomerPage() {
   const router = useRouter();
@@ -48,6 +60,9 @@ export default function EditCustomerPage() {
   const { customer, loading: fetchLoading, refetch } = useCustomer(customerId);
   const { updateCustomer, approveUser, loading: isSubmitting } = useCustomerMutations();
   const { isEthicalBanking } = useOrganizationSettings();
+  const { branches, setFilters: setBranchFilters } = useBranches();
+  const { organizations } = useOrganizations();
+  const isUserAdmin = isAdmin();
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -68,6 +83,7 @@ export default function EditCustomerPage() {
     postalCode: '',
     country: 'India',
     accountType: '',
+    organisation: '',
     branch: '',
     status: '',
     isApproved: false,
@@ -87,16 +103,24 @@ export default function EditCustomerPage() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [loadingBranches, setLoadingBranches] = useState(true);
   const [showApproveModal, setShowApproveModal] = useState(false);
 
+  // Filter branches by selected organisation
   useEffect(() => {
-    getAllBranches({ limit: 100 })
-      .then((res) => setBranches(res?.data?.branches || []))
-      .catch(() => setBranches([]))
-      .finally(() => setLoadingBranches(false));
-  }, []);
+    const orgId = formData.organisation || getOrganisationId() || '';
+    setBranchFilters(prev => ({ ...prev, organisationId: orgId || undefined }));
+  }, [formData.organisation, setBranchFilters]);
+
+  // For admins: if no organisation after prefill, default to first organisation
+  useEffect(() => {
+    if (!isUserAdmin) return;
+    if (formData.organisation) return;
+    if (!organizations || organizations.length === 0) return;
+    const first = organizations[0];
+    const firstId = String(first._id || first.id || '');
+    if (!firstId) return;
+    setFormData(prev => ({ ...prev, organisation: firstId, branch: '' }));
+  }, [isUserAdmin, organizations, formData.organisation]);
 
   // Populate form when customer data loads
   useEffect(() => {
@@ -106,7 +130,7 @@ export default function EditCustomerPage() {
         email: customer.email || '',
         phone: customer.phone || '',
         alternatePhone: customer.alternatePhone || '',
-        dateOfBirth: customer.dateOfBirth ? (typeof customer.dateOfBirth === 'string' ? customer.dateOfBirth : customer.dateOfBirth.toISOString().split('T')[0]) : '',
+        dateOfBirth: formatDateForInput(customer.dateOfBirth),
         gender: customer.gender || '',
         maritalStatus: customer.maritalStatus || '',
         fatherName: customer.fatherName || '',
@@ -120,7 +144,8 @@ export default function EditCustomerPage() {
         postalCode: customer.postalCode || '',
         country: customer.country || 'India',
         accountType: customer.accountType || '',
-        branch: (customer.branch || (customer as any).branchId?.toString?.() || '').toString(),
+        organisation: extractId((customer as any).organisation) || getOrganisationId() || '',
+        branch: extractId(customer.branch) || (customer as any).branchId?.toString?.() || '',
         status: customer.status || '',
         isApproved: customer.isApproved ?? false,
         nomineeName: customer.nomineeName || '',
@@ -174,6 +199,8 @@ export default function EditCustomerPage() {
           });
         }
       }
+    } else if (name === 'organisation') {
+      setFormData((prev) => ({ ...prev, [name]: value, branch: '' }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -206,6 +233,7 @@ export default function EditCustomerPage() {
     if (!formData.state.trim()) newErrors.state = 'State is required';
     if (!formData.postalCode.trim()) newErrors.postalCode = 'Postal code is required';
     if (!formData.accountType) newErrors.accountType = 'Account type is required';
+    if (organizations.length > 0 && !formData.organisation) newErrors.organisation = 'Organization is required';
     if (!formData.branch) newErrors.branch = 'Branch is required';
 
     setErrors(newErrors);
@@ -283,7 +311,7 @@ export default function EditCustomerPage() {
 
   // Primary Details Tab Content
   const primaryDetailsContent = (
-    <div className="p-6 space-y-8">
+    <div className="p-4 sm:p-6 space-y-8">
       {/* Personal Information */}
       <div>
         <div className="flex items-center gap-2 mb-6">
@@ -481,6 +509,34 @@ export default function EditCustomerPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {organizations.length > 0 && (
+            <Select
+              label="Organization"
+              name="organisation"
+              value={formData.organisation || ''}
+              onChange={handleChange}
+              error={errors.organisation}
+              disabled={!isUserAdmin}
+              required={organizations.length > 0}
+              options={
+                isUserAdmin
+                  ? [
+                      { value: '', label: 'Select organization' },
+                      ...organizations.map((org) => ({
+                        value: String(org._id || org.id || ''),
+                        label: org.organisationName || (org as any).organizationName || org.name || 'Unknown',
+                      })),
+                    ]
+                  : (() => {
+                      const currentId = formData.organisation || getOrganisationId() || '';
+                      const match = organizations.find((org) => String(org._id || org.id) === String(currentId));
+                      return match
+                        ? [{ value: String(match._id || match.id), label: match.organisationName || (match as any).organizationName || match.name || 'Unknown' }]
+                        : currentId ? [{ value: String(currentId), label: 'Current Organization' }] : [{ value: '', label: 'Select organization' }];
+                    })()
+              }
+            />
+          )}
           <Select
             label="Account Type"
             name="accountType"
@@ -503,10 +559,10 @@ export default function EditCustomerPage() {
             onChange={handleChange}
             error={errors.branch}
             required
-            disabled={loadingBranches}
+            disabled={!isUserAdmin}
             options={[
-              { value: '', label: loadingBranches ? 'Loading branches...' : 'Select branch' },
-              ...branches.map((b) => ({
+              { value: '', label: 'Select branch' },
+              ...(branches || []).map((b) => ({
                 value: String(b._id || (b as any).id),
                 label: `${b.branchName}${b.branchCode ? ` (${b.branchCode})` : ''}`,
               })),
@@ -586,7 +642,7 @@ export default function EditCustomerPage() {
 
   // KYC Documents Tab Content
   const kycDocumentsContent = (
-    <div className="p-6 space-y-8">
+    <div className="p-4 sm:p-6 space-y-8">
       {/* Aadhaar Card */}
       <div>
         <div className="flex items-center gap-2 mb-6">
@@ -831,7 +887,7 @@ export default function EditCustomerPage() {
   if (fetchLoading) {
     return (
       <DashboardLayout>
-        <div className="p-6 max-w-5xl mx-auto space-y-6 animate-pulse">
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6 animate-pulse">
           <div className="h-8 bg-neutral-200 rounded w-1/4"></div>
           <div className="h-96 bg-neutral-200 rounded"></div>
         </div>
@@ -841,16 +897,16 @@ export default function EditCustomerPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div>
           <Breadcrumbs items={breadcrumbItems} />
-          <div className="mt-4 flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-4 gap-4">
             <div>
               <h1 className="text-3xl font-bold text-neutral-900">Edit Customer</h1>
               <p className="text-neutral-600 mt-1">Update customer information for {customerId}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 mt-4 sm:mt-0">
               {!customer?.isApproved && (
                 <Button variant="primary" onClick={() => setShowApproveModal(true)} disabled={isSubmitting}>
                   <CheckCircle className="h-5 w-5 mr-2" />
@@ -899,11 +955,12 @@ export default function EditCustomerPage() {
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-4 w-full">
             <Button
               type="button"
               variant="outline"
               size="lg"
+              className="w-full sm:w-auto"
               onClick={handleCancel}
               disabled={isSubmitting}
             >
@@ -914,6 +971,7 @@ export default function EditCustomerPage() {
               type="submit"
               variant="primary"
               size="lg"
+              className="w-full sm:w-auto"
               loading={isSubmitting}
               disabled={isSubmitting}
             >

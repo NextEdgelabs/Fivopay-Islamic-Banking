@@ -155,7 +155,7 @@ export default function ProductsPage() {
   if (isInitialLoad)
     return (
       <DashboardLayout>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <Skeleton className="h-32 w-full mb-6" />
           <Skeleton className="h-96 w-full" />
         </div>
@@ -164,13 +164,13 @@ export default function ProductsPage() {
   if (error)
     return (
       <DashboardLayout>
-        <div className="p-6 text-error-500">Error: {error}</div>
+        <div className="p-4 sm:p-6 text-error-500">Error: {error}</div>
       </DashboardLayout>
     );
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         <Breadcrumbs items={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Products' }]} />
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Products</h1>
@@ -185,7 +185,7 @@ export default function ProductsPage() {
         </div>
 
         <Card>
-          <div className="p-4 flex flex-col md:flex-row gap-4">
+          <div className="p-4 flex flex-col md:flex-row md:flex-wrap gap-4">
             <div className="w-full md:w-1/3">
               <Input
                 placeholder="Search by name or ID..."
@@ -224,7 +224,9 @@ export default function ProductsPage() {
               />
             </div>
           </div>
-          <Table data={paginatedProducts} columns={columns} />
+          <div className="overflow-x-auto">
+            <Table data={paginatedProducts} columns={columns} />
+          </div>
           {products.length > itemsPerPage && (
             <div className="p-4 border-t">
               <Pagination

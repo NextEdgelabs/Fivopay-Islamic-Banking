@@ -102,12 +102,12 @@ export default function BranchesPage() {
 
   // Full-page loading only on initial load so search input stays mounted during refetch
   const isInitialLoad = loading && !branches.length;
-  if (isInitialLoad) return <DashboardLayout><div className="p-6"><Skeleton className="h-96 w-full" /></div></DashboardLayout>;
-  if (error) return <DashboardLayout><div className="p-6 text-error-500">{error}</div></DashboardLayout>;
+  if (isInitialLoad) return <DashboardLayout><div className="p-4 sm:p-6"><Skeleton className="h-96 w-full" /></div></DashboardLayout>;
+  if (error) return <DashboardLayout><div className="p-4 sm:p-6 text-error-500">{error}</div></DashboardLayout>;
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         <Breadcrumbs items={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Branches' }]} />
         <div className="flex justify-between items-center">
           <div>
@@ -148,7 +148,7 @@ export default function BranchesPage() {
         </div>
 
         <Card>
-          <div className="p-4 flex flex-col md:flex-row gap-4">
+          <div className="p-4 flex flex-col md:flex-row md:flex-wrap gap-4">
             <Input className="w-full md:w-1/3" placeholder="Search by name, code..." value={searchInputValue} onChange={handleSearchChange} leftIcon={<Search className="h-4 w-4" />} />
             <Select 
               className="w-full md:w-auto"
@@ -186,7 +186,9 @@ export default function BranchesPage() {
               Export
             </Button>
           </div>
-          <Table data={paginatedBranches} columns={columns} onRowClick={(row) => router.push(`/branches/${row.id || row._id}`)} />
+          <div className="overflow-x-auto">
+            <Table data={paginatedBranches} columns={columns} onRowClick={(row) => router.push(`/branches/${row.id || row._id}`)} />
+          </div>
           {branches.length > itemsPerPage && (
             <div className="p-4 border-t flex items-center justify-between">
                <p className="text-sm text-neutral-600">

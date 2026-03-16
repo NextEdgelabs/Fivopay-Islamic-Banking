@@ -102,7 +102,8 @@ export interface BatchesListResponse {
 }
 
 function normalizeBatchResponse(raw: any): BatchResponse {
-  const batch = raw?.result ?? raw?.data?.batch ?? raw?.batch;
+  // Backend returns { success, message, data: batch } - batch is the document directly
+  const batch = raw?.result ?? raw?.data?.batch ?? raw?.data ?? raw?.batch;
   return {
     success: raw?.success ?? false,
     message: raw?.message ?? '',

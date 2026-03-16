@@ -9,6 +9,7 @@ import { useBranchMutations } from '@/hooks/useBranchMutations';
 import { useToast } from '@/components/ui/Toast';
 import { INDIAN_STATES, CITIES_BY_STATE, BRANCH_SERVICES } from '@/lib/indiaData';
 import { UpdateBranchDto } from '@/services/branch.service';
+import { formatDateForInput } from '@/services/customers.service';
 
 export default function EditBranchPage() {
   const router = useRouter();
@@ -39,6 +40,7 @@ export default function EditBranchPage() {
     if (branch) {
       setFormData({
         ...branch,
+        openingDate: formatDateForInput(branch.openingDate) || branch.openingDate || '',
         latitude: branch.latitude ?? undefined,
         longitude: branch.longitude ?? undefined,
       });

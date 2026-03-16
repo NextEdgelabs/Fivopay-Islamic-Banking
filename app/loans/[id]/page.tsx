@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -12,11 +12,12 @@ import {
   Skeleton,
   Tabs,
 } from '@/components/ui';
-import { Edit, Trash2, DollarSign, User, Check, X, FileText } from 'lucide-react';
+import { Edit, Trash2, DollarSign, Check, X, FileText } from 'lucide-react';
 import { useLoan } from '@/hooks/useLoan';
 import { useLoanMutations } from '@/hooks/useLoanMutations';
 import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { useToast } from '@/components/ui/Toast';
+import { loanEmiService, LoanEmi } from '@/services/loan-emis';
 
 export default function ViewLoanPage() {
   const params = useParams();
@@ -89,18 +90,14 @@ export default function ViewLoanPage() {
   };
 
   const getStatusBadge = (status: string) => {
+    const displayStatus = (status || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
     const variants: Record<string, any> = {
-      Pending: 'warning',
-      'Under Review': 'neutral',
-      Approved: 'success',
-      Rejected: 'error',
-      Disbursed: 'primary',
-      Active: 'success',
-      Closed: 'neutral',
-      Defaulted: 'error',
-      Processing: 'neutral',
+      Pending: 'warning', 'Under Review': 'neutral', Approved: 'success', Rejected: 'error',
+      Disbursed: 'primary', Active: 'success', Closed: 'neutral', Defaulted: 'error',
+      Processing: 'neutral', 'Visit Branch': 'neutral',
     };
-    return <Badge variant={variants[status] || 'neutral'}>{status}</Badge>;
+    const key = displayStatus || status;
+    return <Badge variant={variants[key] || variants[status] || 'neutral'}>{key || status}</Badge>;
   };
 
   if (loading) {
@@ -129,6 +126,8 @@ export default function ViewLoanPage() {
     );
   }
 
+  const showRepaymentTab = loan.approvalStatus === 'approved' || loan.approvalStatus === 'disbursed';
+
   const TABS = [
     {
       id: 'overview',
@@ -140,8 +139,8 @@ export default function ViewLoanPage() {
       id: 'repayment',
       label: 'Repayment Schedule',
       icon: <FileText className="h-4 w-4" />,
-      content: <div className="p-6 text-center text-neutral-500">Repayment schedule feature coming soon.</div>,
-      disabled: true,
+      content: <RepaymentScheduleTab loanId={loan._id || ''} enabled={showRepaymentTab} />,
+      disabled: !showRepaymentTab,
     },
   ];
 
@@ -165,7 +164,7 @@ export default function ViewLoanPage() {
             </div>
             <div className="flex gap-2 flex-wrap">
               {/* Action Buttons */}
-              {loan.approvalStatus === 'pending' || (loan.approvalStatus as string) === 'processing' && (
+              {(loan.approvalStatus === 'pending' || (loan.approvalStatus as string) === 'processing') && (
                 <>
                   <Button variant="primary" onClick={handleApprove}><Check className="mr-2 h-4 w-4" />Approve</Button>
                   <Button variant="danger" onClick={handleReject}><X className="mr-2 h-4 w-4" />Reject</Button>
@@ -194,6 +193,107 @@ export default function ViewLoanPage() {
   );
 }
 
+const RepaymentScheduleTab = ({ loanId, enabled }: { loanId: string; enabled: boolean }) => {
+  const [emis, setEmis] = useState<LoanEmi[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totals, setTotals] = useState<{ totalEmiAmount: number; totalPaidAmount: number; totalRemainingAmount: number } | null>(null);
+
+  useEffect(() => {
+    if (!enabled || !loanId) return;
+    setLoading(true);
+    loanEmiService
+      .getLoanEmis(loanId)
+      .then(({ emis, totals: t }) => {
+        setEmis(emis);
+        setTotals(t);
+      })
+      .catch(() => setEmis([]))
+      .finally(() => setLoading(false));
+  }, [loanId, enabled]);
+
+  if (!enabled) {
+    return (
+      <div className="p-6 text-center text-neutral-500">
+        Disburse the loan to view the repayment schedule. EMIs are generated when the loan is approved.
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (emis.length === 0) {
+    return (
+      <div className="p-6 text-center text-neutral-500">
+        No EMIs found. EMIs are generated when the loan is approved or disbursed.
+      </div>
+    );
+  }
+
+  const formatDate = (d: string) => new Date(d).toLocaleDateString('en-IN');
+  const formatCurrency = (n: number) => `₹${n?.toLocaleString('en-IN') || '0'}`;
+
+  return (
+    <div className="p-6 space-y-6">
+      {totals && (
+        <div className="grid grid-cols-3 gap-4">
+          <Card className="p-4">
+            <p className="text-sm text-neutral-600">Total EMI Amount</p>
+            <p className="text-xl font-semibold text-primary-600">{formatCurrency(totals.totalEmiAmount)}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-sm text-neutral-600">Paid Amount</p>
+            <p className="text-xl font-semibold text-success-600">{formatCurrency(totals.totalPaidAmount)}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-sm text-neutral-600">Remaining Amount</p>
+            <p className="text-xl font-semibold text-warning-600">{formatCurrency(totals.totalRemainingAmount)}</p>
+          </Card>
+        </div>
+      )}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse border border-neutral-200 rounded-lg overflow-hidden">
+          <thead className="bg-neutral-50">
+            <tr>
+              <th className="border border-neutral-200 px-4 py-3 text-left text-sm font-medium text-neutral-700">#</th>
+              <th className="border border-neutral-200 px-4 py-3 text-left text-sm font-medium text-neutral-700">Due Date</th>
+              <th className="border border-neutral-200 px-4 py-3 text-right text-sm font-medium text-neutral-700">Principal</th>
+              <th className="border border-neutral-200 px-4 py-3 text-right text-sm font-medium text-neutral-700">Interest</th>
+              <th className="border border-neutral-200 px-4 py-3 text-right text-sm font-medium text-neutral-700">Total EMI</th>
+              <th className="border border-neutral-200 px-4 py-3 text-right text-sm font-medium text-neutral-700">Paid</th>
+              <th className="border border-neutral-200 px-4 py-3 text-right text-sm font-medium text-neutral-700">Remaining</th>
+              <th className="border border-neutral-200 px-4 py-3 text-left text-sm font-medium text-neutral-700">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {emis.map((emi) => (
+              <tr key={emi._id} className="hover:bg-neutral-50">
+                <td className="border border-neutral-200 px-4 py-3 text-neutral-900">{emi.emiNumber}</td>
+                <td className="border border-neutral-200 px-4 py-3 text-neutral-900">{formatDate(emi.dueDate)}</td>
+                <td className="border border-neutral-200 px-4 py-3 text-right">{formatCurrency(emi.principalAmount)}</td>
+                <td className="border border-neutral-200 px-4 py-3 text-right">{formatCurrency(emi.interestAmount)}</td>
+                <td className="border border-neutral-200 px-4 py-3 text-right font-medium">{formatCurrency(emi.totalEmiAmount)}</td>
+                <td className="border border-neutral-200 px-4 py-3 text-right text-success-600">{formatCurrency(emi.paidAmount)}</td>
+                <td className="border border-neutral-200 px-4 py-3 text-right text-warning-600">{formatCurrency(emi.remainingAmount)}</td>
+                <td className="border border-neutral-200 px-4 py-3">
+                  <Badge variant={emi.status === 'paid' ? 'success' : emi.status === 'overdue' ? 'error' : 'neutral'}>
+                    {emi.status}
+                  </Badge>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
 const LoanOverviewTab = ({ loan, getStatusBadge, rateLabel }: { loan: any; getStatusBadge: (status: string) => React.ReactNode; rateLabel: string }) => (
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
     <div className="lg:col-span-2 space-y-6">
@@ -208,7 +308,7 @@ const LoanOverviewTab = ({ loan, getStatusBadge, rateLabel }: { loan: any; getSt
                 </div>
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Status</label>
-                  <p className="mt-1">{getStatusBadge(loan.approvalStatus)}</p>
+                  <p className="mt-1">{getStatusBadge(loan.status || (loan.approvalStatus as string))}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Loan Channel</label>
@@ -320,7 +420,7 @@ const LoanOverviewTab = ({ loan, getStatusBadge, rateLabel }: { loan: any; getSt
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Application Date</label>
                   <p className="mt-1 text-neutral-900">
-                    {new Date(loan.applicationDate).toLocaleDateString('en-IN')}
+                    {loan.applicationDate || loan.createdAt ? new Date(loan.applicationDate || loan.createdAt).toLocaleDateString('en-IN') : '-'}
                   </p>
                 </div>
                 {loan.approvalDate && (

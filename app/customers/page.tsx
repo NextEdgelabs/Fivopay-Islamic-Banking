@@ -172,7 +172,7 @@ export default function CustomersPage() {
       key: 'actions',
       header: 'Actions',
       render: (_: any, row: any) => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-nowrap items-center gap-1">
           <IconButton
             icon={<Eye className="h-4 w-4" />}
             variant="ghost"
@@ -277,8 +277,8 @@ export default function CustomersPage() {
   if (isInitialLoad) {
     return (
       <DashboardLayout>
-        <div className="p-6 space-y-6 animate-pulse">
-          <div className="h-8 bg-neutral-200 rounded w-1/4"></div>
+      <div className="p-4 sm:p-6 space-y-6 animate-pulse">
+        <div className="h-8 bg-neutral-200 rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-24 bg-neutral-200 rounded"></div>
@@ -294,7 +294,7 @@ export default function CustomersPage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <Card>
             <div className="p-12 text-center">
               <p className="text-error-500 mb-4">Error: {error}</p>
@@ -310,11 +310,11 @@ export default function CustomersPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div>
           <Breadcrumbs items={breadcrumbItems} />
-          <div className="flex items-center justify-between mt-4">
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-neutral-900">Customers</h1>
               <p className="text-neutral-600 mt-1">Manage all customer accounts</p>
@@ -329,7 +329,7 @@ export default function CustomersPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           <Card padding="sm">
             <div className="flex items-center justify-between">
               <div>
@@ -388,8 +388,8 @@ export default function CustomersPage() {
 
         {/* Filters and Search */}
         <Card>
-          <div className="p-4 flex flex-col md:flex-row gap-4">
-            <div className="w-full md:w-1/3">
+          <div className="p-4 flex flex-col md:flex-row md:flex-wrap gap-4">
+            <div className="w-full md:flex-1 md:max-w-sm">
               <Input
                 placeholder="Search by name, email, or ID..."
                 value={searchInputValue}
@@ -397,7 +397,7 @@ export default function CustomersPage() {
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>
-            <div className="w-full md:w-48">
+            <div className="w-full sm:w-1/2 md:w-48">
               <Select
                 name="branch"
                 value={filters.branch || ''}
@@ -411,7 +411,7 @@ export default function CustomersPage() {
                 ]}
               />
             </div>
-            <div className="w-full md:w-48">
+            <div className="w-full sm:w-1/2 md:w-48">
               <Select
                 name="state"
                 value={filters.state || ''}
@@ -422,7 +422,7 @@ export default function CustomersPage() {
                 ]}
               />
             </div>
-            <div className="w-full md:w-48">
+            <div className="w-full sm:w-1/2 md:w-48">
               <Select
                 name="city"
                 value={filters.city || ''}
@@ -434,10 +434,12 @@ export default function CustomersPage() {
                 ]}
               />
             </div>
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
+            <div className="w-full md:w-auto">
+              <Button variant="outline" onClick={handleExport} className="w-full">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </div>
           </div>
         </Card>
 
@@ -459,7 +461,7 @@ export default function CustomersPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="p-4 border-t mt-6 flex items-center justify-between">
+            <div className="p-4 border-t mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-sm text-neutral-600">
                 Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, customers?.length)} of{' '}
                 {customers?.length} customers

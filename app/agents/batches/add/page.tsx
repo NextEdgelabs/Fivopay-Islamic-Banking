@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -25,25 +25,27 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useBranches } from '@/hooks/useBranches';
 import { useOrganizations } from '@/hooks/useOrganizations';
+import { getOrganisationId, getBranchId, isAdmin } from '@/lib/auth';
 import Link from 'next/link';
+
+function extractBranchId(ref: unknown): string {
+  if (!ref) return '';
+  if (typeof ref === 'string') return ref;
+  const obj = ref as Record<string, unknown>;
+  const id = obj?._id ?? obj?.id ?? (obj as any)?.$oid;
+  if (typeof id === 'string') return id;
+  if (id && typeof (id as any)?.toString === 'function') return (id as any).toString();
+  return '';
+}
 
 export default function AddBatchPage() {
   const router = useRouter();
   const { addToast } = useToast();
   const { createBatch, loading: isSubmitting } = useBatchMutations();
-  const { employees: allEmployees } = useEmployees();
+  const { employees: allEmployees } = useEmployees({ limit: 500 });
   const { customers } = useCustomers();
-  const { branches } = useBranches();
+  const { branches, setFilters: setBranchFilters } = useBranches();
   const { organizations } = useOrganizations();
-
-  // Filter employees to get agents
-  const agentEmployees = useMemo(() => {
-    return (allEmployees || []).filter(emp => 
-      emp.role?.toLowerCase().includes('agent') || 
-      emp.designation?.toLowerCase().includes('agent') ||
-      emp.department?.toLowerCase().includes('agent')
-    );
-  }, [allEmployees]);
 
   const [formData, setFormData] = useState<Partial<CreateBatchDto>>({
     batchName: '',
@@ -55,6 +57,63 @@ export default function AddBatchPage() {
     assignmentDate: new Date().toISOString().split('T')[0],
     status: BatchStatus.Active,
   });
+
+  // Filter employees to get agents for the selected branch
+  const agentEmployees = useMemo(() => {
+    const branchId = formData.branch ? String(formData.branch) : '';
+    return (allEmployees || []).filter(emp => {
+      const isAgent =
+        emp.role?.toLowerCase().includes('agent') ||
+        emp.designation?.toLowerCase().includes('agent') ||
+        emp.department?.toLowerCase().includes('agent');
+      if (!isAgent) return false;
+      if (!branchId) return true;
+      const empBranchId = extractBranchId(emp.branch as any);
+      return empBranchId === branchId;
+    });
+  }, [allEmployees, formData.branch]);
+
+  const isUserAdmin = isAdmin();
+
+  // Filter branches by selected organisation
+  useEffect(() => {
+    const orgId = formData.organisation || getOrganisationId() || '';
+    setBranchFilters(prev => ({ ...prev, organisationId: orgId || undefined }));
+  }, [formData.organisation, setBranchFilters]);
+
+  // Preselect organisation and branch from user profile (default for all)
+  useEffect(() => {
+    const orgId = getOrganisationId();
+    const branchId = getBranchId();
+    setFormData(prev => ({
+      ...prev,
+      ...(orgId && { organisation: orgId }),
+      ...(branchId && { branch: branchId }),
+    }));
+  }, []);
+
+  // For admins: if no organisation set from profile, default to first organisation once loaded
+  useEffect(() => {
+    if (!isUserAdmin) return;
+    if (formData.organisation) return;
+    if (!organizations || organizations.length === 0) return;
+    const first = organizations[0];
+    const firstId = String(first._id || first.id || '');
+    if (!firstId) return;
+    setFormData(prev => ({ ...prev, organisation: firstId, branch: '' }));
+  }, [isUserAdmin, organizations, formData.organisation]);
+
+  // Branch: auto-select for non-admin from selected employee
+  useEffect(() => {
+    if (isUserAdmin) return;
+    if (!formData.employeeId || !agentEmployees.length) return;
+    const empId = String(formData.employeeId);
+    const emp = agentEmployees.find(e => String(e._id || e.id) === empId);
+    const branchId = emp ? extractBranchId(emp.branch) : '';
+    const authBranchId = getBranchId();
+    const fallbackBranchId = branchId || authBranchId || '';
+    setFormData(prev => ({ ...prev, branch: fallbackBranchId }));
+  }, [formData.employeeId, agentEmployees, isUserAdmin]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
@@ -99,6 +158,9 @@ export default function AddBatchPage() {
     if (!formData.batchName || formData.batchName.trim() === '') {
       newErrors.batchName = 'Batch name is required';
     }
+    if (!formData.organisation || formData.organisation === '') {
+      newErrors.organisation = 'Organization is required';
+    }
     if (!formData.employeeId || formData.employeeId === '') {
       newErrors.employeeId = 'Employee/Agent is required';
     }
@@ -110,9 +172,14 @@ export default function AddBatchPage() {
     
     if (Object.keys(newErrors).length > 0) {
       const firstError = Object.entries(newErrors)[0];
-      const fieldName = firstError[0] === 'employeeId' ? 'Employee/Agent' : 
-                       firstError[0] === 'assignmentDate' ? 'Assignment Date' :
-                       firstError[0].charAt(0).toUpperCase() + firstError[0].slice(1);
+      const fieldName =
+        firstError[0] === 'employeeId'
+          ? 'Employee/Agent'
+          : firstError[0] === 'assignmentDate'
+          ? 'Assignment Date'
+          : firstError[0] === 'organisation'
+          ? 'Organization'
+          : firstError[0].charAt(0).toUpperCase() + firstError[0].slice(1);
       addToast({
         type: 'error',
         message: `${fieldName}: ${firstError[1]}`,
@@ -163,7 +230,7 @@ export default function AddBatchPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6">
         <Breadcrumbs items={breadcrumbItems} />
         
         <div className="flex items-center justify-between">
@@ -180,6 +247,71 @@ export default function AddBatchPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Organisation and Branch */}
+        <Card>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-4">Organisation & Branch</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Select
+                label="Organization"
+                name="organisation"
+                value={formData.organisation || ''}
+                onChange={handleChange}
+                disabled
+                error={errors.organisation}
+                options={
+                  isUserAdmin
+                    ? [
+                        { value: '', label: 'Select Organization' },
+                        ...(organizations || []).map(org => ({
+                          value: org._id || org.id || '',
+                          label:
+                            org.organisationName ||
+                            org.organizationName ||
+                            org.name ||
+                            'Unknown',
+                        })),
+                      ]
+                    : (() => {
+                        const currentId = formData.organisation || getOrganisationId() || '';
+                        const match =
+                          (organizations || []).find(
+                            org => String(org._id || org.id) === String(currentId)
+                          ) || null;
+                        if (!match) {
+                          return currentId
+                            ? [{ value: String(currentId), label: 'Current Organization' }]
+                            : [{ value: '', label: 'Select Organization' }];
+                        }
+                        return [
+                          {
+                            value: String(match._id || match.id),
+                            label:
+                              match.organisationName ||
+                              match.organizationName ||
+                              match.name ||
+                              'Unknown',
+                          },
+                        ];
+                      })()
+                }
+                required
+              />
+              <Select
+                label="Branch"
+                name="branch"
+                value={formData.branch || ''}
+                onChange={handleChange}
+                disabled={!isUserAdmin}
+                options={[
+                  { value: '', label: 'Select Branch' },
+                  ...(branches || []).map(b => ({ 
+                    value: b._id || b.id || '', 
+                    label: b.branchName 
+                  }))
+                ]}
+              />
+            </div>
+          </Card>
           {/* Basic Information */}
           <Card>
             <h3 className="text-lg font-semibold text-neutral-900 mb-4">Batch Information</h3>
@@ -229,38 +361,7 @@ export default function AddBatchPage() {
             </div>
           </Card>
 
-          {/* Organisation and Branch */}
-          <Card>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-4">Organisation & Branch</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Select
-                label="Organization"
-                name="organisation"
-                value={formData.organisation || ''}
-                onChange={handleChange}
-                options={[
-                  { value: '', label: 'Select Organization' },
-                  ...(organizations || []).map(org => ({ 
-                    value: org._id || org.id || '', 
-                    label: org.organisationName || org.organizationName || org.name || 'Unknown' 
-                  }))
-                ]}
-              />
-              <Select
-                label="Branch"
-                name="branch"
-                value={formData.branch || ''}
-                onChange={handleChange}
-                options={[
-                  { value: '', label: 'Select Branch' },
-                  ...(branches || []).map(b => ({ 
-                    value: b._id || b.id || '', 
-                    label: b.branchName 
-                  }))
-                ]}
-              />
-            </div>
-          </Card>
+          
 
           {/* Assignment Date */}
           <Card>

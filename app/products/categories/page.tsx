@@ -195,11 +195,11 @@ export default function LoanCategoriesPage() {
     return null;
   };
 
-  if (loading) return <DashboardLayout><div className="p-6"><Skeleton className="h-96 w-full" /></div></DashboardLayout>;
+  if (loading) return <DashboardLayout><div className="p-4 sm:p-6"><Skeleton className="h-96 w-full" /></div></DashboardLayout>;
   if (error) {
     return (
       <DashboardLayout>
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           <Breadcrumbs items={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Products', href: '/products' },
@@ -230,7 +230,7 @@ export default function LoanCategoriesPage() {
   if (!categories || categories.length === 0) {
     return (
       <DashboardLayout>
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           <Breadcrumbs items={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Products', href: '/products' },
@@ -268,7 +268,7 @@ export default function LoanCategoriesPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         <Breadcrumbs items={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Products', href: '/products' },
@@ -351,7 +351,7 @@ export default function LoanCategoriesPage() {
 
         {/* Filters */}
         <Card>
-          <div className="p-4 flex flex-col md:flex-row gap-4">
+          <div className="p-4 flex flex-col md:flex-row md:flex-wrap gap-4">
             <div className="w-full md:w-1/3">
               <Input
                 placeholder="Search categories..."
@@ -417,7 +417,9 @@ export default function LoanCategoriesPage() {
             </div>
           ) : (
             <>
-              <Table data={paginatedCategories} columns={columns} />
+              <div className="overflow-x-auto">
+                <Table data={paginatedCategories} columns={columns} />
+              </div>
               {paginatedCategories.map(category => renderSubCategories(category))}
               
               {categories.length > itemsPerPage && (

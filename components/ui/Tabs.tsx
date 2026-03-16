@@ -47,7 +47,7 @@ const Tabs: React.FC<TabsProps> = ({
       {/* Tab Headers */}
       <div
         className={cn(
-          'flex gap-1',
+          'flex gap-1 overflow-x-auto whitespace-nowrap no-scrollbar',
           variant === 'default' && 'border-b border-border-light'
         )}
         role="tablist"

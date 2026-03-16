@@ -31,7 +31,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-neutral-900">Dashboard</h1>
           <p className="text-neutral-600 mt-1">

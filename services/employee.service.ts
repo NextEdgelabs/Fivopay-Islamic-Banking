@@ -170,6 +170,8 @@ export interface EmployeeFilters {
   state?: string;
   city?: string;
   organisation?: string;
+  limit?: number;
+  page?: number;
 }
 
 export interface EmployeesListResponse {

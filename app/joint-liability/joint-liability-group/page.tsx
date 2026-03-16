@@ -282,7 +282,7 @@ export default function JointLiabilityGroupsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-neutral-900">Joint Liability Groups</h1>
@@ -331,8 +331,9 @@ export default function JointLiabilityGroupsPage() {
         </div>
 
         {/* Groups List */}
-        <Table
-          data={filteredGroups}
+        <div className="overflow-x-auto">
+          <Table
+            data={filteredGroups}
           loading={loading}
           emptyMessage="No joint liability groups created yet."
           columns={[
@@ -414,6 +415,7 @@ export default function JointLiabilityGroupsPage() {
           ]}
           onRowClick={(group) => openDetails(group)}
         />
+        </div>
 
         {/* Create Group Modal */}
         <Modal

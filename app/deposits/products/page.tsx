@@ -359,7 +359,9 @@ export default function ManageDepositProductsPage() {
               Add Category
             </Button>
           </div>
-          <Table columns={categoryColumns} data={categories} />
+          <div className="overflow-x-auto">
+            <Table columns={categoryColumns} data={categories} />
+          </div>
         </>
       )}
     </>
@@ -396,7 +398,9 @@ export default function ManageDepositProductsPage() {
               Add Product
             </Button>
           </div>
-          <Table columns={productColumns as TableColumn<DepositProduct>[]} data={products} />
+          <div className="overflow-x-auto">
+            <Table columns={productColumns as TableColumn<DepositProduct>[]} data={products} />
+          </div>
         </>
       )}
     </>
@@ -404,7 +408,7 @@ export default function ManageDepositProductsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         <Breadcrumbs
           items={[
             { label: 'Dashboard', href: '/dashboard' },

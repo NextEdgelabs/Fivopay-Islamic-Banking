@@ -9,7 +9,8 @@ import { getAuthToken, getOrganisationId } from '@/lib/auth';
 export enum ApprovalStatus {
   PENDING = 'pending',
   APPROVED = 'approved',
-  REJECTED = 'rejected'
+  REJECTED = 'rejected',
+  DISBURSED = 'disbursed',
 }
 
 export enum DocumentStatus {
@@ -217,6 +218,7 @@ function normalizeLoan(loan: any): Loan {
     ...loan,
     // Map API fields to UI fields
     id: loan._id || loan.id,
+    disbursementDate: loan.disbursementDate,
     loanAmount: loan.amount || loan.loanAmount || 0,
     amount: loan.amount || loan.loanAmount || 0,
     // Map approvalStatus to status for UI compatibility
@@ -251,6 +253,9 @@ function mapApprovalStatusToStatus(approvalStatus?: string): string {
     'pending': 'Pending',
     'approved': 'Approved',
     'rejected': 'Rejected',
+    'disbursed': 'Disbursed',
+    'processing': 'Under Review',
+    'visit_branch': 'Visit Branch',
   };
   
   return statusMap[approvalStatus.toLowerCase()] || 'Pending';
@@ -490,7 +495,7 @@ export const loanService = {
       const token = getAuthToken();
       // Note: This endpoint is not in loadFlow.md, but keeping for compatibility
       const response = await axios.patch<LoanResponse>(
-        `${API.domain}/api/v1/loan/disburse-loan/${id}`,
+        `${API.domain}${API.endPoints.disburseLoan}/${id}`,
         {},
         {
           headers: {
@@ -507,7 +512,8 @@ export const loanService = {
         throw new Error('Failed to disburse loan');
       }
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to disburse loan');
+      const msg = error.response?.data?.message || error.response?.data?.result || 'Failed to disburse loan';
+      throw new Error(typeof msg === 'string' ? msg : 'Failed to disburse loan');
     }
   },
 

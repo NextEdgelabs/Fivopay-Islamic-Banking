@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import {
@@ -28,14 +28,16 @@ import { CreateEmployeeDto, employeeService } from '@/services/employee.service'
 import { useBranches } from '@/hooks/useBranches';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { INDIAN_STATES, CITIES_BY_STATE } from '@/lib/indiaData';
+import { getOrganisationId, getBranchId, isAdmin } from '@/lib/auth';
 import Link from 'next/link';
 
 export default function AddEmployeePage() {
   const router = useRouter();
   const { addToast } = useToast();
   const { createEmployee, loading: isSubmitting } = useEmployeeMutations();
-  const { branches } = useBranches();
+  const { branches, setFilters: setBranchFilters } = useBranches();
   const { organizations } = useOrganizations();
+  const isUserAdmin = isAdmin();
 
   const [formData, setFormData] = useState<Partial<CreateEmployeeDto>>({
     employeeId: '',
@@ -77,6 +79,34 @@ export default function AddEmployeePage() {
   const [selectedState, setSelectedState] = useState('');
   const [isGeneratingId, setIsGeneratingId] = useState(false);
 
+  // Filter branches by selected organisation
+  useEffect(() => {
+    const orgId = formData.organisation || getOrganisationId() || '';
+    setBranchFilters(prev => ({ ...prev, organisationId: orgId || undefined }));
+  }, [formData.organisation, setBranchFilters]);
+
+  // Preselect organisation and branch from user profile
+  useEffect(() => {
+    const orgId = getOrganisationId();
+    const branchId = getBranchId();
+    setFormData(prev => ({
+      ...prev,
+      ...(orgId && { organisation: orgId }),
+      ...(branchId && { branch: branchId }),
+    }));
+  }, []);
+
+  // For admins: if no organisation set from profile, default to first organisation once loaded
+  useEffect(() => {
+    if (!isUserAdmin) return;
+    if (formData.organisation) return;
+    if (!organizations || organizations.length === 0) return;
+    const first = organizations[0];
+    const firstId = String(first._id || first.id || '');
+    if (!firstId) return;
+    setFormData(prev => ({ ...prev, organisation: firstId, branch: '' }));
+  }, [isUserAdmin, organizations, formData.organisation]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -94,6 +124,8 @@ export default function AddEmployeePage() {
     } else if (name === 'state') {
       setSelectedState(value);
       setFormData(prev => ({ ...prev, [name]: value, city: '' }));
+    } else if (name === 'organisation') {
+      setFormData(prev => ({ ...prev, [name]: value, branch: '' }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -196,10 +228,10 @@ export default function AddEmployeePage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6">
         <Breadcrumbs items={breadcrumbItems} />
         
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-neutral-900">Add Employee</h1>
             <p className="text-neutral-600 mt-1">Create a new employee account</p>
@@ -247,10 +279,21 @@ export default function AddEmployeePage() {
                 value={formData.organisation || ''}
                 onChange={handleChange}
                 error={errors.organisation}
-                options={[
-                  { value: '', label: 'Select Organization' },
-                  ...(organizations || []).map(org => ({ value: org._id || org.id || '', label: org.organisationName || org.organizationName || org.name || 'Unknown' }))
-                ]}
+                disabled={!isUserAdmin}
+                options={
+                  isUserAdmin
+                    ? [
+                        { value: '', label: 'Select Organization' },
+                        ...(organizations || []).map(org => ({ value: org._id || org.id || '', label: org.organisationName || org.organizationName || org.name || 'Unknown' }))
+                      ]
+                    : (() => {
+                        const currentId = formData.organisation || getOrganisationId() || '';
+                        const match = (organizations || []).find(org => String(org._id || org.id) === String(currentId));
+                        return match
+                          ? [{ value: String(match._id || match.id), label: match.organisationName || match.organizationName || match.name || 'Unknown' }]
+                          : currentId ? [{ value: String(currentId), label: 'Current Organization' }] : [{ value: '', label: 'Select Organization' }];
+                      })()
+                }
                 required
               />
               <Select
@@ -259,6 +302,7 @@ export default function AddEmployeePage() {
                 value={formData.branch || ''}
                 onChange={handleChange}
                 error={errors.branch}
+                disabled={!isUserAdmin}
                 options={[
                   { value: '', label: 'Select Branch' },
                   ...(branches || []).map(b => ({ value: b._id || b.id || '', label: b.branchName }))
@@ -578,13 +622,13 @@ export default function AddEmployeePage() {
           </Card>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-4">
-            <Link href="/employees">
-              <Button variant="outline" type="button">
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-4 w-full">
+            <Link href="/employees" className="w-full sm:w-auto">
+              <Button variant="outline" type="button" className="w-full">
                 Cancel
               </Button>
             </Link>
-            <Button variant="primary" type="submit" loading={isSubmitting}>
+            <Button variant="primary" type="submit" loading={isSubmitting} className="w-full sm:w-auto">
               <Save className="h-4 w-4 mr-2" />
               Create Employee
             </Button>

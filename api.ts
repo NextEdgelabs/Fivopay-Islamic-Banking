@@ -70,7 +70,11 @@ export const API = {
         getLoanById: "/api/v1/loan/get-loan-by-id",
         approveLoan: "/api/v1/loan/approve-loan",
         rejectLoan: "/api/v1/loan/reject-loan",
+        disburseLoan: "/api/v1/loan/disburse-loan",
         updateLoan: "/api/v1/loan/update-loan",
+
+        // loan EMIs
+        getLoanEmis: "/api/v1/loan-emi/get-loan-emis",
 
         // payment records
         getAllPaymentRecords: "/api/v1/agent/payment-record/get-all-payment-records",

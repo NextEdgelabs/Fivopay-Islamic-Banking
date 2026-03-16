@@ -588,7 +588,7 @@ export default function AgentsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         <Breadcrumbs items={breadcrumbItems} />
         
         <div className="flex items-center justify-between">
@@ -607,7 +607,7 @@ export default function AgentsPage() {
         {/* Search bars rendered here so they are not inside tab content and keep focus */}
         {activeTab === 'batches' && (
           <Card>
-            <div className="p-4 flex flex-col md:flex-row gap-4">
+            <div className="p-4 flex flex-col md:flex-row md:flex-wrap gap-4">
               <div className="w-full md:w-1/3">
                 <Input
                   placeholder="Search by batch name or code..."

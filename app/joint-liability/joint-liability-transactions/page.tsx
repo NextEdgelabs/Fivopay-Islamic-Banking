@@ -199,7 +199,7 @@ export default function JointLiabilityTransactionsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-neutral-900">Joint Liability Transactions</h1>
@@ -305,8 +305,9 @@ export default function JointLiabilityTransactionsPage() {
           </div>
         </Card>
 
-        <Table
-          data={filteredTransactions}
+        <div className="overflow-x-auto">
+          <Table
+            data={filteredTransactions}
           loading={loading}
           emptyMessage="No transactions recorded yet."
           columns={[
@@ -369,6 +370,7 @@ export default function JointLiabilityTransactionsPage() {
             }
           ]}
         />
+        </div>
 
         {/* Add Deposit Modal */}
         <Modal
