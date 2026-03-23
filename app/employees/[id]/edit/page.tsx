@@ -243,7 +243,7 @@ export default function EditEmployeePage() {
                 value={formData.organisation || ''}
                 onChange={handleChange}
                 error={errors.organisation}
-                disabled={!isUserAdmin}
+                disabled={true}
                 options={
                   isUserAdmin
                     ? [

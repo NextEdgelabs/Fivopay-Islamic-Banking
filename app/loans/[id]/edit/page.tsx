@@ -10,6 +10,19 @@ import { useLoan } from '@/hooks/useLoan';
 import { useLoanMutations } from '@/hooks/useLoanMutations';
 import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { useToast } from '@/components/ui/Toast';
+import { useBranches } from '@/hooks/useBranches';
+import { useOrganizations } from '@/hooks/useOrganizations';
+import { getOrganisationId, isAdmin } from '@/lib/auth';
+
+function extractId(ref: unknown): string {
+  if (!ref) return '';
+  if (typeof ref === 'string') return ref;
+  const obj = ref as Record<string, unknown>;
+  const id = obj?._id ?? obj?.id;
+  if (typeof id === 'string') return id;
+  if (id && typeof id === 'object' && '$oid' in (id as object)) return (id as { $oid: string }).$oid;
+  return '';
+}
 
 export default function EditLoanPage() {
   const params = useParams();
@@ -19,6 +32,9 @@ export default function EditLoanPage() {
   const { updateLoan, loading: isSubmitting } = useLoanMutations();
   const { rateLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
+  const { branches, setFilters: setBranchFilters } = useBranches();
+  const { organizations } = useOrganizations();
+  const isUserAdmin = isAdmin();
 
   const [formData, setFormData] = useState({
     loanAmount: '',
@@ -26,23 +42,54 @@ export default function EditLoanPage() {
     interestRate: '',
     status: '' as any,
     loanSource: 'online' as 'walkin' | 'online',
+    organisation: '',
+    branchId: '',
   });
 
   useEffect(() => {
     if (loan) {
+      const orgId = isUserAdmin
+        ? (extractId((loan as any).organisation) || extractId((loan as any).organization) || getOrganisationId() || '')
+        : (getOrganisationId() || extractId((loan as any).organisation) || extractId((loan as any).organization) || '');
+      const branchId = isUserAdmin
+        ? (extractId((loan as any).branchId) || extractId((loan as any).branch) || '')
+        : (extractId((loan as any).branchId) || extractId((loan as any).branch) || '');
       setFormData({
-        loanAmount: loan?.loanAmount?.toString() || '',
+        loanAmount: loan?.loanAmount?.toString() || loan?.amount?.toString() || '',
         tenure: loan?.tenure?.toString() || '',
         interestRate: loan?.interestRate?.toString() || '',
         status: loan.status,
         loanSource: (loan?.loanSource || 'online') as 'walkin' | 'online',
+        organisation: orgId,
+        branchId,
       });
     }
-  }, [loan]);
+  }, [loan, isUserAdmin]);
+
+  // Filter branches by selected organisation
+  useEffect(() => {
+    const orgId = formData.organisation || getOrganisationId() || '';
+    setBranchFilters(prev => ({ ...prev, organisationId: orgId || undefined }));
+  }, [formData.organisation, setBranchFilters]);
+
+  // For admins: if no organisation after prefill, default to first organisation once loaded
+  useEffect(() => {
+    if (!isUserAdmin) return;
+    if (formData.organisation) return;
+    if (!organizations || organizations.length === 0) return;
+    const first = organizations[0];
+    const firstId = String(first._id || first.id || '');
+    if (!firstId) return;
+    setFormData(prev => ({ ...prev, organisation: firstId, branchId: '' }));
+  }, [isUserAdmin, organizations, formData.organisation]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'organisation') {
+      setFormData((prev) => ({ ...prev, [name]: value, branchId: '' }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,6 +102,8 @@ export default function EditLoanPage() {
         interestRate: parseFloat(formData.interestRate),
         status: formData.status as any,
         loanSource: formData.loanSource,
+        branchId: formData.branchId || undefined,
+        organisation: formData.organisation || undefined,
       });
       addToast({ type: 'success', message: 'Loan updated successfully!' });
       router.push(`/loans/${loanId}`);
@@ -121,6 +170,49 @@ export default function EditLoanPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card className="p-6 space-y-6">
             <h2 className="text-xl font-semibold text-neutral-900">Loan Details</h2>
+
+            {(organizations?.length ?? 0) > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Select
+                  label="Organization"
+                  name="organisation"
+                  value={formData.organisation || ''}
+                  onChange={handleChange}
+                  disabled={true}
+                  options={
+                    isUserAdmin
+                      ? [
+                          { value: '', label: 'Select Organization' },
+                          ...(organizations || []).map((org) => ({
+                            value: String(org._id || (org as any).id || ''),
+                            label: org.organisationName || (org as any).organizationName || org.name || 'Unknown',
+                          })),
+                        ]
+                      : (() => {
+                          const currentId = formData.organisation || getOrganisationId() || '';
+                          const match = (organizations || []).find((o) => String(o._id || o.id) === String(currentId));
+                          return match
+                            ? [{ value: String(match._id || match.id), label: match.organisationName || (match as any).organizationName || match.name || 'Unknown' }]
+                            : currentId ? [{ value: String(currentId), label: 'Current Organization' }] : [{ value: '', label: 'Select Organization' }];
+                        })()
+                  }
+                />
+                <Select
+                  label="Branch"
+                  name="branchId"
+                  value={formData.branchId || ''}
+                  onChange={handleChange}
+                  disabled={!isUserAdmin}
+                  options={[
+                    { value: '', label: 'Select Branch' },
+                    ...(branches || []).map((b) => ({
+                      value: String(b._id || (b as any).id || ''),
+                      label: b.branchName,
+                    })),
+                  ]}
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input

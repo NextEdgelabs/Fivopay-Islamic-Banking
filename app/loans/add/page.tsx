@@ -8,6 +8,8 @@ import { Save, X } from 'lucide-react';
 import { useLoanMutations } from '@/hooks/useLoanMutations';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useBranches } from '@/hooks/useBranches';
+import { useOrganizations } from '@/hooks/useOrganizations';
+import { getOrganisationId, getBranchId, isAdmin } from '@/lib/auth';
 import { useProducts } from '@/hooks/useProducts';
 import { useToast } from '@/components/ui/Toast';
 import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
@@ -70,7 +72,9 @@ export default function AddLoanPage() {
   const router = useRouter();
   const { createLoan, loading: isSubmitting } = useLoanMutations();
   const { customers } = useCustomers();
-  const { branches } = useBranches();
+  const { branches, setFilters: setBranchFilters } = useBranches();
+  const { organizations } = useOrganizations();
+  const isUserAdmin = isAdmin();
   const { products: loanProducts } = useProducts({ status: 'active', limit: 100 });
   const { rateLabel } = useInterestProfitTerm();
   const { addToast } = useToast();
@@ -84,6 +88,7 @@ export default function AddLoanPage() {
     loanAmount: '',
     tenure: '',
     interestRate: '',
+    organisation: '',
     branchId: '',
     loanSource: 'online' as 'walkin' | 'online',
   });
@@ -116,9 +121,41 @@ export default function AddLoanPage() {
     }
   }, [selectedProduct]);
 
+  // Filter branches by selected organisation
+  useEffect(() => {
+    const orgId = formData.organisation || getOrganisationId() || '';
+    setBranchFilters(prev => ({ ...prev, organisationId: orgId || undefined }));
+  }, [formData.organisation, setBranchFilters]);
+
+  // Preselect organisation and branch from user profile
+  useEffect(() => {
+    const orgId = getOrganisationId();
+    const branchId = getBranchId();
+    setFormData(prev => ({
+      ...prev,
+      ...(orgId && { organisation: orgId }),
+      ...(branchId && { branchId }),
+    }));
+  }, []);
+
+  // For admins: if no organisation set from profile, default to first organisation once loaded
+  useEffect(() => {
+    if (!isUserAdmin) return;
+    if (formData.organisation) return;
+    if (!organizations || organizations.length === 0) return;
+    const first = organizations[0];
+    const firstId = String(first._id || first.id || '');
+    if (!firstId) return;
+    setFormData(prev => ({ ...prev, organisation: firstId, branchId: '' }));
+  }, [isUserAdmin, organizations, formData.organisation]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'organisation') {
+      setFormData((prev) => ({ ...prev, [name]: value, branchId: '' }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
@@ -131,6 +168,9 @@ export default function AddLoanPage() {
     if (!formData.loanAmount) newErrors.loanAmount = 'Loan amount is required';
     if (!formData.tenure) newErrors.tenure = 'Tenure is required';
     if (!formData.branchId) newErrors.branchId = 'Branch is required';
+    if (organizations && organizations.length > 0 && !formData.organisation) {
+      newErrors.organisation = 'Organization is required';
+    }
     
     if (selectedProduct) {
       const minAmt = selectedProduct.minLoanAmount ?? selectedProduct.minAmount;
@@ -164,6 +204,7 @@ export default function AddLoanPage() {
         amount: parseFloat(formData.loanAmount),
         tenure: parseInt(formData.tenure),
         branchId: formData.branchId,
+        organisation: formData.organisation || undefined,
         userId: formData.customerId,
         product: '',
         loanSource: formData.loanSource,
@@ -204,6 +245,32 @@ export default function AddLoanPage() {
             <h2 className="text-xl font-semibold text-neutral-900">Loan Details</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {organizations && organizations.length > 0 && (
+                <Select
+                  label="Organization"
+                  name="organisation"
+                  value={formData.organisation || ''}
+                  onChange={handleChange}
+                  disabled={true}
+                  options={
+                    isUserAdmin
+                      ? [
+                          { value: '', label: 'Select Organization' },
+                          ...organizations.map((org) => ({
+                            value: org._id || (org as any).id || '',
+                            label: org.organisationName || (org as any).organizationName || org.name || 'Unknown',
+                          })),
+                        ]
+                      : (() => {
+                          const currentId = formData.organisation || getOrganisationId() || '';
+                          const match = organizations.find((o) => String(o._id || o.id) === String(currentId));
+                          return match
+                            ? [{ value: String(match._id || match.id), label: match.organisationName || (match as any).organizationName || match.name || 'Unknown' }]
+                            : currentId ? [{ value: String(currentId), label: 'Current Organization' }] : [{ value: '', label: 'Select Organization' }];
+                        })()
+                  }
+                />
+              )}
               <Select
                 label="Select Product (Optional)"
                 name="productId"
@@ -265,6 +332,7 @@ export default function AddLoanPage() {
                 value={formData.branchId}
                 onChange={handleChange}
                 error={errors.branchId}
+                disabled={!isUserAdmin}
                 options={[
                   { value: '', label: 'Select Branch' },
                   ...branches.map((b) => ({ value: b._id || b.id || '', label: b.branchName })),

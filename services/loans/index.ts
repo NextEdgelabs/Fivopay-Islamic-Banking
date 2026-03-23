@@ -112,6 +112,8 @@ export interface UpdateLoanDto {
   loanSource?: 'walkin' | 'online';
   tenure?: number;
   remarks?: string;
+  branchId?: string;
+  organisation?: string;
 }
 
 export interface LoanFilters {

@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/Toast';
 import { CreateProductDto, ProductType, RepaymentFrequency, LoanProductStatus } from '@/services/products';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { useLoanCategories } from '@/hooks/useLoanCategories';
+import { getOrganisationId, isAdmin } from '@/lib/auth';
 import { useInterestProfitTerm } from '@/hooks/useInterestProfitTerm';
 import { LoanCategory } from '@/services/loan-categories.service';
 
@@ -19,6 +20,7 @@ export default function AddProductPage() {
   const { addToast } = useToast();
   const { organizations } = useOrganizations();
   const { categories } = useLoanCategories();
+  const isUserAdmin = isAdmin();
   const { rateLabel } = useInterestProfitTerm();
   const lastAutoFilledCategory = useRef<string | null>(null);
   
@@ -180,6 +182,23 @@ export default function AddProductPage() {
     }
   }, [formData.category, categories]);
 
+  // Preselect organisation from user profile
+  useEffect(() => {
+    const orgId = getOrganisationId();
+    setFormData(prev => ({ ...prev, ...(orgId && { organisation: orgId }) }));
+  }, []);
+
+  // For admins: if no organisation set from profile, default to first organisation once loaded
+  useEffect(() => {
+    if (!isUserAdmin) return;
+    if (formData.organisation) return;
+    if (!organizations || organizations.length === 0) return;
+    const first = organizations[0];
+    const firstId = String(first._id || first.id || '');
+    if (!firstId) return;
+    setFormData(prev => ({ ...prev, organisation: firstId }));
+  }, [isUserAdmin, organizations, formData.organisation]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
@@ -246,11 +265,25 @@ export default function AddProductPage() {
                 label="Organisation *"
                 value={formData.organisation || ''}
                 onChange={handleInputChange}
+                disabled={true}
                 required
-                options={[
-                  { value: '', label: 'Select Organisation' },
-                  ...organizations.map((org:any) => ({ value: org._id, label: org.organisationName })),
-                ]}
+                options={
+                  isUserAdmin
+                    ? [
+                        { value: '', label: 'Select Organisation' },
+                        ...(organizations || []).map((org: any) => ({
+                          value: org._id || org.id || '',
+                          label: org.organisationName || (org as any).organizationName || org.name || 'Unknown',
+                        })),
+                      ]
+                    : (() => {
+                        const currentId = formData.organisation || getOrganisationId() || '';
+                        const match = (organizations || []).find((o) => String(o._id || o.id) === String(currentId));
+                        return match
+                          ? [{ value: String(match._id || match.id), label: match.organisationName || (match as any).organizationName || match.name || 'Unknown' }]
+                          : currentId ? [{ value: String(currentId), label: 'Current Organisation' }] : [{ value: '', label: 'Select Organisation' }];
+                      })()
+                }
               />
               <Select
                 name="category"

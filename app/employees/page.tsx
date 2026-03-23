@@ -37,14 +37,12 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useEmployeeMutations } from '@/hooks/useEmployeeMutations';
 import { Employee } from '@/services/employee.service';
 import { useBranches } from '@/hooks/useBranches';
-import { useOrganizations } from '@/hooks/useOrganizations';
 import { INDIAN_STATES, CITIES_BY_STATE } from '@/lib/indiaData';
 
 export default function EmployeesPage() {
   const router = useRouter();
   const { employees, loading, error, refetch, filters, setFilters } = useEmployees();
   const { branches } = useBranches();
-  const { organizations } = useOrganizations();
   const { addToast } = useToast();
   const { deleteEmployee } = useEmployeeMutations();
   const [currentPage, setCurrentPage] = useState(1);
@@ -434,18 +432,6 @@ export default function EmployeesPage() {
                 onChange={handleSearchChange}
                 leftIcon={<Search className="h-4 w-4" />}
                 className="min-h-[40px]"
-              />
-            </div>
-            <div className="w-full sm:w-[180px] md:w-[200px]">
-              <Select
-                name="organisation"
-                value={filters.organisation || ''}
-                onChange={handleFilterChange}
-                className="min-h-[40px] py-2.5 leading-normal"
-                options={[
-                  { value: '', label: 'All Organizations' },
-                  ...organizations.map(org => ({ value: org._id || org.id || '', label: org.organisationName || org.organizationName || org.name || 'Unknown' }))
-                ]}
               />
             </div>
             <div className="w-full sm:w-[180px] md:w-[200px]">

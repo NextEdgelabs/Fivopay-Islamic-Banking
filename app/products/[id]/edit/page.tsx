@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/Toast';
 import { UpdateProductDto, ProductType, RepaymentFrequency, LoanProductStatus, LoanProduct } from '@/services/products';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { useLoanCategories } from '@/hooks/useLoanCategories';
+import { getOrganisationId, isAdmin } from '@/lib/auth';
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function EditProductPage() {
   const { addToast } = useToast();
   const { organizations } = useOrganizations();
   const { categories } = useLoanCategories();
+  const isUserAdmin = isAdmin();
   
   const [formData, setFormData] = useState<Partial<UpdateProductDto>>({});
 
@@ -33,7 +35,7 @@ export default function EditProductPage() {
         _id: product._id,
         productName: product.productName,
         description: product.description,
-        organisation: product.organisation,
+        organisation: typeof product.organisation === 'string' ? product.organisation : (product.organisation as any)?._id || (product.organisation as any)?.id || '',
         category: product.category,
         productType: product.productType,
         minLoanAmount: product.minLoanAmount,
@@ -144,11 +146,25 @@ export default function EditProductPage() {
                 label="Organisation *"
                 value={formData.organisation || ''}
                 onChange={handleInputChange}
+                disabled={true}
                 required
-                options={[
-                  { value: '', label: 'Select Organisation' },
-                  ...organizations.map((org:any) => ({ value: org._id, label: org.organisationName })),
-                ]}
+                options={
+                  isUserAdmin
+                    ? [
+                        { value: '', label: 'Select Organisation' },
+                        ...(organizations || []).map((org: any) => ({
+                          value: org._id || org.id || '',
+                          label: org.organisationName || (org as any).organizationName || org.name || 'Unknown',
+                        })),
+                      ]
+                    : (() => {
+                        const currentId = formData.organisation || getOrganisationId() || '';
+                        const match = (organizations || []).find((o) => String(o._id || o.id) === String(currentId));
+                        return match
+                          ? [{ value: String(match._id || match.id), label: match.organisationName || (match as any).organizationName || match.name || 'Unknown' }]
+                          : currentId ? [{ value: String(currentId), label: 'Current Organisation' }] : [{ value: '', label: 'Select Organisation' }];
+                      })()
+                }
               />
               <Select
                 name="category"

@@ -516,7 +516,7 @@ export default function EditCustomerPage() {
               value={formData.organisation || ''}
               onChange={handleChange}
               error={errors.organisation}
-              disabled={!isUserAdmin}
+              disabled={true}
               required={organizations.length > 0}
               options={
                 isUserAdmin
